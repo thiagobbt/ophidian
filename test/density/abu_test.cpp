@@ -44,14 +44,14 @@ bool run_circuit(const std::string & ckt_name, const double target_utilization, 
     std::unique_ptr<parsing::lef> lef;
     std::unique_ptr<parsing::def> def;
 
-#pragma omp single nowait
-    {
-#pragma omp task shared(lef, dot_lef_file)
+//#pragma omp single nowait
+//    {
+//#pragma omp task shared(lef, dot_lef_file)
         lef.reset(new parsing::lef(dot_lef_file));
-#pragma omp task shared(def, dot_def_file)
+//#pragma omp task shared(def, dot_def_file)
         def.reset(new parsing::def(dot_def_file));
-    }
-#pragma omp taskwait
+//    }
+//#pragma omp taskwait
 
     placement::lef2library(*lef, lib);
     placement::def2placement(*def, cells);

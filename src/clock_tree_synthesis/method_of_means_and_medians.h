@@ -53,6 +53,7 @@ public:
     method_of_means_and_medians();
     ~method_of_means_and_medians();
 
+    //TODO: deixar constante clock_source e flip_flop_positions
     void build_topology(point clock_source, std::vector<point> & flip_flop_positions, clock_topology & clock_topology);
 };
 }
