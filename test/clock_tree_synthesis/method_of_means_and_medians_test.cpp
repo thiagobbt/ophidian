@@ -21,6 +21,8 @@ under the License.
 
 #include "../catch.hpp"
 #include "method_of_means_and_medians.h"
+#include "embedding.h"
+#include "delay_capacitance_map.h"
 
 TEST_CASE("method of means and medians/ build topology of network with 8 flip flops","[mmm]") {
     std::vector<ophidian::geometry::point<double>> flip_flop_positions = {
@@ -37,7 +39,8 @@ TEST_CASE("method of means and medians/ build topology of network with 8 flip fl
 
     ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
     ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    mmm.build_topology(clock_source, flip_flop_positions, clock_topology);
+    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
         {1, 1},
@@ -60,7 +63,7 @@ TEST_CASE("method of means and medians/ build topology of network with 8 flip fl
     REQUIRE(clock_topology.nodes_count() == expected_node_positions.size());
     auto & graph = clock_topology.graph();
     for (auto node_it = lemon::ListDigraph::NodeIt(graph); node_it != lemon::INVALID; ++node_it) {
-        auto node_position = clock_topology.node_position(node_it);
+        auto node_position = embedding.node_position(node_it);
         bool found = false;
         for (auto position : expected_node_positions) {
             if (position.x() == Approx(node_position.x()) && position.y() == Approx(node_position.y())) {
@@ -84,7 +87,8 @@ TEST_CASE("method of means and medians/ build topology of network with 6 flip fl
 
     ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
     ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    mmm.build_topology(clock_source, flip_flop_positions, clock_topology);
+    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
         {1, 1},
@@ -103,7 +107,7 @@ TEST_CASE("method of means and medians/ build topology of network with 6 flip fl
     REQUIRE(clock_topology.nodes_count() == expected_node_positions.size());
     auto & graph = clock_topology.graph();
     for (auto node_it = lemon::ListDigraph::NodeIt(graph); node_it != lemon::INVALID; ++node_it) {
-        auto node_position = clock_topology.node_position(node_it);
+        auto node_position = embedding.node_position(node_it);
         bool found = false;
         for (auto position : expected_node_positions) {
             if (position.x() == Approx(node_position.x()) && position.y() == Approx(node_position.y())) {
@@ -130,7 +134,8 @@ TEST_CASE("method of means and medians/ build topology of network with 9 flip fl
 
     ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
     ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    mmm.build_topology(clock_source, flip_flop_positions, clock_topology);
+    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
         {1, 1},
@@ -155,7 +160,7 @@ TEST_CASE("method of means and medians/ build topology of network with 9 flip fl
     REQUIRE(clock_topology.nodes_count() == expected_node_positions.size());
     auto & graph = clock_topology.graph();
     for (auto node_it = lemon::ListDigraph::NodeIt(graph); node_it != lemon::INVALID; ++node_it) {
-        auto node_position = clock_topology.node_position(node_it);
+        auto node_position = embedding.node_position(node_it);
         bool found = false;
         for (auto position : expected_node_positions) {
             if (position.x() == Approx(node_position.x()) && position.y() == Approx(node_position.y())) {

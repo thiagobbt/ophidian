@@ -36,35 +36,17 @@ public:
     using edge = graph_t::Arc;
 private:
     graph_t m_graph;
-    graph_t::NodeMap<point> m_positions;
-    graph_t::NodeMap<double> m_delays;
-    graph_t::NodeMap<double> m_capacitances;
 
 public:
 
     clock_topology();
     ~clock_topology();
 
-    node node_create(point position);
+    node node_create();
 
     std::size_t nodes_count() const {
         return lemon::countNodes(m_graph);
     }
-
-    point node_position(node graph_node) const {
-        return m_positions[graph_node];
-    }
-    void node_position(node graph_node, point position);
-
-    double node_delay(node graph_node) const {
-        return m_delays[graph_node];
-    }
-    void node_delay(node graph_node, double delay);
-
-    double node_capacitance(node graph_node) const {
-        return m_capacitances[graph_node];
-    }
-    void node_capacitance(node graph_node, double capacitance);
 
     void node_children(node graph_node, std::vector<node> & children);
     node node_parent(node graph_node);

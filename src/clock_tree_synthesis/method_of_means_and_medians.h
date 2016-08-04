@@ -23,6 +23,7 @@ under the License.
 #define METHOD_OF_MEANS_AND_MEDIANS_H
 
 #include "clock_topology.h"
+#include "embedding.h"
 #include "../geometry/geometry.h"
 
 namespace ophidian {
@@ -46,15 +47,15 @@ public:
         };
 
 private:
-    void build_topology(clock_topology::node parent_node, std::vector<point>::iterator positions_begin, std::vector<point>::iterator positions_end, clock_topology & clock_topology, bool sort_by_x_coordinate);
+    void build_topology(clock_topology::node parent_node, std::vector<point>::iterator positions_begin, std::vector<point>::iterator positions_end, clock_tree_synthesis::clock_topology & clock_topology, clock_tree_synthesis::embedding & embedding, bool sort_by_x_coordinate);
 
     point calculate_center_of_mass(std::vector<point>::iterator positions_begin, std::vector<point>::iterator positions_end);
 public:
     method_of_means_and_medians();
     ~method_of_means_and_medians();
 
-    //TODO: deixar constante clock_source e flip_flop_positions
-    void build_topology(point clock_source, std::vector<point> & flip_flop_positions, clock_topology & clock_topology);
+    void build_topology(const point clock_source, const std::vector<point> & flip_flop_positions, clock_tree_synthesis::clock_topology & clock_topology, clock_tree_synthesis::embedding & embedding);
+    void build_topology(const point clock_source, const std::vector<point> & flip_flop_positions, clock_tree_synthesis::clock_topology & clock_topology);
 };
 }
 }
