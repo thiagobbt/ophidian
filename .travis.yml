@@ -3,6 +3,13 @@ language: cpp
 sudo: required
 dist: trusty
 
+addons:
+  apt:
+    sources:
+      - boost-latest
+    packages:
+      - libboost1.59-all-dev
+
 compiler:
     - gcc
     - clang
