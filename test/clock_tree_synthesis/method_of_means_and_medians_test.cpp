@@ -37,9 +37,9 @@ TEST_CASE("method of means and medians/ build topology of network with 8 flip fl
     };
     ophidian::geometry::point<double> clock_source(5, 0);
 
-    ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
-    ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    ophidian::clock_tree_synthesis::method_of_means_and_medians<double> mmm;
+    ophidian::clock_tree_synthesis::clock_topology<double> clock_topology;
+    ophidian::clock_tree_synthesis::embedding<double> embedding(clock_topology.graph());
     mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
@@ -85,9 +85,9 @@ TEST_CASE("method of means and medians/ build topology of network with 6 flip fl
     };
     ophidian::geometry::point<double> clock_source(5, 0);
 
-    ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
-    ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    ophidian::clock_tree_synthesis::method_of_means_and_medians<double> mmm;
+    ophidian::clock_tree_synthesis::clock_topology<double> clock_topology;
+    ophidian::clock_tree_synthesis::embedding<double> embedding(clock_topology.graph());
     mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
@@ -132,9 +132,9 @@ TEST_CASE("method of means and medians/ build topology of network with 9 flip fl
     };
     ophidian::geometry::point<double> clock_source(5, 0);
 
-    ophidian::clock_tree_synthesis::method_of_means_and_medians mmm;
-    ophidian::clock_tree_synthesis::clock_topology clock_topology;
-    ophidian::clock_tree_synthesis::embedding embedding(clock_topology.graph());
+    ophidian::clock_tree_synthesis::method_of_means_and_medians<double> mmm;
+    ophidian::clock_tree_synthesis::clock_topology<double> clock_topology;
+    ophidian::clock_tree_synthesis::embedding<double> embedding(clock_topology.graph());
     mmm.build_topology(clock_source, flip_flop_positions, clock_topology, embedding);
 
     std::vector<ophidian::geometry::point<double>> expected_node_positions = {
