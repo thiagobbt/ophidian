@@ -28,8 +28,5 @@ before_script:
   - cd build
   - cmake ..
 
-script: 
-  - make
-  - cd tests
-  - ctest
+script: make && make test
 

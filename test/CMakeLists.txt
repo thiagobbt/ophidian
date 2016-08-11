@@ -24,8 +24,7 @@ add_subdirectory (parsing)
 
 add_executable( run_tests ${SOURCE} ${HEADERS} )
 
-enable_testing()
-add_test(NAME unit_tests COMMAND run_tests)
+add_test(unit_tests run_tests)
 
 target_link_libraries ( run_tests LINK_PUBLIC entity_system standard_cell netlist parsing placement floorplan interconnection timing timing-driven_placement density legalization abacus routing clock_tree_synthesis register_clustering emon )
 
