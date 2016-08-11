@@ -30,5 +30,6 @@ before_script:
 
 script: 
   - make
-  - ./tests/run_tests
+  - cd tests
+  - ./run_tests
 
