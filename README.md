@@ -1,3 +1,5 @@
+<img src="https://travis-ci.org/eclufsc/ophidian.svg?branch=travis" >
+
 <img src="https://raw.githubusercontent.com/eclufsc/ophidian/master/logo.png" width=200>
 Ophidian
 ========
