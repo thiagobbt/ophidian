@@ -31,5 +31,5 @@ before_script:
 script: 
   - make
   - cd tests
-  - ./run_tests
+  - ctest
 
