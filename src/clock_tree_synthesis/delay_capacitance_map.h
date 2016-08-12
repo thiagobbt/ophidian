@@ -8,11 +8,10 @@
 namespace ophidian {
 namespace clock_tree_synthesis {
 
-template <class PointType>
+
 class delay_capacitance_map
 {
 public:
-    using point = geometry::point<PointType>;
     using graph_t = lemon::ListDigraph;
     using node = graph_t::Node;
 private:
@@ -28,7 +27,6 @@ public:
     {
 
     }
-
 
     double node_delay(node graph_node) const {
         return m_delays[graph_node];

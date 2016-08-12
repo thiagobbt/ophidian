@@ -2,13 +2,12 @@
 #define EMBEDDING_H
 
 #include <lemon/list_graph.h>
-
+#include "clock_tree_definition.h"
 #include "../geometry/geometry.h"
 
 namespace ophidian {
 namespace clock_tree_synthesis {
 
-template <class PointType>
 class embedding
 {
 public:
@@ -23,6 +22,7 @@ public:
     {
 
     }
+
     ~embedding()
     {
 
@@ -36,7 +36,6 @@ public:
     {
         m_positions[graph_node] = position;
     }
-
 
 };
 }

@@ -28,10 +28,12 @@
 
 //namespace ophidian {
 //namespace clock_tree_synthesis {
+
+//template <class PointType>
 //class deffered_merge_embedding
 //{
 //public:
-//    using point = geometry::point<double>;
+//    using point = geometry::point<PointType>;
 //    using segment = geometry::segment<point>;
 //    using box = geometry::box<point>;
 
@@ -149,12 +151,38 @@
 
 //    std::pair<double, double> calculate_edge_length(clock_topology::node node_a, clock_topology::node node_b, clock_topology &topology);
 //    double distance(const segment & merging_segment, const point & target_point);
-//    double distance(const segment & merging_segment1, const segment & merging_segment2);
-//public:
-//    deffered_merge_embedding(double resistance_per_unit = 1.0, double capacitance_per_unit = 1.0);
-//    ~deffered_merge_embedding();
 
-//    void run_deffered_merge_embedding(clock_topology & topology);
+//    double distance(const segment & merging_segment1, const segment & merging_segment2)
+//    {
+//        double distance1 = distance(merging_segment1, merging_segment2.first);
+//        double distance2 = distance(merging_segment1, merging_segment2.second);
+//        return std::min(distance1, distance2);
+//    }
+//public:
+//    deffered_merge_embedding(double resistance_per_unit = 1.0, double capacitance_per_unit = 1.0)
+//        : m_resistance_per_unit(resistance_per_unit), m_capacitance_per_unit(capacitance_per_unit){
+
+//    }
+
+//    ~deffered_merge_embedding()
+//    {
+
+//    }
+
+//    void run_deffered_merge_embedding(clock_topology<PointType> & topology)
+//    {
+//        std::vector<clock_topology::node> sorted_nodes(topology.nodes_count());
+//        clock_topology::graph_t::NodeMap<unsigned> order(topology.graph());
+//        lemon::topologicalSort(topology.graph(), order);
+//        for (auto node_it = clock_topology::graph_t::NodeIt(topology.graph()); node_it != lemon::INVALID; ++node_it) {
+//            sorted_nodes[order[node_it]] = node_it;
+//        }
+
+//        clock_topology::graph_t::NodeMap<segment> merging_segments(topology.graph());
+//        clock_topology::graph_t::NodeMap<trr> trrs(topology.graph());
+//        build_tree_of_segments(sorted_nodes, merging_segments, trrs, clock_topology);
+//        find_exact_locations(sorted_nodes, merging_segments, clock_topology);
+//    }
 //};
 //}
 //}

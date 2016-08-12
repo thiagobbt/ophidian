@@ -22,15 +22,18 @@ under the License.
 #ifndef METHOD_OF_MEANS_AND_MEDIANS_H
 #define METHOD_OF_MEANS_AND_MEDIANS_H
 
-#include "clock_topology.h"
+#include "clock_tree_definition.h"
+#include "clock_tree_algorithm.h"
+#include "topology.h"
 #include "embedding.h"
 #include "../geometry/geometry.h"
+
 
 namespace ophidian {
 namespace clock_tree_synthesis {
 
-template <class PointType>
-class method_of_means_and_medians
+
+class method_of_means_and_medians : public clock_tree_algorithm
 {
 public:
     using point = geometry::point<PointType>;
@@ -46,65 +49,18 @@ public:
             }
         private:
             bool m_sort_by_x_coordinate;
-        };
+   };
 
 private:
-    void build_topology(typename clock_topology<PointType>::node parent_node, typename std::vector<point>::iterator positions_begin, typename std::vector<point>::iterator positions_end, clock_topology<PointType> &topology, embedding<PointType> & embedding, bool sort_by_x_coordinate)
-    {
-        point center_of_mass = calculate_center_of_mass(positions_begin, positions_end);
-        auto center_of_mass_node = topology.node_create();
-        embedding.node_position(center_of_mass_node, center_of_mass);
-        topology.edge_create(parent_node, center_of_mass_node);
-
-        auto size = std::distance(positions_begin, positions_end);
-        if (size > 1) {
-            std::sort(positions_begin, positions_end, coordinate_comparator(sort_by_x_coordinate));
-            auto positions_middle = std::next(positions_begin, std::ceil(size / 2.0));
-            build_topology(center_of_mass_node, positions_begin, positions_middle, topology, embedding, !sort_by_x_coordinate);
-            build_topology(center_of_mass_node, positions_middle, positions_end, topology, embedding, !sort_by_x_coordinate);
-        }
-    }
-
-    point calculate_center_of_mass(typename std::vector<point>::iterator positions_begin, typename std::vector<point>::iterator positions_end)
-    {
-        std::size_t size = std::distance(positions_begin, positions_end);
-        point center_of_mass{0.0, 0.0};
-        for (auto position = positions_begin; position != positions_end; ++position) {
-            center_of_mass.x(center_of_mass.x() + position->x());
-            center_of_mass.y(center_of_mass.y() + position->y());
-        }
-        center_of_mass.x(center_of_mass.x() / (double)size);
-        center_of_mass.y(center_of_mass.y() / (double)size);
-        return center_of_mass;
-    }
+    void build_topology_internal( topology::node parent_node, std::vector<point>::iterator positions_begin, std::vector<point>::iterator positions_end, topology &clock_topology, embedding &embedding_for_sinks, bool sort_by_x_coordinate);
 
 public:
-    method_of_means_and_medians()
-    {
+    method_of_means_and_medians();
+    ~method_of_means_and_medians();
 
-    }
+    void build_topology(const point & clock_source, const std::vector<point> & flip_flop_positions, clock_tree_synthesis::topology & clock_topology, embedding &embedding_for_sinks);
+    void build(const topology & clock_topology, embedding & embedding);
 
-    ~method_of_means_and_medians()
-    {
-
-    }
-
-    void build_topology(const point clock_source, const std::vector<point> & flip_flop_positions, clock_tree_synthesis::clock_topology<PointType> &clock_topology, clock_tree_synthesis::embedding<PointType> &embedding)
-    {
-        std::vector<method_of_means_and_medians<PointType>::point> flip_flop_positions_copy = flip_flop_positions;
-        auto source_node = clock_topology.node_create();
-        embedding.node_position(source_node, clock_source);
-        build_topology(source_node, flip_flop_positions_copy.begin(), flip_flop_positions_copy.end(), clock_topology, embedding, true);
-    }
-
-    void build_topology(const point clock_source, const std::vector<point> & flip_flop_positions, clock_tree_synthesis::clock_topology<PointType> & clock_topology)
-    {
-        clock_tree_synthesis::embedding<PointType> embedding(clock_topology.graph());
-        std::vector<method_of_means_and_medians::point> flip_flop_positions_copy = flip_flop_positions;
-        auto source_node = clock_topology.node_create();
-        embedding.node_position(source_node, clock_source);
-        build_topology(source_node, flip_flop_positions_copy.begin(), flip_flop_positions_copy.end(), clock_topology, embedding, true);
-    }
 };
 
 }

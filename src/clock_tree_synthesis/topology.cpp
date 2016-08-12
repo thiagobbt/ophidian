@@ -18,7 +18,7 @@ specific language governing permissions and limitations
 under the License.
  */
 
-#include "clock_topology.h"
+#include "topology.h"
 
 namespace ophidian {
 namespace clock_tree_synthesis {

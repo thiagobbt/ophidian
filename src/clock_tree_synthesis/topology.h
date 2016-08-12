@@ -22,34 +22,34 @@ under the License.
 #define CLOCK_TOPOLOGY_H
 
 #include <lemon/list_graph.h>
-
 #include "../geometry/geometry.h"
 
 namespace ophidian {
 namespace clock_tree_synthesis {
 
-template <class PointType>
-class clock_topology
+class topology
 {
 public:
-    using point = geometry::point<PointType>;
     using graph_t = lemon::ListDigraph;
     using node = graph_t::Node;
     using edge = graph_t::Arc;
 private:
     graph_t m_graph;
-
 public:
+    topology()
+    {
 
-    clock_topology(){}
-    ~clock_topology(){}
+    }
+    ~topology()
+    {
+
+    }
 
     node node_create()
     {
         auto node = m_graph.addNode();;
         return node;
     }
-
 
     std::size_t nodes_count() const {
         return lemon::countNodes(m_graph);
@@ -61,6 +61,7 @@ public:
             children.push_back(m_graph.target(arc_it));
         }
     }
+
 
     node node_parent(node graph_node)
     {
