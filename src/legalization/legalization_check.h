@@ -23,8 +23,8 @@ under the License.
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
-#include "placement.h"
-#include "floorplan.h"
+#include "../placement/placement.h"
+#include "../floorplan/floorplan.h"
 
 namespace ophidian {
 namespace legalization {

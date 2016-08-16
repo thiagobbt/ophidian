@@ -24,7 +24,7 @@ add_subdirectory (parsing)
 
 add_executable( run_tests ${SOURCE} ${HEADERS} )
 
-target_link_libraries ( run_tests LINK_PUBLIC entity_system standard_cell netlist parsing placement floorplan interconnection timing timing-driven_placement density legalization abacus routing clock_tree_synthesis register_clustering emon )
+target_link_libraries ( run_tests LINK_PUBLIC entity_system standard_cell netlist parsing placement floorplan interconnection timing timing-driven_placement density legalization legalization_algorithms routing clock_tree_synthesis register_clustering emon )
 
 add_custom_command(
         TARGET run_tests POST_BUILD

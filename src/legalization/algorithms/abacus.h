@@ -71,7 +71,7 @@ class abacus : public legalization {
     void align_cells();
     void align_position(point & position);
 
-    void place_row(entity_system::entity subrow);
+    void place_row(entity_system::entity subrow, std::vector<std::pair<entity_system::entity, point> > &abacus_cell_positions);
 
     void collapse(std::list<cluster> & clusters, std::list<cluster>::iterator cluster_it, double x_min, double x_max, double y);
 public:

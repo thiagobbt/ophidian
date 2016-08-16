@@ -1,5 +1,5 @@
 find_package( Boost 1.59 )
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
-add_library (abacus abacus.cpp abacus.h cells.cpp cells.h subrows.cpp subrows.h)
-target_include_directories ( abacus PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries( abacus ${Boost_LIBRARIES} entity_system legalization parsing)
+add_library (legalization_algorithms abacus.cpp abacus.h cells.cpp cells.h subrows.cpp subrows.h)
+target_include_directories ( legalization_algorithms PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries( legalization_algorithms ${Boost_LIBRARIES} entity_system legalization parsing)

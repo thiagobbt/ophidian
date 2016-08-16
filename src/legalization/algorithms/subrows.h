@@ -21,10 +21,10 @@ under the License.
 #ifndef OPHIDIAN_ABACUS_SUBROWS_H
 #define OPHIDIAN_ABACUS_SUBROWS_H
 
-#include <vector_property.h>
-#include <placement.h>
+#include "../../entity_system/vector_property.h"
+#include "../../placement/placement.h"
 #include "../subrows.h"
-#include "entity.h"
+#include "../../entity_system/entity.h"
 
 namespace ophidian {
 namespace legalization {

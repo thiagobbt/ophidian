@@ -154,7 +154,7 @@ namespace ophidian {
               \param point Point to query for the row.
               \return The closest row to that point
              */
-            entity_system::entity find_closest_row(point point);
+            entity_system::entity find_closest_row(point point) const;
 
             /// Returns the number of rows.
             /**

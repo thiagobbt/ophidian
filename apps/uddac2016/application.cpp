@@ -163,8 +163,11 @@ void application::reset()
 std::vector<std::pair<entity_system::entity, geometry::multi_polygon<geometry::polygon<geometry::point<double> > > > > application::cells_geometries() const
 {
     std::vector<std::pair<entity_system::entity, geometry::multi_polygon<geometry::polygon<geometry::point<double> > > > > geometries;
-    for(auto cell : m_netlist->cell_system())
-        geometries.push_back({cell, m_placement->cell_geometry(cell)});
+    for(auto cell : m_netlist->cell_system()) {
+        if (m_std_cells->cell_name(m_netlist->cell_std_cell(cell)).find("DFF") != std::string::npos) {
+            geometries.push_back({cell, m_placement->cell_geometry(cell)});
+        }
+    }
     return geometries;
 }
 

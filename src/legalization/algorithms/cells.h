@@ -21,8 +21,8 @@ under the License.
 #ifndef OPHIDIAN_ABACUS_CELLS_H
 #define OPHIDIAN_ABACUS_CELLS_H
 
-#include <vector_property.h>
-#include "entity_system.h"
+#include "../../entity_system/vector_property.h"
+#include "../../entity_system/entity_system.h"
 #include "../../geometry/geometry.h"
 
 namespace ophidian {

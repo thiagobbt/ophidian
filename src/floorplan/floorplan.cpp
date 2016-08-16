@@ -80,7 +80,7 @@ namespace floorplan {
         return found_nodes.front().second;
     }
 
-    entity_system::entity floorplan::find_closest_row(floorplan::point point)
+    entity_system::entity floorplan::find_closest_row(floorplan::point point) const
     {
         std::vector<rtree_node> found_nodes;
         m_rows_rtree.query(boost::geometry::index::nearest(point, 1), std::back_inserter(found_nodes));

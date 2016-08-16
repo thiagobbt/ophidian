@@ -21,11 +21,11 @@ under the License.
 #ifndef OPHIDIAN_LEGALIZATION_H
 #define OPHIDIAN_LEGALIZATION_H
 
-#include "floorplan.h"
-#include "placement.h"
+#include "../floorplan/floorplan.h"
+#include "../placement/placement.h"
 #include "subrows.h"
 #include "extract_obstacles.h"
-#include <entity_system.h>
+#include "../entity_system/entity_system.h"
 
 namespace ophidian {
 namespace legalization {

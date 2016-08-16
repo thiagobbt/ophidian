@@ -64,9 +64,11 @@ void abacus::legalize_placement() {
                 }
                 m_cells.position(abacus_cell, target_position);
                 if (m_abacus_subrows.insert_cell(trial_subrow, abacus_cell, cell_dimensions.x())) {
-                    place_row(trial_subrow);
-                    auto last_cell = m_abacus_subrows.cells(trial_subrow).back();
-                    point last_cell_position = m_cells.position(last_cell);
+                    std::vector<std::pair<entity_system::entity, point>> abacus_cell_positions;
+                    place_row(trial_subrow, abacus_cell_positions);
+//                    auto last_cell = m_abacus_subrows.cells(trial_subrow).back();
+//                    point last_cell_position = m_cells.position(last_cell);
+                    point last_cell_position = abacus_cell_positions.back().second;
                     double cost = std::abs(last_cell_position.x() - cell_position.x()) + std::abs(last_cell_position.y() - cell_position.y());
                     if (cost < best_cost) {
                         best_cost = cost;
@@ -88,7 +90,11 @@ void abacus::legalize_placement() {
         }
         m_cells.position(abacus_cell, final_position);
         if (m_abacus_subrows.insert_cell(best_subrow, abacus_cell, cell_dimensions.x())) {
-            place_row(best_subrow);
+            std::vector<std::pair<entity_system::entity, point>> abacus_cell_positions;
+            place_row(best_subrow, abacus_cell_positions);
+            for (auto cell_position : abacus_cell_positions) {
+                m_cells.position(cell_position.first, cell_position.second);
+            }
         } else {
             assert(false);
         }
@@ -121,7 +127,7 @@ void abacus::align_position(point &position)
     position.y(row_origin.y());
 }
 
-void abacus::place_row(entity_system::entity subrow) {
+void abacus::place_row(entity_system::entity subrow, std::vector<std::pair<entity_system::entity, point>> & abacus_cell_positions) {
     std::list<cluster> clusters;
     auto cells = m_abacus_subrows.cells(subrow);
     for (auto cell : cells) {
@@ -142,6 +148,7 @@ void abacus::place_row(entity_system::entity subrow) {
     }
 
     auto & subrow_cells = m_abacus_subrows.cells(subrow);
+    abacus_cell_positions.reserve(subrow_cells.size());
     double subrow_y = m_floorplan->row_origin(m_subrows.row(subrow)).y();
     auto cell_it = subrow_cells.begin();
     for (auto & cluster : clusters) {
@@ -149,7 +156,10 @@ void abacus::place_row(entity_system::entity subrow) {
         unsigned i = m_cells.order_id(*cell_it);
         while (i <= cluster.m_last_order_id) {
             point cell_position(x, subrow_y);
-            m_cells.position(*cell_it, cell_position);
+            abacus_cell_positions.push_back(std::make_pair(*cell_it, cell_position));
+//            if (!trial) {
+//                m_cells.position(*cell_it, cell_position);
+//            }
             x += m_cells.width(*cell_it);
             cell_it++;
             if (cell_it != subrow_cells.end()) {
