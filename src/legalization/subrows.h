@@ -36,6 +36,8 @@ using rtree_node = std::pair<box, entity_system::entity>;
 using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16>>;
 class subrows {
 
+    const floorplan::floorplan & m_floorplan;
+
     entity_system::entity_system & m_system;
 
     entity_system::vector_property<double> m_begin;
@@ -46,8 +48,8 @@ class subrows {
     rtree subrows_rtree;
 public:
 
-    subrows(entity_system::entity_system & system)
-        : m_system(system){
+    subrows(const floorplan::floorplan & floorplan, entity_system::entity_system & system)
+        : m_floorplan(floorplan), m_system(system){
         m_system.register_property(&m_begin);
         m_system.register_property(&m_end);
         m_system.register_property(&m_y);
@@ -58,7 +60,9 @@ public:
         return m_system.size();
     }
 
-    void create_subrows(floorplan::floorplan * floorplan, const std::vector<multi_polygon> & obstacles);
+    void create_subrows(const std::vector<multi_polygon> & obstacles);
+
+    void add_obstacle(const box obstacle);
 
     double begin(entity_system::entity subrow) const {
         return m_begin[m_system.lookup(subrow)];

@@ -26,9 +26,11 @@ under the License.
 #include "../timing/generic_sta.h"
 #include "../timing/ceff.h"
 #include "../placement/placement.h"
-#include "floorplan.h"
+#include "../floorplan/floorplan.h"
 #include "../timing/endpoints.h"
 #include "flute_rc_tree_estimation.h"
+#include "../parsing/tau2014/linear_library.h"
+#include "../timing/tau2015lib2library.h"
 
 #include "../timing/static_timing_analysis.h"
 

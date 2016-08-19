@@ -44,7 +44,7 @@ protected:
 public:
 
     legalization(floorplan::floorplan * floorplan, placement::placement *placement)
-        : m_subrows(m_subrows_system), m_floorplan(floorplan), m_placement(placement) {
+        : m_subrows(*floorplan, m_subrows_system), m_floorplan(floorplan), m_placement(placement) {
         create_subrows();
     }
     virtual ~legalization() {}

@@ -196,11 +196,21 @@ void timingdriven_placement::update_timing()
         m_lib_early.reset(new timing::library{m_tarcs.get(), &m_std_cells});
 #pragma omp critical
         {
-            timing::liberty::read(m_dot_lib_late, *m_lib_late);
+            if (m_dot_lib_late.find("cell.lib") != std::string::npos) {
+                parsing::tau2014::linear_library linear_library(m_dot_lib_late);
+                timing::tau2015lib2library(linear_library, *m_lib_late);
+            } else {
+                timing::liberty::read(m_dot_lib_late, *m_lib_late);
+            }
         }
 #pragma omp critical
         {
-            timing::liberty::read(m_dot_lib_early, *m_lib_early);
+            if (m_dot_lib_late.find("cell.lib") != std::string::npos) {
+                parsing::tau2014::linear_library linear_library(m_dot_lib_early);
+                timing::tau2015lib2library(linear_library, *m_lib_early);
+            } else {
+                timing::liberty::read(m_dot_lib_early, *m_lib_early);
+            }
         }
         for(auto out_load : m_dc.output_loads)
         {
