@@ -49,9 +49,9 @@ TEST_CASE("density/ abu of simple","[density][abu]") {
 
 #pragma omp single nowait
     {
-#pragma omp task shared(lef, dot_lef_file)
+#pragma omp task shared(lef)
         lef.reset(new parsing::lef(dot_lef_file));
-#pragma omp task shared(def, dot_def_file)
+#pragma omp task shared(def)
         def.reset(new parsing::def(dot_def_file));
     }
 #pragma omp taskwait
