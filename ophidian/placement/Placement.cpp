@@ -23,6 +23,7 @@ namespace placement {
 
 Placement::Placement(const circuit::Netlist &netlist): 
     cellLocations_(netlist.makeProperty<util::Location>(circuit::Cell())),
+    cellFixed_(netlist.makeProperty<bool>(circuit::Cell())),
     inputLocations_(netlist.makeProperty<util::Location>(circuit::Input())),
     outputLocations_(netlist.makeProperty<util::Location>(circuit::Output()))
     { }
@@ -55,6 +56,11 @@ void Placement::placeOutputPad(const circuit::Output &output, const util::Locati
 util::Location Placement::outputPadLocation(const circuit::Output &output) const
 {
     return outputLocations_[output];
+}
+
+void Placement::fixLocation(const circuit::Cell &cell, bool fixed)
+{
+    cellFixed_[cell] = fixed;
 }
 
 

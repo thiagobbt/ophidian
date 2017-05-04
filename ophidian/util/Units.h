@@ -163,6 +163,10 @@ public:
         return boxes_.end();
     }
 
+    const geometry::Box & operator[](std::size_t index) const {
+        return boxes_[index];
+    }
+
     bool operator==(const MultiBox & other) const {
         for (auto box1 : this->boxes_) {
             for (auto box2 : other.boxes_) {

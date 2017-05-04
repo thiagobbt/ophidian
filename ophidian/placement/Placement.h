@@ -70,10 +70,17 @@ public:
 
     util::Location outputPadLocation(const circuit::Output & output) const;
 
+    void fixLocation(const circuit::Cell & cell, bool fixed);
+
+    bool isFixed(const circuit::Cell & cell) const {
+        return cellFixed_[cell];
+    }
+
 
 
 private:
     entity_system::Property<circuit::Cell, util::Location> cellLocations_;
+    entity_system::Property<circuit::Cell, bool> cellFixed_;
     entity_system::Property<circuit::Input, util::Location> inputLocations_;
     entity_system::Property<circuit::Output, util::Location> outputLocations_;
 };
