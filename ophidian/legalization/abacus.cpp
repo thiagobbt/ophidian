@@ -56,7 +56,10 @@ void Abacus::legalizePlacement()
 
         subrowCells_[bestSubrow].push_back(abacusCell);
         subrowCapacities_[bestSubrow] = subrowCapacities_[bestSubrow] - cellWidths_[abacusCell];
-        placeRow(bestSubrow);
+    }
+
+    for (auto subrow : subrows_) {
+        placeRow(subrow);
     }
 
     for (auto cellPair : sortedCells) {
