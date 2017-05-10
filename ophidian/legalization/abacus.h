@@ -45,7 +45,7 @@ public:
 
     void placeRow(Subrow subrow);
 
-    void addCell(entity_system::Association<Subrow, AbacusCell>::Parts::PartIterator abacusCellIt, Cluster cluster);
+    void addCell(std::vector<AbacusCell>::const_iterator abacusCellIt, Cluster cluster);
 
     void addCluster(Cluster cluster, Cluster nextCluster);
 
@@ -62,7 +62,8 @@ private:
     entity_system::EntitySystem<Subrow> subrows_;
     entity_system::Property<Subrow, util::Location> subrowOrigins_;
     entity_system::Property<Subrow, util::Location> subrowUpperCorners_;
-    entity_system::Aggregation<Subrow, AbacusCell> subrowCells_;
+    entity_system::Property<Subrow, std::vector<AbacusCell>> subrowCells_;
+    entity_system::Property<Subrow, ophidian::util::micrometer_t> subrowCapacities_;
 
     entity_system::EntitySystem<AbacusCell> abacusCells_;
     entity_system::Property<AbacusCell, circuit::Cell> abacusCell2NetlistCell_;
@@ -71,12 +72,13 @@ private:
     entity_system::Property<AbacusCell, ophidian::util::micrometer_t> cellWidths_;
     entity_system::Property<AbacusCell, double> cellWeights_;
 
+
     entity_system::EntitySystem<Cluster> clusters_;
     entity_system::Property<Cluster, ophidian::util::micrometer_t> clusterOrigins_;
     entity_system::Property<Cluster, ophidian::util::micrometer_t> clusterWidths_;
     entity_system::Property<Cluster, double> clusterWeights_;
     entity_system::Property<Cluster, ophidian::util::micrometer_t> clusterDisplacements_;
-    entity_system::Property<Cluster, entity_system::Association<Subrow, AbacusCell>::Parts::PartIterator> clusterLastCells_;
+    entity_system::Property<Cluster, std::vector<AbacusCell>::const_iterator> clusterLastCells_;
 
     Rtree subrowsRtree_;
 };
