@@ -76,8 +76,6 @@ public:
         return cellFixed_[cell];
     }
 
-
-
 private:
     entity_system::Property<circuit::Cell, util::Location> cellLocations_;
     entity_system::Property<circuit::Cell, bool> cellFixed_;
