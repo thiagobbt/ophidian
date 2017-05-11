@@ -4,14 +4,14 @@
 #include <ophidian/placement/PlacementMapping.h>
 #include <ophidian/floorplan/Floorplan.h>
 
-class LegalizationFixture
+class CircuitFixture
 {
 public:
-    LegalizationFixture();
+    CircuitFixture();
 
-    void addCell(ophidian::standard_cell::Cell stdCell, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
+    ophidian::circuit::Cell addCell(ophidian::standard_cell::Cell stdCell, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
 
-private:
+protected:
     ophidian::standard_cell::StandardCells stdCells_;
     ophidian::placement::Library placementLibrary_;
 
@@ -21,5 +21,20 @@ private:
     ophidian::placement::Placement placement_;
     ophidian::placement::PlacementMapping placementMapping_;
 };
+
+class AbacusFixture : public CircuitFixture
+{
+public:
+    AbacusFixture();
+};
+
+class LegalCircuitFixture : public CircuitFixture
+{
+public:
+    LegalCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
 
 #endif // LEGALIZATIONFIXTURE_H

@@ -18,7 +18,7 @@ using box = geometry::Box;
 using rtree_node = std::pair<box, entity_system::EntityBase>;
 using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16>>;
 
-bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const circuit::Netlist &netlist, const placement::PlacementMapping &placementMapping);
+bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);
 
 bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);
 bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);
