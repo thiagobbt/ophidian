@@ -75,7 +75,7 @@ public:
        \brief Get the chip origin location.
        \return Chip origin location.
      */
-    util::Location chipOrigin()
+    util::Location chipOrigin() const
     {
         return chipOrigin_;
     }
@@ -92,7 +92,7 @@ public:
        \brief Get the chip upper right corner location.
        \param Chip upper right corner location.
      */
-    util::Location chipUpperRightCorner()
+    util::Location chipUpperRightCorner() const
     {
         return chipUpperRightCorner_;
     }
