@@ -1,6 +1,6 @@
 #include <catch.hpp>
 
-#include <ophidian/legalization/abacus.h>
+#include <ophidian/legalization/Abacus.h>
 
 namespace {
 class LegalizationFixture
