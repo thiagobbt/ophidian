@@ -4,7 +4,7 @@ namespace ophidian {
 namespace legalization {
 Subrows::Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
-    subrowOrigins_(subrows_), subrowUpperCorners_(subrows_), subrowCapacities_(subrows_) {
+      subrowOrigins_(subrows_), subrowUpperCorners_(subrows_), subrowCapacities_(subrows_) {
     createSubrows();
 }
 
@@ -30,29 +30,28 @@ void Subrows::createSubrows()
             auto cellGeometry = placementMapping_.geometry(*cellIt);
             for (auto cellBox : cellGeometry) {
                 std::vector<RtreeNode> intersectingSubrowNodes;
-                subrowsRtree_.query(boost::geometry::index::intersects(cellBox), std::back_inserter(intersectingSubrowNodes));
+                subrowsRtree_.query(boost::geometry::index::overlaps(cellBox), std::back_inserter(intersectingSubrowNodes));
+                subrowsRtree_.query(boost::geometry::index::covers(cellBox), std::back_inserter(intersectingSubrowNodes));
                 for (auto subrowNode : intersectingSubrowNodes) {
-                    if (cellBox.min_corner().y() == subrowNode.first.min_corner().y()) {
-                        auto subrow = subrowNode.second;
+                    auto subrow = subrowNode.second;
 
-                        auto leftSubrow = subrows_.add();
-                        subrowOrigins_[leftSubrow] = subrowOrigins_[subrow];
-                        subrowUpperCorners_[leftSubrow] = util::Location(cellBox.min_corner().x(), cellBox.max_corner().y());
-                        subrowCapacities_[leftSubrow] = subrowUpperCorners_[leftSubrow].x() - subrowOrigins_[leftSubrow].x();
-                        geometry::Box leftSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[leftSubrow].x()), units::unit_cast<double>(subrowOrigins_[leftSubrow].y())),
+                    auto leftSubrow = subrows_.add();
+                    subrowOrigins_[leftSubrow] = subrowOrigins_[subrow];
+                    subrowUpperCorners_[leftSubrow] = util::Location(cellBox.min_corner().x(), cellBox.max_corner().y());
+                    subrowCapacities_[leftSubrow] = subrowUpperCorners_[leftSubrow].x() - subrowOrigins_[leftSubrow].x();
+                    geometry::Box leftSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[leftSubrow].x()), units::unit_cast<double>(subrowOrigins_[leftSubrow].y())),
                                                 geometry::Point(units::unit_cast<double>(subrowUpperCorners_[leftSubrow].x()), units::unit_cast<double>(subrowUpperCorners_[leftSubrow].y())));
 
-                        auto rightSubrow = subrows_.add();
-                        subrowOrigins_[rightSubrow] = util::Location(cellBox.max_corner().x(), cellBox.min_corner().y());
-                        subrowUpperCorners_[rightSubrow] = subrowUpperCorners_[subrow];
-                        subrowCapacities_[rightSubrow] = subrowUpperCorners_[rightSubrow].x() - subrowOrigins_[rightSubrow].x();
-                        geometry::Box rightSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[rightSubrow].x()), units::unit_cast<double>(subrowOrigins_[rightSubrow].y())),
-                                                geometry::Point(units::unit_cast<double>(subrowUpperCorners_[rightSubrow].x()), units::unit_cast<double>(subrowUpperCorners_[rightSubrow].y())));
+                    auto rightSubrow = subrows_.add();
+                    subrowOrigins_[rightSubrow] = util::Location(cellBox.max_corner().x(), cellBox.min_corner().y());
+                    subrowUpperCorners_[rightSubrow] = subrowUpperCorners_[subrow];
+                    subrowCapacities_[rightSubrow] = subrowUpperCorners_[rightSubrow].x() - subrowOrigins_[rightSubrow].x();
+                    geometry::Box rightSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[rightSubrow].x()), units::unit_cast<double>(subrowOrigins_[rightSubrow].y())),
+                                                 geometry::Point(units::unit_cast<double>(subrowUpperCorners_[rightSubrow].x()), units::unit_cast<double>(subrowUpperCorners_[rightSubrow].y())));
 
-                        subrowsRtree_.remove(subrowNode);
-                        subrowsRtree_.insert(RtreeNode(leftSubrowBox, leftSubrow));
-                        subrowsRtree_.insert(RtreeNode(rightSubrowBox, rightSubrow));
-                    }
+                    subrowsRtree_.remove(subrowNode);
+                    subrowsRtree_.insert(RtreeNode(leftSubrowBox, leftSubrow));
+                    subrowsRtree_.insert(RtreeNode(rightSubrowBox, rightSubrow));
                 }
             }
         }

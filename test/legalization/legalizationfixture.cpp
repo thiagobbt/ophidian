@@ -36,6 +36,11 @@ AbacusFixture::AbacusFixture()
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
     placementLibrary_.geometry(cellStdCell, stdCellGeometry);
 
+    auto cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 2))};
+    ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
+    placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
+
     auto cell1Location = ophidian::util::Location(1.0, 2.8);
     addCell(cellStdCell, cell1Location, 2, false);
 
@@ -52,7 +57,7 @@ AbacusFixture::AbacusFixture()
     addCell(cellStdCell, cell5Location, 2, false);
 
     auto cell6Location = ophidian::util::Location(3.0, 1.0);
-    addCell(cellStdCell, cell6Location, 2, true);
+    addCell(cellStdCellMultirow, cell6Location, 2, true);
 
     auto cell7Location = ophidian::util::Location(3.5, 1.0);
     addCell(cellStdCell, cell7Location, 2, false);
