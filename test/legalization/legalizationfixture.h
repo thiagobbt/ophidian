@@ -3,6 +3,7 @@
 
 #include <ophidian/placement/PlacementMapping.h>
 #include <ophidian/floorplan/Floorplan.h>
+#include <string>
 
 class CircuitFixture
 {

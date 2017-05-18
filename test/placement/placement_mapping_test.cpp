@@ -20,11 +20,11 @@ public:
 
     LibraryMappingFixture()
         : libraryMapping(netlist) {
-        cell1 = netlist.add(ophidian::circuit::Cell());
-        cell2 = netlist.add(ophidian::circuit::Cell());
+        cell1 = netlist.add(ophidian::circuit::Cell(), "cell1");
+        cell2 = netlist.add(ophidian::circuit::Cell(), "cell2");
 
-        pin1 = netlist.add(ophidian::circuit::Pin());
-        pin2 = netlist.add(ophidian::circuit::Pin());
+        pin1 = netlist.add(ophidian::circuit::Pin(), "pin1");
+        pin2 = netlist.add(ophidian::circuit::Pin(), "pin2");
 
         netlist.add(cell1, pin1);
         netlist.add(cell2, pin2);

@@ -10,9 +10,9 @@ CircuitFixture::CircuitFixture()
 
 ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell stdCell, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed)
 {
-    auto cell = netlist_.add(ophidian::circuit::Cell());
+    auto cell = netlist_.add(ophidian::circuit::Cell(), "cell");
     for (unsigned pinIndex = 0; pinIndex < numberOfPins; ++pinIndex) {
-        auto cellPin = netlist_.add(ophidian::circuit::Pin());
+        auto cellPin = netlist_.add(ophidian::circuit::Pin(), "pin:"+std::to_string(pinIndex));
         netlist_.add(cell, cellPin);
     }
     libraryMapping_.cellStdCell(cell, stdCell);
