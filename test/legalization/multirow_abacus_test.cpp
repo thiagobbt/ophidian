@@ -1,10 +1,10 @@
 #include <catch.hpp>
 
-#include <ophidian/legalization/Abacus.h>
+#include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/legalization/LegalizationCheck.h>
 #include "legalizationfixture.h"
 
-TEST_CASE_METHOD(AbacusFixture, "Legalization: legalizing small circuit using Abacus", "[legalization][abacus]") {
+TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit using MultirowAbacus", "[legalization][abacus][multirow]") {
     std::vector<ophidian::util::Location> expectedLocations = {
         ophidian::util::Location(0.7, 3.0),
         ophidian::util::Location(1.7, 3.0),
@@ -13,10 +13,11 @@ TEST_CASE_METHOD(AbacusFixture, "Legalization: legalizing small circuit using Ab
         ophidian::util::Location(3.0, 0.0),
         ophidian::util::Location(3.0, 1.0),
         ophidian::util::Location(4.0, 1.0),
+        ophidian::util::Location(4.0, 2.0),
     };
 
-    ophidian::legalization::Abacus abacus(netlist_, floorplan_, placement_, placementMapping_);
-    abacus.legalizePlacement();
+    ophidian::legalization::MultirowAbacus multirowAbacus(netlist_, floorplan_, placement_, placementMapping_);
+    multirowAbacus.legalizePlacement();
 
     std::vector<ophidian::util::Location> cellLocations;
     for (auto cellIt = netlist_.begin(ophidian::circuit::Cell()); cellIt != netlist_.end(ophidian::circuit::Cell()); ++cellIt) {

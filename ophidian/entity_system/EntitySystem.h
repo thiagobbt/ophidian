@@ -157,12 +157,13 @@ public:
 	void erase(const Entity& entity)
 	{
 		notifier_.erase(entity);
+        auto entityId = EntitySystemBase::id(entity);
 		auto index = id(entity);
-		auto lastEntityId = id(container_.back());
+        auto lastEntityId = EntitySystemBase::id(container_.back());
 		std::swap(container_[index], container_.back());
 		container_.pop_back();
 		id2Index_[lastEntityId] = index;
-		id2Index_[index] = std::numeric_limits<uint32_t>::max();
+        id2Index_[entityId] = std::numeric_limits<uint32_t>::max();
 	}
 	//! Clear Entities
 	/*!

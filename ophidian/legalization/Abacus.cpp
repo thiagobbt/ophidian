@@ -5,9 +5,9 @@ namespace legalization {
 Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
       subrows_(netlist, floorplan, placement, placementMapping),
-    abacusCell2NetlistCell_(abacusCells_), cellInitialLocations_(abacusCells_), cellLegalLocations_(abacusCells_), cellWidths_(abacusCells_), cellWeights_(abacusCells_),
-    subrowCells_(subrows_.makeProperty<std::vector<AbacusCell>>(Subrow())),
-abacusPlaceRow_(subrows_, cellInitialLocations_, cellLegalLocations_, cellWidths_, cellWeights_){
+      abacusCell2NetlistCell_(abacusCells_), cellInitialLocations_(abacusCells_), cellLegalLocations_(abacusCells_), cellWidths_(abacusCells_), cellWeights_(abacusCells_),
+      subrowCells_(subrows_.makeProperty<std::vector<AbacusCell>>(Subrow())),
+      abacusPlaceRow_(subrows_, cellInitialLocations_, cellLegalLocations_, cellWidths_, cellWeights_){
 
 }
 
@@ -28,6 +28,11 @@ void Abacus::legalizePlacement()
     }
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());
 
+    legalize(sortedCells);
+}
+
+void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells)
+{
     for (auto cellPair : sortedCells) {
         auto abacusCell = cellPair.first;
 

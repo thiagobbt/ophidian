@@ -36,7 +36,7 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
                 auto site_width = units::unit_cast<double>(floorplan.siteUpperRightCorner(floorplan.site(pair_row_box.second)).x());
                 auto x_cell_position = units::unit_cast<double>(placement.cellLocation(*cell_it).x());
 
-                if ((placement.cellLocation(*cell_it).y() == row_origin.y()) && (std::remainder(x_cell_position, site_width) == 0)) {
+                if ((placement.cellLocation(*cell_it).y() == row_origin.y()) && (std::abs(std::remainder(x_cell_position, site_width)) <= std::numeric_limits<double>::epsilon())) {
                     cell_aligned = true;
                     break;
                 }
