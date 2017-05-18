@@ -20,9 +20,11 @@ public:
 
     Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
-    void legalizePlacement();
+    virtual void legalizePlacement();
 
-private:
+protected:
+    void legalize(const std::vector<std::pair<AbacusCell, util::Location>> & sortedCells);
+
     const circuit::Netlist & netlist_;
     const floorplan::Floorplan & floorplan_;
     placement::Placement & placement_;

@@ -28,6 +28,12 @@ public:
     AbacusFixture();
 };
 
+class MultirowAbacusFixture : public CircuitFixture
+{
+public:
+    MultirowAbacusFixture();
+};
+
 class LegalCircuitFixture : public CircuitFixture
 {
 public:
