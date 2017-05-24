@@ -25,7 +25,11 @@ void MultirowAbacus::legalizePlacement()
     }
     cellsByHeight.resize(maximumHeight);
 
+    unsigned rowsPerCell = cellsByHeight.size();
     for (auto cellsByHeightIt = cellsByHeight.rbegin(); cellsByHeightIt != cellsByHeight.rend(); ++cellsByHeightIt) {
+        subrows_.createSubrows(rowsPerCell);
+        rowsPerCell--;
+
         auto cellsForOneHeight = *cellsByHeightIt;
         std::vector<std::pair<AbacusCell, util::Location>> sortedCells;
         sortedCells.reserve(cellsForOneHeight.size());
@@ -45,7 +49,6 @@ void MultirowAbacus::legalizePlacement()
         }
 
         abacusCells_.clear();
-        subrows_.createSubrows();
     }
 }
 }

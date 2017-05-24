@@ -23,7 +23,7 @@ public:
 
     Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
-    void createSubrows();
+    void createSubrows(unsigned rowsPerCell = 1);
 
     ophidian::util::Range<SubrowsIterator> range(Subrow) const;
 
