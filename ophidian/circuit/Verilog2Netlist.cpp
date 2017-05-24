@@ -21,7 +21,7 @@ under the License.
 namespace ophidian{
 namespace circuit{
 
-void verilog2Netlist(const parser::Verilog &verilog, Netlist &netlist){
+void verilog2Netlist(const parser::Verilog & verilog, Netlist & netlist, LibraryMapping & libraryMapping, standard_cell::StandardCells & standardCells){
     const parser::Verilog::Module & module = verilog.modules().front();
 
     std::size_t size_pins = 0;
@@ -48,10 +48,15 @@ void verilog2Netlist(const parser::Verilog &verilog, Netlist &netlist){
 
     for(auto instance : module.instances()){
         auto cell = netlist.add(Cell(), instance.name());
+        auto stdCell = standardCells.add(standard_cell::Cell(), instance.module()->name());
+        libraryMapping.cellStdCell(cell, stdCell);
         for(auto port_map : instance.portMapping()){
             auto pin = netlist.add(Pin(), instance.name()+":"+port_map.first->name());
+            auto pinStdCell = standardCells.add(standard_cell::Pin(), instance.module()->name()+":"+port_map.first->name(), standard_cell::PinDirection(port_map.first->direction()));
             netlist.add(cell, pin);
             netlist.connect(netlist.find(Net(), port_map.second->name()), pin);
+            libraryMapping.pinStdCell(pin, pinStdCell);
+            standardCells.add(stdCell, pinStdCell);
         }
     }
 }

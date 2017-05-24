@@ -21,11 +21,13 @@ under the License.
 
 #include <ophidian/parser/VerilogParser.h>
 #include <ophidian/circuit/Netlist.h>
+#include <ophidian/circuit/LibraryMapping.h>
+#include <ophidian/standard_cell/StandardCells.h>
 #include <unordered_map>
 
 namespace ophidian{
 namespace circuit{
-void verilog2Netlist(const parser::Verilog & verilog, circuit::Netlist & netlist);
+void verilog2Netlist(const parser::Verilog & verilog, Netlist & netlist, LibraryMapping & libraryMapping, standard_cell::StandardCells & standardCells);
 }
 }
 
