@@ -8,11 +8,11 @@ CircuitFixture::CircuitFixture()
 
 }
 
-ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell stdCell, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed)
+ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed)
 {
-    auto cell = netlist_.add(ophidian::circuit::Cell());
+    auto cell = netlist_.add(ophidian::circuit::Cell(), cellName);
     for (unsigned pinIndex = 0; pinIndex < numberOfPins; ++pinIndex) {
-        auto cellPin = netlist_.add(ophidian::circuit::Pin());
+        auto cellPin = netlist_.add(ophidian::circuit::Pin(), "pin:"+std::to_string(pinIndex));
         netlist_.add(cell, cellPin);
     }
     libraryMapping_.cellStdCell(cell, stdCell);
@@ -42,25 +42,25 @@ AbacusFixture::AbacusFixture()
     placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
 
     auto cell1Location = ophidian::util::Location(1.0, 2.8);
-    addCell(cellStdCell, cell1Location, 2, false);
+    addCell(cellStdCell, "cell1", cell1Location, 2, false);
 
     auto cell2Location = ophidian::util::Location(1.5, 2.8);
-    addCell(cellStdCell, cell2Location, 3, false);
+    addCell(cellStdCell, "cell2", cell2Location, 3, false);
 
     auto cell3Location = ophidian::util::Location(2.5, 2.2);
-    addCell(cellStdCell, cell3Location, 2, false);
+    addCell(cellStdCell, "cell3", cell3Location, 2, false);
 
     auto cell4Location = ophidian::util::Location(4.0, 3.0);
-    addCell(cellStdCell, cell4Location, 2, false);
+    addCell(cellStdCell, "cell4", cell4Location, 2, false);
 
     auto cell5Location = ophidian::util::Location(3.0, 0.0);
-    addCell(cellStdCell, cell5Location, 2, false);
+    addCell(cellStdCell, "cell5", cell5Location, 2, false);
 
     auto cell6Location = ophidian::util::Location(3.0, 1.0);
-    addCell(cellStdCellMultirow, cell6Location, 2, true);
+    addCell(cellStdCellMultirow, "cell6", cell6Location, 2, true);
 
     auto cell7Location = ophidian::util::Location(3.5, 1.0);
-    addCell(cellStdCell, cell7Location, 2, false);
+    addCell(cellStdCell, "cell7", cell7Location, 2, false);
 }
 
 MultirowAbacusFixture::MultirowAbacusFixture()
@@ -84,28 +84,28 @@ MultirowAbacusFixture::MultirowAbacusFixture()
     placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
 
     auto cell1Location = ophidian::util::Location(1.0, 2.8);
-    addCell(cellStdCell, cell1Location, 2, false);
+    addCell(cellStdCell, "cell1", cell1Location, 2, false);
 
     auto cell2Location = ophidian::util::Location(1.5, 2.8);
-    addCell(cellStdCell, cell2Location, 3, false);
+    addCell(cellStdCell, "cell2", cell2Location, 3, false);
 
     auto cell3Location = ophidian::util::Location(2.5, 2.2);
-    addCell(cellStdCell, cell3Location, 2, false);
+    addCell(cellStdCell, "cell3", cell3Location, 2, false);
 
     auto cell4Location = ophidian::util::Location(4.0, 3.0);
-    addCell(cellStdCell, cell4Location, 2, false);
+    addCell(cellStdCell, "cell4", cell4Location, 2, false);
 
     auto cell5Location = ophidian::util::Location(3.0, 0.0);
-    addCell(cellStdCell, cell5Location, 2, false);
+    addCell(cellStdCell, "cell5", cell5Location, 2, false);
 
     auto cell6Location = ophidian::util::Location(3.0, 1.0);
-    addCell(cellStdCellMultirow, cell6Location, 2, false);
+    addCell(cellStdCellMultirow, "cell6", cell6Location, 2, false);
 
     auto cell7Location = ophidian::util::Location(3.5, 1.0);
-    addCell(cellStdCell, cell7Location, 2, false);
+    addCell(cellStdCell, "cell7", cell7Location, 2, false);
 
     auto cell8Location = ophidian::util::Location(3.5, 2.0);
-    addCell(cellStdCell, cell8Location, 2, false);
+    addCell(cellStdCell, "cell8", cell8Location, 2, false);
 }
 
 LegalCircuitFixture::LegalCircuitFixture()
@@ -124,15 +124,15 @@ LegalCircuitFixture::LegalCircuitFixture()
     placementLibrary_.geometry(cellStdCell_, stdCellGeometry);
 
     auto cell1Location = ophidian::util::Location(1.0, 2.0);
-    addCell(cellStdCell_, cell1Location, 2, false);
+    addCell(cellStdCell_, "cell1", cell1Location, 2, false);
 
     auto cell2Location = ophidian::util::Location(2.0, 0.0);
-    addCell(cellStdCell_, cell2Location, 3, false);
+    addCell(cellStdCell_, "cell2", cell2Location, 3, false);
 
     auto cell3Location = ophidian::util::Location(3.0, 3.0);
-    addCell(cellStdCell_, cell3Location, 2, false);
+    addCell(cellStdCell_, "cell3", cell3Location, 2, false);
 
     auto cell4Location = ophidian::util::Location(4.0, 1.0);
-    addCell(cellStdCell_, cell4Location, 2, false);
+    addCell(cellStdCell_, "cell4", cell4Location, 2, false);
 }
 

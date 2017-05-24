@@ -3,13 +3,14 @@
 
 #include <ophidian/placement/PlacementMapping.h>
 #include <ophidian/floorplan/Floorplan.h>
+#include <string>
 
 class CircuitFixture
 {
 public:
     CircuitFixture();
 
-    ophidian::circuit::Cell addCell(ophidian::standard_cell::Cell stdCell, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
+    ophidian::circuit::Cell addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
 
 protected:
     ophidian::standard_cell::StandardCells stdCells_;

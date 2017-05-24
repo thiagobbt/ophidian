@@ -21,13 +21,13 @@ public:
     Netlist netlist;
 
     NetlistFixture() {
-        cell1 = netlist.add(Cell());
-        cell2 = netlist.add(Cell());
+        cell1 = netlist.add(Cell(), "cell1");
+        cell2 = netlist.add(Cell(), "cell2");
 
-        pin1 = netlist.add(Pin());
-        pin2 = netlist.add(Pin());
-        pin3 = netlist.add(Pin());
-        pin4 = netlist.add(Pin());
+        pin1 = netlist.add(Pin(), "pin1");
+        pin2 = netlist.add(Pin(), "pin2");
+        pin3 = netlist.add(Pin(), "pin3");
+        pin4 = netlist.add(Pin(), "pin4");
 
         input1 = netlist.add(Input(), pin1);
         input2 = netlist.add(Input(), pin2);
