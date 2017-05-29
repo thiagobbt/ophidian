@@ -5,9 +5,12 @@
 
 using namespace ophidian;
 
-class Lef2LibraryFixture{
+class Lef2LibraryFixture
+{
 public:
-    Lef2LibraryFixture():lef(parser.readFile("./input_files/simple.lef")){
+    Lef2LibraryFixture(){
+        lef = std::make_unique<ophidian::parser::Lef>();
+        parser.readFile("./input_files/simple.lef", lef);
         library.reset(new placement::Library(stdCells));
         placement::lef2Library(*lef, *library, stdCells);
     }

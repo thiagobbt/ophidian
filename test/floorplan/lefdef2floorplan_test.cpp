@@ -3,21 +3,24 @@
 
 using namespace ophidian::floorplan;
 
-namespace {
-class LefDef2FloorplanFixture {
+namespace
+{
+class LefDef2FloorplanFixture
+{
 public:
     LefDef2FloorplanFixture() {
         ophidian::parser::DefParser def_parser;
         def = std::move(def_parser.readFile("./input_files/simple.def"));
         ophidian::parser::LefParser lef_parser;
-        lef = std::move(lef_parser.readFile("./input_files/simple.lef"));
+        lef = std::make_unique<ophidian::parser::Lef>();
+        lef_parser.readFile("./input_files/simple.lef", lef);
     }
 
     std::unique_ptr<ophidian::parser::Def> def;
     std::unique_ptr<ophidian::parser::Lef> lef;
     Floorplan floorplan;
 };
-}
+} // namespace
 
 TEST_CASE_METHOD(LefDef2FloorplanFixture,"LefDef2Floorplan: Test for some simple features.", "[floorplan][lef][def][floorplan]")
 {

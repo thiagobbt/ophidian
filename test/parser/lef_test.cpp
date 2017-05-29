@@ -35,10 +35,11 @@ bool compare(const std::vector<parser::Lef::rect> & a, const std::vector<parser:
 {
     bool rectsAreEqual = true;
 
-    for (auto& i : a) {
+    for (auto& i : a)
+    {
         auto comparePredicate = [i](const parser::Lef::rect & layer) -> bool {
-            return compare(i, layer);
-        };
+                                    return compare(i, layer);
+                                };
 
         rectsAreEqual = rectsAreEqual && std::find_if(a.begin(), a.end(), comparePredicate) != a.end();
     }
@@ -50,10 +51,11 @@ bool compare(const std::vector<std::string> & a, const std::vector<std::string> 
 {
     bool layersAreEqual = true;
 
-    for (auto& i : a) {
+    for (auto& i : a)
+    {
         auto comparePredicate = [i](const std::string & layer) -> bool {
-            return i == layer;
-        };
+                                    return i == layer;
+                                };
 
         layersAreEqual = layersAreEqual && std::find_if(a.begin(), a.end(), comparePredicate) != a.end();
     }
@@ -71,10 +73,11 @@ bool compare(const std::vector<parser::Lef::port> & a, const std::vector<parser:
 {
     bool portsAreEqual = true;
 
-    for (auto& i : a) {
+    for (auto& i : a)
+    {
         auto comparePredicate = [i](const parser::Lef::port & port) -> bool {
-            return compare(i, port);
-        };
+                                    return compare(i, port);
+                                };
 
         portsAreEqual = portsAreEqual && std::find_if(a.begin(), a.end(), comparePredicate) != a.end();
     }
@@ -106,10 +109,11 @@ bool compare(const std::vector<parser::Lef::pin> & a, const std::vector<parser::
 {
     bool pinsAreEqual = true;
 
-    for (auto& i : a) {
+    for (auto& i : a)
+    {
         auto comparePredicate = [i](const parser::Lef::pin & pin) -> bool {
-            return compare(i, pin);
-        };
+                                    return compare(i, pin);
+                                };
 
         pinsAreEqual = pinsAreEqual && std::find_if(a.begin(), a.end(), comparePredicate) != a.end();
     }
@@ -131,26 +135,33 @@ bool compare(const parser::Lef::macro & a, const parser::Lef::macro & b)
 bool compare(const parser::Lef::obs & a, const parser::Lef::obs & b)
 {
     auto pred = [] (auto lhs, auto rhs)
-                   { return lhs.first == rhs.first; };
+                {
+                    return lhs.first == rhs.first;
+                };
 
     auto aMap = a.layer2rects;
     auto bMap = b.layer2rects;
 
     return aMap.size() == bMap.size()
-        && std::equal(aMap.begin(), aMap.end(), bMap.begin(), bMap.end(), pred);
+           && std::equal(aMap.begin(), aMap.end(), bMap.begin(), bMap.end(), pred);
 }
 
-TEST_CASE("lef: missing file", "[parser][lef][missing_file]") {
+TEST_CASE("lef: missing file", "[parser][lef][missing_file]")
+{
     parser::LefParser parser;
-    REQUIRE_THROWS(parser.readFile("input_files/thisFileDoesNotExist.lef"));
+    std::unique_ptr<ophidian::parser::Lef> lef =  std::make_unique<ophidian::parser::Lef>();
+    REQUIRE_THROWS(parser.readFile("input_files/thisFileDoesNotExist.lef", lef));
 }
 
-TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]") {
+TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]")
+{
     parser::LefParser parser;
 
-    std::unique_ptr<parser::Lef> simpleLef = parser.readFile("input_files/simple.lef");
+    std::unique_ptr<parser::Lef> simpleLef = std::make_unique<ophidian::parser::Lef>();
+    parser.readFile("input_files/simple.lef", simpleLef);
 
-    SECTION("Sites are parsed correctly", "[parser][lef][simple]") {
+    SECTION("Sites are parsed correctly", "[parser][lef][simple]")
+    {
         CHECK( simpleLef->sites().size() == 1 );
 
         parser::Lef::site core;
@@ -162,7 +173,8 @@ TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]") {
         REQUIRE(compare(simpleLef->sites().front(), core));
     }
 
-    SECTION("Layers are parsed correctly", "[parser][lef][simple][layers]") {
+    SECTION("Layers are parsed correctly", "[parser][lef][simple][layers]")
+    {
         std::vector<parser::Lef::layer> layers {
             {"metal1", "ROUTING", parser::Lef::layer::HORIZONTAL,  0.2, 0.1},
             {"metal2", "ROUTING", parser::Lef::layer::VERTICAL,    0.2, 0.1},
@@ -174,18 +186,19 @@ TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]") {
         for(auto & simple_layer : layers)
         {
             auto comparePredicate = [simple_layer](const parser::Lef::layer & layer) -> bool {
-                            return compare(simple_layer, layer);
-                        };
+                                        return compare(simple_layer, layer);
+                                    };
 
             REQUIRE( std::find_if(
-                     simpleLef->layers().begin(),
-                     simpleLef->layers().end(),
-                     comparePredicate
-                     ) != simpleLef->layers().end());
+                         simpleLef->layers().begin(),
+                         simpleLef->layers().end(),
+                         comparePredicate
+                         ) != simpleLef->layers().end());
         }
     }
 
-    SECTION("Macros are parsed correctly", "[parser][lef][simple][macros]") {
+    SECTION("Macros are parsed correctly", "[parser][lef][simple][macros]")
+    {
         CHECK( simpleLef->macros().size() == 212 );
 
         std::vector<std::string> m1_pin_layers = {"metal1"};
@@ -196,7 +209,7 @@ TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]") {
         };
 
         std::vector<parser::Lef::rect> m1_a_rects = {
-                {0.210, 0.340, 0.34, 0.405}
+            {0.210, 0.340, 0.34, 0.405}
         };
 
         parser::Lef::port m1_o_port = {m1_pin_layers, m1_o_rects};
@@ -219,18 +232,22 @@ TEST_CASE("lef: simple.lef parsing", "[parser][lef][simple]") {
         REQUIRE(compare(simpleLef->macros().front(), m1));
     }
 
-    SECTION("Database units are correct", "[parser][lef][simple][dbunits]"){
+    SECTION("Database units are correct", "[parser][lef][simple][dbunits]")
+    {
         CHECK(Approx(simpleLef->databaseUnits()) == 2000.0);
     }
 }
 
-TEST_CASE("lef: superblue18.lef parsing", "[parser][lef][superblue18]") {
+TEST_CASE("lef: superblue18.lef parsing", "[parser][lef][superblue18]")
+{
     parser::LefParser parser;
 
     INFO("Have you put `superblue18.lef` in the tests binary directory?");
-    std::unique_ptr<parser::Lef> superblue18 = parser.readFile("input_files/superblue18.lef");
+    std::unique_ptr<parser::Lef> superblue18 = std::make_unique<ophidian::parser::Lef>();
+    parser.readFile("input_files/superblue18.lef", superblue18);
 
-    SECTION("Obses are correct", "[parser][lef][superblue18][obses]"){
+    SECTION("Obses are correct", "[parser][lef][superblue18][obses]")
+    {
         parser::Lef::rect r1 = {0, 0, 3.420, 1.71};
 
         parser::Lef::obs obs1;
