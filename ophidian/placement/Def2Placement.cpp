@@ -27,7 +27,10 @@ void def2placement(const parser::Def & def, placement::Placement & placement, ci
     for(auto & component : def.components())
     {
         util::Location cellPosition(component.position.x, component.position.y);
-        placement.placeCell(netlist.add(circuit::Cell(), component.name), cellPosition);
+        auto cell = netlist.add(circuit::Cell(), component.name);
+        placement.placeCell(cell, cellPosition);
+        placement.fixLocation(cell, component.fixed);
+        placement.cellOrientation(cell, component.orientation);
     }
 }
 
