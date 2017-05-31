@@ -2,6 +2,8 @@
 #define ICCAD2017_FIXTURE_H
 
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include <ophidian/parser/Def.h>
 #include <ophidian/parser/Lef.h>
@@ -23,9 +25,11 @@
 class iccad2017_wrapper
 {
 public:
-    iccad2017_wrapper(std::string circuit);
+    iccad2017_wrapper(std::string circuitPath, std::string circuitName);
 
+    void writeDefFile(std::string filePath);
 
+public:
     ophidian::circuit::Netlist mNetlist;
     ophidian::floorplan::Floorplan mFloorplan;
     ophidian::placement::Placement mPlacement;
@@ -35,6 +39,9 @@ public:
 
     ophidian::circuit::LibraryMapping mLibraryMapping;
     ophidian::placement::PlacementMapping mPlacementMapping;
+
+    std::string mCircuitName;
+    double mDistanceMicrons;
 };
 
 #endif // ICCAD2017_FIXTURE_H

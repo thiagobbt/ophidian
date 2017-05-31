@@ -5,7 +5,7 @@
 
 TEST_CASE("open circuit: pci_bridge32_a_md1", "[iccad2017]")
 {
-    iccad2017_wrapper iccad("./input_files/ICCAD2017/pci_bridge32_a_md1");
+    iccad2017_wrapper iccad("./input_files/ICCAD2017/pci_bridge32_a_md1", "pci_bridge32_a_md1");
     std::cout << "Circuit: pci_bridge32_a_md1" << std::endl;
 
     //test number of cells
@@ -49,4 +49,10 @@ TEST_CASE("open circuit: pci_bridge32_a_md1", "[iccad2017]")
     std::cout << "Row size (" << iccad.mFloorplan.rowUpperRightCorner(row).x() << ", " << iccad.mFloorplan.rowUpperRightCorner(row).y() << ")" << std::endl;
     ophidian::util::Location expectedRowUpperRigthCorner(200*2000, 2000);
     REQUIRE(iccad.mFloorplan.rowUpperRightCorner(row) == expectedRowUpperRigthCorner);
+}
+
+TEST_CASE("Write Def file", "[iccad2017][writeDef]")
+{
+    iccad2017_wrapper iccad("./input_files/ICCAD2017/pci_bridge32_a_md1", "pci_bridge32_a_md1");
+    iccad.writeDefFile("./input_files/ICCAD2017/pci_bridge32_a_md1/test.def");
 }
