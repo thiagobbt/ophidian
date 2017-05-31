@@ -24,14 +24,14 @@ public:
     AbacusPlaceRow(Subrows & subrows, entity_system::Property<AbacusCell, util::Location> & cellInitialLocations, entity_system::Property<AbacusCell, util::Location> & cellLegalLocations,
                    entity_system::Property<AbacusCell, ophidian::util::micrometer_t> & cellWidths, entity_system::Property<AbacusCell, double> & cellWeigths);
 
-    void operator()(Subrow subrow, const std::vector<AbacusCell> &subrowCells);
+    void operator()(Subrow subrow, const std::vector<AbacusCell> &subrowCells, util::micrometer_t siteWidth);
 
 private:
     void addCell(std::vector<AbacusCell>::const_iterator abacusCellIt, Cluster cluster);
 
     void addCluster(Cluster cluster, Cluster nextCluster);
 
-    void collapse(std::vector<Cluster>::const_iterator clusterIt, Subrow subrow);
+    void collapse(std::vector<Cluster>::const_iterator clusterIt, Subrow subrow, util::micrometer_t siteWidth);
 
     Subrows & subrows_;
 

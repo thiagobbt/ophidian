@@ -6,14 +6,14 @@
 
 TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit using MultirowAbacus", "[legalization][abacus][multirow]") {
     std::vector<ophidian::util::Location> expectedLocations = {
-        ophidian::util::Location(0.7, 3.0),
-        ophidian::util::Location(1.7, 3.0),
-        ophidian::util::Location(2.5, 2.0),
-        ophidian::util::Location(4.0, 3.0),
-        ophidian::util::Location(4.0, 0.0),
-        ophidian::util::Location(3.0, 0.0),
-        ophidian::util::Location(4.0, 1.0),
-        ophidian::util::Location(3.5, 2.0),
+        ophidian::util::Location(7, 30),
+        ophidian::util::Location(17, 30),
+        ophidian::util::Location(25, 20),
+        ophidian::util::Location(40, 30),
+        ophidian::util::Location(40, 0.0),
+        ophidian::util::Location(30, 0.0),
+        ophidian::util::Location(40, 10),
+        ophidian::util::Location(35, 20),
     };
 
     ophidian::legalization::MultirowAbacus multirowAbacus(netlist_, floorplan_, placement_, placementMapping_);

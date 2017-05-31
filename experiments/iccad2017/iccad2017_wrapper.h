@@ -18,7 +18,7 @@
 #include <ophidian/placement/Def2Placement.h>
 #include <ophidian/placement/Lef2Library.h>
 #include <ophidian/floorplan/LefDef2Floorplan.h>
-#include <ophidian/circuit/Def2Librarymapping.h>
+#include <ophidian/circuit/Def2LibraryMapping.h>
 
 class iccad2017_wrapper
 {

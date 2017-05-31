@@ -8,24 +8,24 @@ AbacusPlaceRow::AbacusPlaceRow(Subrows &subrows, entity_system::Property<AbacusC
 
 }
 
-void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & subrowCells) {
+void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & subrowCells, util::micrometer_t siteWidth) {
     clusters_.clear();
     for (auto abacusCellIt = subrowCells.begin(); abacusCellIt != subrowCells.end(); ++abacusCellIt) {
         auto clusterIt = clusters_.end();
         clusterIt--;
-        if (clusters_.empty() || clusterOrigins_[*clusterIt] + clusterWidths_[*clusterIt] <= cellInitialLocations_[*abacusCellIt].x()) {
+        ophidian::util::micrometer_t xMin = subrows_.origin(subrow).x();
+        ophidian::util::micrometer_t xMax = subrows_.upperCorner(subrow).x() - cellWidths_[*abacusCellIt];
+        ophidian::util::micrometer_t x = cellInitialLocations_[*abacusCellIt].x();
+        x = std::min(std::max(x, xMin), xMax);
+        x = std::floor(units::unit_cast<double>(x / siteWidth)) * siteWidth;
+        if (clusters_.empty() || clusterOrigins_[*clusterIt] + clusterWidths_[*clusterIt] <= x) {
             auto cluster = clusters_.add();
-
-            ophidian::util::micrometer_t xMin = subrows_.origin(subrow).x();
-            ophidian::util::micrometer_t xMax = subrows_.upperCorner(subrow).x() - cellWidths_[*abacusCellIt];
-            ophidian::util::micrometer_t x = cellInitialLocations_[*abacusCellIt].x();
-            x = std::min(std::max(x, xMin), xMax);
 
             clusterOrigins_[cluster] = x;
             addCell(abacusCellIt, cluster);
         } else {
             addCell(abacusCellIt, *clusterIt);
-            collapse(clusterIt, subrow);
+            collapse(clusterIt, subrow, siteWidth);
         }
     }
 
@@ -59,7 +59,7 @@ void AbacusPlaceRow::addCluster(Cluster cluster, Cluster nextCluster)
     clusterWidths_[cluster] = clusterWidths_[cluster] + clusterWidths_[nextCluster];
 }
 
-void AbacusPlaceRow::collapse(std::vector<Cluster>::const_iterator clusterIt, Subrow subrow)
+void AbacusPlaceRow::collapse(std::vector<Cluster>::const_iterator clusterIt, Subrow subrow, util::micrometer_t siteWidth)
 {
     auto cluster = *clusterIt;
 
@@ -68,6 +68,7 @@ void AbacusPlaceRow::collapse(std::vector<Cluster>::const_iterator clusterIt, Su
 
     ophidian::util::micrometer_t optimalX = clusterDisplacements_[cluster] / clusterWeights_[cluster];
     optimalX = std::min(std::max(optimalX, xMin), xMax);
+    optimalX = std::floor(units::unit_cast<double>(optimalX / siteWidth)) * siteWidth;
     clusterOrigins_[cluster] = optimalX;
 
     auto previousClusterIt = clusterIt;
@@ -75,7 +76,7 @@ void AbacusPlaceRow::collapse(std::vector<Cluster>::const_iterator clusterIt, Su
     if (clusterIt != clusters_.begin() && clusterOrigins_[*previousClusterIt] + clusterWidths_[*previousClusterIt] > clusterOrigins_[cluster]) {
         addCluster(cluster, *previousClusterIt);
         clusters_.erase(cluster);
-        collapse(previousClusterIt, subrow);
+        collapse(previousClusterIt, subrow, siteWidth);
     }
 }
 }

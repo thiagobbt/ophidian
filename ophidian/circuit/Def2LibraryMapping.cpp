@@ -1,4 +1,4 @@
-#include "Def2Librarymapping.h"
+#include "Def2LibraryMapping.h"
 
 namespace ophidian
 {

@@ -35,6 +35,7 @@ protected:
     entity_system::Property<AbacusCell, util::Location> cellInitialLocations_;
     entity_system::Property<AbacusCell, util::Location> cellLegalLocations_;
     entity_system::Property<AbacusCell, ophidian::util::micrometer_t> cellWidths_;
+    entity_system::Property<AbacusCell, ophidian::util::micrometer_t> cellHeights_;
     entity_system::Property<AbacusCell, double> cellWeights_;
 
     Subrows subrows_;

@@ -5,8 +5,8 @@ namespace legalization {
 
 bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist)
 {
-   bool legality = checkAlignment(floorplan, placement, placementMapping, netlist) && checkBoundaries(floorplan, placementMapping, netlist) && checkCellOverlaps(placementMapping, netlist);
-   return legality;
+    bool legality = checkAlignment(floorplan, placement, placementMapping, netlist) && checkBoundaries(floorplan, placementMapping, netlist) && checkCellOverlaps(placementMapping, netlist);
+    return legality;
 }
 
 bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist)
@@ -58,6 +58,8 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
         auto cellGeometry = placementMapping.geometry(*cell_it);
         for(auto cell_box : cellGeometry){
             if (!boost::geometry::within(cell_box, chip_area)) {
+                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
         }
@@ -78,6 +80,14 @@ bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, cons
             if (intersecting_nodes.empty()) {
                 cell_boxes_rtree.insert(std::make_pair(cell_box, *cell_it));
             } else {
+                //                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                //                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                //                std::cout << "intersecting boxes " << std::endl;
+                for (auto node : intersecting_nodes) {
+                    auto box = node.first;
+                    //                    std::cout << "cell " << netlist.name(node.second) << " " << box.min_corner().x() << ", " << box.min_corner().y() << " -> " <<
+                    //                                 box.max_corner().x() << ", " << box.max_corner().y() << std::endl;
+                }
                 return false;
             }
         }

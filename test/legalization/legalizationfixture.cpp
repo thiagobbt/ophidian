@@ -24,87 +24,87 @@ ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell st
 AbacusFixture::AbacusFixture()
 {
     floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(5, 4));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(0.1, 1.0));
+    floorplan_.chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
     floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 1.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 2.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 3.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
 
     auto cellStdCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
-    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 1))};
+    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
     placementLibrary_.geometry(cellStdCell, stdCellGeometry);
 
     auto cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
-    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 2))};
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
     placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
 
-    auto cell1Location = ophidian::util::Location(1.0, 2.8);
+    auto cell1Location = ophidian::util::Location(10, 28);
     addCell(cellStdCell, "cell1", cell1Location, 2, false);
 
-    auto cell2Location = ophidian::util::Location(1.5, 2.8);
+    auto cell2Location = ophidian::util::Location(15, 28);
     addCell(cellStdCell, "cell2", cell2Location, 3, false);
 
-    auto cell3Location = ophidian::util::Location(2.5, 2.2);
+    auto cell3Location = ophidian::util::Location(25, 22);
     addCell(cellStdCell, "cell3", cell3Location, 2, false);
 
-    auto cell4Location = ophidian::util::Location(4.0, 3.0);
+    auto cell4Location = ophidian::util::Location(40, 30);
     addCell(cellStdCell, "cell4", cell4Location, 2, false);
 
-    auto cell5Location = ophidian::util::Location(3.0, 0.0);
+    auto cell5Location = ophidian::util::Location(30, 00);
     addCell(cellStdCell, "cell5", cell5Location, 2, false);
 
-    auto cell6Location = ophidian::util::Location(3.0, 1.0);
+    auto cell6Location = ophidian::util::Location(30, 10);
     addCell(cellStdCellMultirow, "cell6", cell6Location, 2, true);
 
-    auto cell7Location = ophidian::util::Location(3.5, 1.0);
+    auto cell7Location = ophidian::util::Location(35, 10);
     addCell(cellStdCell, "cell7", cell7Location, 2, false);
 }
 
 MultirowAbacusFixture::MultirowAbacusFixture()
 {
     floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(5, 4));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(0.1, 1.0));
+    floorplan_.chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
     floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 1.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 2.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 3.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
+    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
 
     auto cellStdCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
-    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 1))};
+    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
     placementLibrary_.geometry(cellStdCell, stdCellGeometry);
 
     auto cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
-    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 2))};
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
     placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
 
-    auto cell1Location = ophidian::util::Location(1.0, 2.8);
+    auto cell1Location = ophidian::util::Location(10, 28);
     addCell(cellStdCell, "cell1", cell1Location, 2, false);
 
-    auto cell2Location = ophidian::util::Location(1.5, 2.8);
+    auto cell2Location = ophidian::util::Location(15, 28);
     addCell(cellStdCell, "cell2", cell2Location, 3, false);
 
-    auto cell3Location = ophidian::util::Location(2.5, 2.2);
+    auto cell3Location = ophidian::util::Location(25, 22);
     addCell(cellStdCell, "cell3", cell3Location, 2, false);
 
-    auto cell4Location = ophidian::util::Location(4.0, 3.0);
+    auto cell4Location = ophidian::util::Location(40, 30);
     addCell(cellStdCell, "cell4", cell4Location, 2, false);
 
-    auto cell5Location = ophidian::util::Location(3.0, 0.0);
+    auto cell5Location = ophidian::util::Location(30, 00);
     addCell(cellStdCell, "cell5", cell5Location, 2, false);
 
-    auto cell6Location = ophidian::util::Location(3.0, 1.0);
+    auto cell6Location = ophidian::util::Location(30, 10);
     addCell(cellStdCellMultirow, "cell6", cell6Location, 2, false);
 
-    auto cell7Location = ophidian::util::Location(3.5, 1.0);
+    auto cell7Location = ophidian::util::Location(35, 10);
     addCell(cellStdCell, "cell7", cell7Location, 2, false);
 
-    auto cell8Location = ophidian::util::Location(3.5, 2.0);
+    auto cell8Location = ophidian::util::Location(35, 20);
     addCell(cellStdCell, "cell8", cell8Location, 2, false);
 }
 

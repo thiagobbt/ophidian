@@ -15,6 +15,26 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: legal circuit", "[leg
     REQUIRE(legalized);
 }
 
+TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlapping cells in the same location", "[legalization][check]") {
+    ophidian::standard_cell::Cell cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 2))};
+    ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
+    placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
+
+    ophidian::util::Location cell5Location = ophidian::util::Location(2.0, 0.0);
+    ophidian::circuit::Cell cellMR = addCell(cellStdCellMultirow, "cell5", cell5Location, 2, false);
+
+    bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
+    REQUIRE(aligned);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    REQUIRE(boundaries);
+    bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
+    REQUIRE(!overlaps);
+
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    REQUIRE(!legalized);
+}
+
 
 TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: misaligned", "[legalization][check]") {
     auto cell5Location = ophidian::util::Location(0.5, 3.0);

@@ -15,7 +15,7 @@ namespace legalization {
 
 using point = geometry::Point;
 using box = geometry::Box;
-using rtree_node = std::pair<box, entity_system::EntityBase>;
+using rtree_node = std::pair<box, circuit::Cell>;
 using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16>>;
 
 bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);

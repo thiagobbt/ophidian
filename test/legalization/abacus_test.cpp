@@ -6,13 +6,13 @@
 
 TEST_CASE_METHOD(AbacusFixture, "Legalization: legalizing small circuit using Abacus", "[legalization][abacus]") {
     std::vector<ophidian::util::Location> expectedLocations = {
-        ophidian::util::Location(0.7, 3.0),
-        ophidian::util::Location(1.7, 3.0),
-        ophidian::util::Location(2.0, 2.0),
-        ophidian::util::Location(4.0, 3.0),
-        ophidian::util::Location(3.0, 0.0),
-        ophidian::util::Location(3.0, 1.0),
-        ophidian::util::Location(4.0, 1.0),
+        ophidian::util::Location(7, 30),
+        ophidian::util::Location(17, 30),
+        ophidian::util::Location(20, 20),
+        ophidian::util::Location(40, 30),
+        ophidian::util::Location(30, 0.0),
+        ophidian::util::Location(30, 10),
+        ophidian::util::Location(40, 10),
     };
 
     ophidian::legalization::Abacus abacus(netlist_, floorplan_, placement_, placementMapping_);
@@ -21,7 +21,7 @@ TEST_CASE_METHOD(AbacusFixture, "Legalization: legalizing small circuit using Ab
     std::vector<ophidian::util::Location> cellLocations;
     for (auto cellIt = netlist_.begin(ophidian::circuit::Cell()); cellIt != netlist_.end(ophidian::circuit::Cell()); ++cellIt) {
         cellLocations.push_back(placement_.cellLocation(*cellIt));
-//        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
+        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }
 
     REQUIRE(cellLocations.size() == expectedLocations.size());
