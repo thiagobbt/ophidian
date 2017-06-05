@@ -10,6 +10,10 @@ LINK_DIRECTORIES( ${THIRD_PARTY_PATH}/DEF/lib/ ${THIRD_PARTY_PATH}/LEF/lib/ )
 
 add_subdirectory(iccad2017)
 
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+SET(BUILD_SHARED_LIBRARIES OFF)
+SET(CMAKE_EXE_LINKER_FLAGS "-static")
+
 add_executable( run_experiments ${SOURCE} ${HEADERS} )
 target_link_libraries(run_experiments Catch ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem)
 

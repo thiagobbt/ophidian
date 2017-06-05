@@ -40,12 +40,6 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
     for (auto cellPair : sortedCells) {
         auto abacusCell = cellPair.first;
 
-        auto netlistCell = abacusCell2NetlistCell_[abacusCell];
-        std::string cellName = netlist_.name(netlistCell);
-//        if (cellName.find("g58125_u0") != std::string::npos || cellName.find("g57580_u2") != std::string::npos) {
-//            std::cout << "stop" << std::endl;
-//        }
-
         double bestCost = std::numeric_limits<double>::max();
         Subrow bestSubrow;
         unsigned rowsToSearch = 5;
@@ -53,8 +47,6 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             std::vector<Subrow> closeSubrows;
             subrows_.findClosestSubrows(rowsToSearch, cellInitialLocations_[abacusCell], closeSubrows);
             for (auto subrow : closeSubrows) {
-                auto origin = subrows_.origin(subrow);
-                auto height = cellHeights_[abacusCell];
                 if ((subrows_.capacity(subrow) >= cellWidths_[abacusCell]) && ((subrows_.origin(subrow).y() + cellHeights_[abacusCell]) <= chipTop)) {
                     subrowCells_[subrow].push_back(abacusCell);
                     abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
@@ -70,20 +62,11 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             rowsToSearch *= 2;
         }
 
-        if (cellName.find("g559740") != std::string::npos) {
-            std::cout << "cell height " << cellHeights_[abacusCell] << std::endl;
-            std::cout << "subrow origin " << subrows_.origin(bestSubrow).y() << std::endl;
-            std::cout << "chip top " << chipTop << std::endl;
-        }
-
         subrowCells_[bestSubrow].push_back(abacusCell);
         subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
     }
 
     for (auto subrow : subrows_.range(Subrow())) {
-//        if (units::unit_cast<double>(subrows_.origin(subrow).y()) == 160000) {
-//            std::cout << "stop" << std::endl;
-//        }
         abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
     }
 

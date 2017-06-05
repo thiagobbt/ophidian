@@ -28,13 +28,7 @@ void MultirowAbacus::legalizePlacement()
     cellsByHeight.resize(maximumHeight);
 
     unsigned rowsPerCell = cellsByHeight.size();
-    unsigned index = 0;
     for (auto cellsByHeightIt = cellsByHeight.rbegin(); cellsByHeightIt != cellsByHeight.rend(); ++cellsByHeightIt) {
-        if (index == 55) {
-            std::cout << "stop" << std::endl;
-        }
-        std::cout << "cells by height " << index++ << std::endl;
-
         subrows_.createSubrows(rowsPerCell);
         rowsPerCell--;
 

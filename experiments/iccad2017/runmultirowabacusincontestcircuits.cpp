@@ -6,13 +6,20 @@
 #include <sys/time.h>
 
 void runMultirowAbacusForOneCircuit(std::string circuitName) {
-    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName);
+    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
+    ophidian::util::micrometer_t siteWidth(200);
+    ophidian::util::micrometer_t rowHeight(2000);
     ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(iccad.mNetlist.makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(iccad.mNetlist.makeProperty<bool>(ophidian::circuit::Cell()));
     for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
         initialLocations[*cellIt] = iccad.mPlacement.cellLocation(*cellIt);
         initialFixed[*cellIt] = iccad.mPlacement.isFixed(*cellIt);
+
+        auto cellLocation = iccad.mPlacement.cellLocation(*cellIt);
+        auto alignedX = std::floor(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
+        auto alignedY = std::floor(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
+        iccad.mPlacement.placeCell(*cellIt, ophidian::util::Location(alignedX, alignedY));
     }
 
     struct timeval startTime;
@@ -24,7 +31,11 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     struct timeval endTime;
     gettimeofday(&endTime, NULL);
 
-    double runtime = endTime.tv_sec - startTime.tv_sec;
+    double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
+
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
+        iccad.mPlacement.fixLocation(*cellIt, initialFixed[*cellIt]);
+    }
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
     REQUIRE(ophidian::legalization::checkAlignment(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
@@ -44,7 +55,9 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     }
     ophidian::util::micrometer_t averageDisplacement = totalDisplacement / numberOfMovableCells;
 
-    std::cout << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
+    std::cout << circuitName << "," << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
+
+    iccad.writeDefFile(circuitName + "_legalized.def");
 }
 
 TEST_CASE("run multirow abacus for all contest circuits", "[iccad2017][multirow_abacus]") {

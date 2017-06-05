@@ -28,6 +28,8 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             std::vector<std::pair<box, ophidian::floorplan::Row>> found_nodes;
             rows_rtree.query(boost::geometry::index::intersects(cell_box), std::back_inserter(found_nodes));
             if (found_nodes.empty()) {
+//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+//                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
             bool cell_aligned = false;
@@ -42,6 +44,8 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
                 }
             }
             if(!cell_aligned){
+//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+//                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
         }
@@ -58,8 +62,8 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
         auto cellGeometry = placementMapping.geometry(*cell_it);
         for(auto cell_box : cellGeometry){
             if (!boost::geometry::within(cell_box, chip_area)) {
-                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+//                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
         }
@@ -80,13 +84,13 @@ bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, cons
             if (intersecting_nodes.empty()) {
                 cell_boxes_rtree.insert(std::make_pair(cell_box, *cell_it));
             } else {
-                //                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-                //                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
-                //                std::cout << "intersecting boxes " << std::endl;
+//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+//                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+//                std::cout << "intersecting boxes " << std::endl;
                 for (auto node : intersecting_nodes) {
                     auto box = node.first;
-                    //                    std::cout << "cell " << netlist.name(node.second) << " " << box.min_corner().x() << ", " << box.min_corner().y() << " -> " <<
-                    //                                 box.max_corner().x() << ", " << box.max_corner().y() << std::endl;
+//                    std::cout << "cell " << netlist.name(node.second) << " " << box.min_corner().x() << ", " << box.min_corner().y() << " -> " <<
+//                                 box.max_corner().x() << ", " << box.max_corner().y() << std::endl;
                 }
                 return false;
             }
