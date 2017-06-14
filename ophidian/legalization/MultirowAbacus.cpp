@@ -12,7 +12,7 @@ void MultirowAbacus::legalizePlacement()
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();
 
     std::vector<std::vector<circuit::Cell>> cellsByHeight;
-    cellsByHeight.resize(1000);
+    cellsByHeight.resize(10);
     unsigned maximumHeight = 1;
     unsigned cellId = 0;
     for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt) {

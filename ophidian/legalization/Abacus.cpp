@@ -66,9 +66,16 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
         subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
     }
 
+//    double averageCellsPerSubrow = 0;
+//    std::size_t maxCellsPerSubrow = 0;
     for (auto subrow : subrows_.range(Subrow())) {
         abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
+//        averageCellsPerSubrow += subrowCells_[subrow].size();
+//        maxCellsPerSubrow = std::max(maxCellsPerSubrow, subrowCells_[subrow].size());
     }
+//    averageCellsPerSubrow /= subrows_.rowCount();
+//    std::cout << "average cells per subrow " << averageCellsPerSubrow << std::endl;
+//    std::cout << "max cells per subrow " << maxCellsPerSubrow << std::endl;
 
     for (auto cellPair : sortedCells) {
         auto netlistCell = abacusCell2NetlistCell_[cellPair.first];

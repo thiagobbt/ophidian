@@ -37,6 +37,10 @@ public:
 
     util::Location upperCorner(Subrow subrow) const;
 
+    std::size_t rowCount() const {
+        return subrows_.size();
+    }
+
     template <typename Value>
     entity_system::Property<Subrow, Value> makeProperty(Subrow)
     const {
