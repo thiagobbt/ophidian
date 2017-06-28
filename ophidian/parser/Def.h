@@ -40,6 +40,13 @@ class Def
 {
 public:
     /**
+     * Returns the circuit name.
+     */
+    std::string circuitName() const {
+        return circuit_name;
+    }
+
+    /**
      * Type to represent a bidimentional point
      * @tparam T point coordinate type
      */
@@ -143,8 +150,9 @@ private:
     double units_;
     std::vector<component> components_;
     std::vector<row> rows_;
+    std::string circuit_name;
 
-public:
+public:    
     friend class DefParser;
 };
 

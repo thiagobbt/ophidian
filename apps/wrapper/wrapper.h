@@ -25,7 +25,7 @@
 class Wrapper
 {
 public:
-    Wrapper(std::string circuitPath, std::string circuitName);
+    Wrapper(std::string tech_lef, std::string cell_lef, std::string input_def);
 
     void writeDefFile(std::string filePath);
 

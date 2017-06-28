@@ -1,16 +1,17 @@
 #include "wrapper.h"
 
-Wrapper::Wrapper(std::__cxx11::string circuitPath, std::__cxx11::string circuitName) :
-    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping), mCircuitName(circuitName)
+Wrapper::Wrapper(std::string tech_lef, std::string cell_lef, std::string input_def):
+    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping)
 {
     ophidian::parser::DefParser defParser;
-    std::unique_ptr<ophidian::parser::Def> def = defParser.readFile(circuitPath+"/placed.def");
+    std::unique_ptr<ophidian::parser::Def> def = defParser.readFile(input_def);
     ophidian::placement::def2placement(*def, mPlacement, mNetlist);
+    mCircuitName = def->circuitName();
 
     ophidian::parser::LefParser lefParser;
-    std::unique_ptr<ophidian::parser::Lef> lef =  std::make_unique<ophidian::parser::Lef>();
-    lefParser.readFile(circuitPath + "/cells_modified.lef", lef);
-    lefParser.readFile(circuitPath + "/tech.lef", lef);
+    std::unique_ptr<ophidian::parser::Lef> lef = std::make_unique<ophidian::parser::Lef>();
+    lefParser.readFile(cell_lef, lef);
+    lefParser.readFile(tech_lef, lef);
     ophidian::floorplan::lefDef2Floorplan(*lef, *def, mFloorplan);
 
     ophidian::placement::lef2Library(*lef, mLibrary, mStdCells);

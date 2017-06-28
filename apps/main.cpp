@@ -4,8 +4,10 @@
 #include <ophidian/legalization/LegalizationCheck.h>
 #include <string>
 
-void runMultirowAbacusForOneCircuit(std::string circuitPath, std::string circuitName) {
-    Wrapper iccad(circuitPath, circuitName);
+
+
+void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, std::string input_def, unsigned int cpu, std::string placement_constraints, std::string output_def){
+    Wrapper iccad(tech_lef, cell_lef, input_def);
 
     unsigned movableCells = 0;
     unsigned fixedCells = 0;
@@ -39,14 +41,18 @@ void runMultirowAbacusForOneCircuit(std::string circuitPath, std::string circuit
     }
 
 
-    iccad.writeDefFile(circuitName + "_legalized.def");
+    iccad.writeDefFile(output_def);
 }
 
-
 int main(int argc, char** argv){
-    if (argc < 3) {
-        std::cout << "usage cada001 <circuit_pah> <circuit_name>" << std::endl;
+    if (argc != 13) {
+        std::cout << "Error, usage: ./cada001 -tech_lef tech.lef -cell_lef cell.lef -input_def placed.def -cpu 4 -placement_constraints placement.constraints -output_def lg.def" << std::endl;
         return -1;
     }
-    runMultirowAbacusForOneCircuit(argv[1], argv[2]);
+    if(std::string(argv[1]) == "-tech_lef" && std::string(argv[3]) == "-cell_lef" && std::string(argv[5]) == "-input_def" && std::string(argv[7]) == "-cpu" && std::string(argv[9]) == "-placement_constraints" && std::string(argv[11]) == "-output_def")
+        runMultirowAbacusForOneCircuit(argv[2], argv[4], argv[6], std::stoi(argv[8]), argv[10], argv[12]);
+    else{
+        std::cout << "Error, usage: ./cada001 -tech_lef tech.lef -cell_lef cell.lef -input_def placed.def -cpu 4 -placement_constraints placement.constraints -output_def lg.def" << std::endl;
+        return -1;
+    }
 }
