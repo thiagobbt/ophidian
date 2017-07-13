@@ -6,8 +6,10 @@
 #include <ophidian/circuit/LibraryMapping.h>
 #include <ophidian/geometry/Operations.h>
 
-namespace ophidian {
-namespace placement {
+namespace ophidian
+{
+namespace placement
+{
 class PlacementMapping
 {
 public:
@@ -37,13 +39,21 @@ public:
      */
     util::Location location(const circuit::Pin & pin) const;
 
+    //! Cell Aligmnment getter
+    /*!
+       \brief Gets the power aligment of a cell.
+       \param cell Cell entity to get the power aligment .
+       \return RowAlignment of the cell.
+     */
+    placement::RowAlignment alignment(const circuit::Cell & cell) const;
+
 private:
     const Placement & placement_;
     const Library & library_;
     const circuit::Netlist & netlist_;
     const circuit::LibraryMapping & libraryMapping_;
 };
-}
-}
+} // namespace placement
+} // namespace ophidian
 
 #endif // PLACEMENTMAPPING_H

@@ -56,6 +56,18 @@ void lef2Library(const parser::Lef & lef, Library & library, standard_cell::Stan
                 for(auto rect : port.rects)
                     library.pinOffset(stdPin, util::Location(0.5*(rect.xl+rect.xh)*lef.databaseUnits(), 0.5*(rect.yl+rect.yh)*lef.databaseUnits()));
         }
+
+        if(macro.name[macro.name.size()-1] == 'E')
+        {
+            library.cellAlignment(stdCell, ophidian::placement::RowAlignment::EVEN);
+        }
+        else if(macro.name[macro.name.size()-1] == 'O')
+        {
+            library.cellAlignment(stdCell, ophidian::placement::RowAlignment::ODD);
+        }
+        else {
+            library.cellAlignment(stdCell, ophidian::placement::RowAlignment::NA);
+        }
     }
 }
 } // namespace placement

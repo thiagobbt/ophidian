@@ -4,6 +4,9 @@ namespace ophidian
 {
 namespace legalization
 {
+
+using namespace ophidian::placement;
+
 Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
     subrows_(netlist, floorplan, placement, placementMapping),
@@ -47,9 +50,11 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
         double bestCost = std::numeric_limits<double>::max();
         Subrow bestSubrow;
         unsigned rowsToSearch = 5;
+
         while (bestCost == std::numeric_limits<double>::max())
         {
             std::vector<Subrow> closeSubrows;
+            closeSubrows.reserve(rowsToSearch);
             subrows_.findClosestSubrows(rowsToSearch, cellInitialLocations_[abacusCell], closeSubrows);
             for (auto subrow : closeSubrows)
             {

@@ -10,12 +10,11 @@ Subrows::Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & 
     createSubrows();
 }
 
-void Subrows::createSubrows(unsigned rowsPerCell)
+void Subrows::createSubrows(unsigned rowsPerCell, unsigned rowIndex)
 {
     subrows_.clear();
     subrowsRtree_.clear();
 
-    unsigned rowIndex = 0;
     for (auto rowIt = floorplan_.rowsRange().begin(); rowIt != floorplan_.rowsRange().end(); ++rowIt)
     {
         if (rowIndex % rowsPerCell == 0)

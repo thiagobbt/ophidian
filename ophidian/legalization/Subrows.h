@@ -4,17 +4,19 @@
 #include <ophidian/floorplan/Floorplan.h>
 #include <ophidian/placement/PlacementMapping.h>
 
-namespace ophidian {
-namespace legalization {
+namespace ophidian
+{
+namespace legalization
+{
 
 class Subrow : public entity_system::EntityBase
 {
-    public:
-        using entity_system::EntityBase::EntityBase;
+public:
+    using entity_system::EntityBase::EntityBase;
 };
 
 using RtreeNode = std::pair<geometry::Box, Subrow>;
-using Rtree = boost::geometry::index::rtree<RtreeNode, boost::geometry::index::rstar<16>>;
+using Rtree = boost::geometry::index::rtree<RtreeNode, boost::geometry::index::rstar<16> >;
 
 class Subrows
 {
@@ -23,7 +25,7 @@ public:
 
     Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
-    void createSubrows(unsigned rowsPerCell = 1);
+    void createSubrows(unsigned rowsPerCell = 1, unsigned rowIndex = 0);
 
     ophidian::util::Range<SubrowsIterator> range(Subrow) const;
 
@@ -60,8 +62,8 @@ private:
 
     Rtree subrowsRtree_;
 };
-}
-}
+} // namespace legalization
+} // namespace ophidian
 
 
 #endif // SUBROWS_H

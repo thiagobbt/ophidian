@@ -63,6 +63,25 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
                 return false;
             }
         }
+        //verify power rail alignment
+        auto rowAlignment = placementMapping.alignment(*cell_it);
+        if( rowAlignment != ophidian::placement::RowAlignment::NA)
+        {
+            auto cellLocation = placement.cellLocation(*cell_it);
+            auto siteHeight = floorplan.siteUpperRightCorner(*floorplan.sitesRange().begin()).y();
+            auto cellPlacedInOddRow = std::fmod((cellLocation.y()/siteHeight), 2.0);
+            if(rowAlignment == ophidian::placement::RowAlignment::EVEN)
+            {
+                //Row alignmrnt = ODD
+                if(cellPlacedInOddRow)
+                    return false;
+            }
+            else {
+                //Row alignmrnt = EVEN
+                if(!cellPlacedInOddRow)
+                    return false;
+            }
+        }
     }
     return true;
 }
