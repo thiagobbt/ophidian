@@ -1,3 +1,5 @@
+INCLUDE_DIRECTORIES( ${THIRD_PARTY_PATH} ${THIRD_PARTY_PATH}/gurobi702/linux64/include)
+
 file(GLOB ophidian_legalization_SRC
     "*.h"
     "*.cpp"

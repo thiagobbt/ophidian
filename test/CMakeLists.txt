@@ -5,8 +5,8 @@ set(SOURCE
 add_library(Catch INTERFACE)
 target_include_directories(Catch INTERFACE .)
 
-INCLUDE_DIRECTORIES( ${THIRD_PARTY_PATH} )
-LINK_DIRECTORIES( ${THIRD_PARTY_PATH}/DEF/lib/ ${THIRD_PARTY_PATH}/LEF/lib/ )
+INCLUDE_DIRECTORIES( ${THIRD_PARTY_PATH} ${THIRD_PARTY_PATH}/gurobi702/linux64/include)
+LINK_DIRECTORIES( ${THIRD_PARTY_PATH}/DEF/lib/ ${THIRD_PARTY_PATH}/LEF/lib/ ${THIRD_PARTY_PATH}/gurobi702/linux64/lib)
 
 add_subdirectory(entity_system)
 add_subdirectory(circuit)
@@ -21,7 +21,7 @@ add_subdirectory(standard_cell)
 add_subdirectory(legalization)
 
 add_executable( run_tests ${SOURCE} ${HEADERS} )
-target_link_libraries(run_tests Catch ophidian_entitysystem ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon)
+target_link_libraries(run_tests Catch ophidian_entitysystem ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon gurobi_g++5.2 gurobi70)
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_test(NAME unit_test COMMAND run_tests "~[Profiling] ~[superblue18obs]")

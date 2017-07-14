@@ -43,5 +43,13 @@ protected:
     ophidian::standard_cell::Cell cellStdCell_;
 };
 
+class LargerLegalCircuitFixture : public CircuitFixture
+{
+public:
+    LargerLegalCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
 
 #endif // LEGALIZATIONFIXTURE_H

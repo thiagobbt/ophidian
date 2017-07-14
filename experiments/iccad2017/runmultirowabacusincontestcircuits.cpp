@@ -5,6 +5,7 @@
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/legalization/LegalizationCheck.h>
 #include <sys/time.h>
+#include "MultirowAbacusFixture.h"
 
 void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
     iccad2015_wrapper iccad("./input_files/benchmarks/" + circuitName, circuitName);
@@ -38,7 +39,7 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
     struct timeval startTime;
     gettimeofday(&startTime, NULL);
 
-    ophidian::legalization::MultirowAbacus multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
+    MultiRowAbacusFixture multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
     multirowAbacus.legalizePlacement();
 
     struct timeval endTime;
@@ -69,6 +70,8 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
     ophidian::util::micrometer_t averageDisplacement = totalDisplacement / numberOfMovableCells;
 
     std::cout << circuitName << "," << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
+
+    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
 //    iccad.writeDefFile(circuitName + "_legalized.def");
 }
@@ -105,7 +108,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     struct timeval startTime;
     gettimeofday(&startTime, NULL);
 
-    ophidian::legalization::MultirowAbacus multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
+    MultiRowAbacusFixture multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
     multirowAbacus.legalizePlacement();
 
     struct timeval endTime;
@@ -136,6 +139,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     ophidian::util::micrometer_t averageDisplacement = totalDisplacement / numberOfMovableCells;
 
     std::cout << circuitName << "," << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
+
+    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
 //    iccad.writeDefFile(circuitName + "_legalized.def");
 }
