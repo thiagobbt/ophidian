@@ -17,16 +17,20 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
     ophidian::util::micrometer_t rowHeight(2000);
     ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(iccad.mNetlist.makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(iccad.mNetlist.makeProperty<bool>(ophidian::circuit::Cell()));
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
-        if (iccad.mPlacement.isFixed(*cellIt)) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        if (iccad.mPlacement.isFixed(*cellIt))
+        {
             fixedCells++;
-        } else {
+        }
+        else {
             movableCells++;
         }
 
         initialLocations[*cellIt] = iccad.mPlacement.cellLocation(*cellIt);
         initialFixed[*cellIt] = iccad.mPlacement.isFixed(*cellIt);
 
+        //alinhamento de celulas
         auto cellLocation = iccad.mPlacement.cellLocation(*cellIt);
         auto alignedX = std::floor(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
         auto alignedY = std::floor(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
@@ -47,7 +51,8 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 
     double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
 
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
         iccad.mPlacement.fixLocation(*cellIt, initialFixed[*cellIt]);
     }
 
@@ -58,11 +63,13 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 
     ophidian::util::micrometer_t totalDisplacement;
     unsigned numberOfMovableCells = 0;
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
-        if (!initialFixed[*cellIt]) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        if (!initialFixed[*cellIt])
+        {
             auto currentLocation = iccad.mPlacement.cellLocation(*cellIt);
             auto cellDisplacement = std::abs(units::unit_cast<double>(initialLocations[*cellIt].x() - currentLocation.x())) +
-                    std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
+                                    std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
             totalDisplacement = totalDisplacement + ophidian::util::micrometer_t(cellDisplacement);
             numberOfMovableCells++;
         }
@@ -86,20 +93,23 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     ophidian::util::micrometer_t rowHeight(2000);
     ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(iccad.mNetlist.makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(iccad.mNetlist.makeProperty<bool>(ophidian::circuit::Cell()));
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
-        if (iccad.mPlacement.isFixed(*cellIt)) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        if (iccad.mPlacement.isFixed(*cellIt))
+        {
             fixedCells++;
-        } else {
+        }
+        else {
             movableCells++;
         }
 
         initialLocations[*cellIt] = iccad.mPlacement.cellLocation(*cellIt);
         initialFixed[*cellIt] = iccad.mPlacement.isFixed(*cellIt);
 
-        auto cellLocation = iccad.mPlacement.cellLocation(*cellIt);
-        auto alignedX = std::floor(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
-        auto alignedY = std::floor(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
-        iccad.mPlacement.placeCell(*cellIt, ophidian::util::Location(alignedX, alignedY));
+//        auto cellLocation = iccad.mPlacement.cellLocation(*cellIt);
+//        auto alignedX = std::floor(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
+//        auto alignedY = std::floor(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
+//        iccad.mPlacement.placeCell(*cellIt, ophidian::util::Location(alignedX, alignedY));
     }
 
     std::cout << "fixed cells " << fixedCells << std::endl;
@@ -116,7 +126,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
 
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
         iccad.mPlacement.fixLocation(*cellIt, initialFixed[*cellIt]);
     }
 
@@ -127,11 +138,13 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     ophidian::util::micrometer_t totalDisplacement;
     unsigned numberOfMovableCells = 0;
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt) {
-        if (!initialFixed[*cellIt]) {
+    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        if (!initialFixed[*cellIt])
+        {
             auto currentLocation = iccad.mPlacement.cellLocation(*cellIt);
             auto cellDisplacement = std::abs(units::unit_cast<double>(initialLocations[*cellIt].x() - currentLocation.x())) +
-                    std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
+                                    std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
             totalDisplacement = totalDisplacement + ophidian::util::micrometer_t(cellDisplacement);
             numberOfMovableCells++;
         }
@@ -145,7 +158,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 //    iccad.writeDefFile(circuitName + "_legalized.def");
 }
 
-TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][multirow_abacus]") {
+TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][multirow_abacus]")
+{
     std::cout << "running for all circuits " << std::endl;
 
     std::vector<std::string> circuitNames = {
@@ -159,12 +173,14 @@ TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][mult
 //        "superblue10",
     };
 
-    for (auto circuitName : circuitNames) {
+    for (auto circuitName : circuitNames)
+    {
         runMultirowAbacusForOneCircuit2015(circuitName);
     }
 }
 
-TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][multirow_abacus]")
+{
     std::cout << "running for all circuits " << std::endl;
 
     std::vector<std::string> circuitNames = {
@@ -178,39 +194,49 @@ TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][mult
         "des_perf_b_md1",
     };
 
-    for (auto circuitName : circuitNames) {
+    for (auto circuitName : circuitNames)
+    {
+        std::cout << "running circuit: " << circuitName << std::endl;
         runMultirowAbacusForOneCircuit(circuitName);
     }
 }
 
-TEST_CASE("run multirow abacus for des_perf_b_md1", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for des_perf_b_md1", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("des_perf_b_md1");
 }
 
-TEST_CASE("run multirow abacus for des_perf_b_md2", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for des_perf_b_md2", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("des_perf_b_md2");
 }
 
-TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("edit_dist_1_md1");
 }
 
-TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("edit_dist_a_md2");
 }
 
-TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("fft_2_md2");
 }
 
-TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("fft_a_md2");
 }
 
-TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("fft_a_md3");
 }
 
-TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]") {
+TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]")
+{
     runMultirowAbacusForOneCircuit("pci_bridge32_a_md1");
 }

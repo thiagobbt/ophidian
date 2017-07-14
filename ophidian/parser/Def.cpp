@@ -27,6 +27,12 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const thr
     auto def = std::make_unique<Def>(); 
     defrInit();
 
+    defrSetDesignCbk([](defrCallbackType_e, const char *string, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+        that.circuit_name = string;
+        return 0;
+    });
+
     defrSetUnitsCbk([](defrCallbackType_e, double number, defiUserData ud)->int{
         Def& that = *static_cast<Def*>(ud);
         that.units_ = number;

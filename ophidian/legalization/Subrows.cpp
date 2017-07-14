@@ -1,21 +1,24 @@
 #include "Subrows.h"
-
-namespace ophidian {
-namespace legalization {
+#include <cmath>
+namespace ophidian
+{
+namespace legalization
+{
 Subrows::Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
-      subrowOrigins_(subrows_), subrowUpperCorners_(subrows_), subrowCapacities_(subrows_) {
+    subrowOrigins_(subrows_), subrowUpperCorners_(subrows_), subrowCapacities_(subrows_) {
     createSubrows();
 }
 
-void Subrows::createSubrows(unsigned rowsPerCell)
+void Subrows::createSubrows(unsigned rowsPerCell, unsigned rowIndex)
 {
     subrows_.clear();
     subrowsRtree_.clear();
 
-    unsigned rowIndex = 0;
-    for (auto rowIt = floorplan_.rowsRange().begin(); rowIt != floorplan_.rowsRange().end(); ++rowIt) {
-        if (rowIndex % rowsPerCell == 0) {
+    for (auto rowIt = floorplan_.rowsRange().begin(); rowIt != floorplan_.rowsRange().end(); ++rowIt)
+    {
+        if (rowIndex % rowsPerCell == 0)
+        {
             auto subrow = subrows_.add();
             auto rowOrigin = floorplan_.origin(*rowIt);
 
@@ -33,37 +36,51 @@ void Subrows::createSubrows(unsigned rowsPerCell)
         rowIndex++;
     }
 
-    for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt) {
-        if (placement_.isFixed(*cellIt)) {
+    for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt)
+    {
+        if (placement_.isFixed(*cellIt))
+        {
 //            std::string cellName = netlist_.name(*cellIt);
-//            if (cellName.find("g58125_u0") != std::string::npos || cellName.find("g57580_u2") != std::string::npos) {
+//            if (cellName.find("FE_OCPC56160_FE_OFN47351_n_22922") != std::string::npos)
+//            {
 //                std::cout << "stop" << std::endl;
 //            }
 
             auto cellGeometry = placementMapping_.geometry(*cellIt);
-            for (auto cellBox : cellGeometry) {
+            for (auto cellBox : cellGeometry)
+            {
                 std::vector<RtreeNode> intersectingSubrowNodes;
                 subrowsRtree_.query(boost::geometry::index::overlaps(cellBox), std::back_inserter(intersectingSubrowNodes));
                 subrowsRtree_.query(boost::geometry::index::covers(cellBox), std::back_inserter(intersectingSubrowNodes));
                 subrowsRtree_.query(boost::geometry::index::covered_by(cellBox), std::back_inserter(intersectingSubrowNodes));
-                for (auto subrowNode : intersectingSubrowNodes) {
+                for (auto subrowNode : intersectingSubrowNodes)
+                {
                     auto subrow = subrowNode.second;
 
                     auto leftSubrow = subrows_.add();
                     subrowOrigins_[leftSubrow] = subrowOrigins_[subrow];
 //                    auto leftSubrowX = std::max(cellBox.min_corner().x(), subrowNode.first.min_corner().x());
-                    subrowUpperCorners_[leftSubrow] = util::Location(cellBox.min_corner().x(), subrowNode.first.max_corner().y());
+                    //alinhar upperCorner
+                    auto siteWidth = floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).x();
+                    double xUpperCorner = std::floor(units::unit_cast<double>(cellBox.min_corner().x() / siteWidth))*units::unit_cast<double>(siteWidth);
+                    subrowUpperCorners_[leftSubrow] = util::Location(xUpperCorner, subrowNode.first.max_corner().y());
+//                    subrowUpperCorners_[leftSubrow] = util::Location(cellBox.min_corner().x(), subrowNode.first.max_corner().y());
                     subrowCapacities_[leftSubrow] = subrowUpperCorners_[leftSubrow].x() - subrowOrigins_[leftSubrow].x();
                     geometry::Box leftSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[leftSubrow].x()), units::unit_cast<double>(subrowOrigins_[leftSubrow].y())),
                                                 geometry::Point(units::unit_cast<double>(subrowUpperCorners_[leftSubrow].x()), units::unit_cast<double>(subrowUpperCorners_[leftSubrow].y())));
 
+
                     auto rightSubrow = subrows_.add();
 //                    auto rightSubrowX = std::max(cellBox.max_corner().x(), subrowNode.first.max_corner().x());
-                    subrowOrigins_[rightSubrow] = util::Location(cellBox.max_corner().x(), subrowNode.first.min_corner().y());
+                    //alinhar origem
+                    double xOrigin = std::ceil(units::unit_cast<double>(cellBox.max_corner().x() / siteWidth))*units::unit_cast<double>(siteWidth);
+//                    subrowOrigins_[rightSubrow] = util::Location(cellBox.max_corner().x(), subrowNode.first.min_corner().y());
+                    subrowOrigins_[rightSubrow] = util::Location(xOrigin, subrowNode.first.min_corner().y());
                     subrowUpperCorners_[rightSubrow] = subrowUpperCorners_[subrow];
                     subrowCapacities_[rightSubrow] = subrowUpperCorners_[rightSubrow].x() - subrowOrigins_[rightSubrow].x();
                     geometry::Box rightSubrowBox(geometry::Point(units::unit_cast<double>(subrowOrigins_[rightSubrow].x()), units::unit_cast<double>(subrowOrigins_[rightSubrow].y())),
                                                  geometry::Point(units::unit_cast<double>(subrowUpperCorners_[rightSubrow].x()), units::unit_cast<double>(subrowUpperCorners_[rightSubrow].y())));
+
 
 //                    if (subrowNode.first.min_corner().y() == 160000 && rowsPerCell == 1) {
 //                        std::cout << "cell box " << cellBox.min_corner().x() << ", " << cellBox.min_corner().y() << " -> " <<
@@ -78,10 +95,12 @@ void Subrows::createSubrows(unsigned rowsPerCell)
 
                     subrowsRtree_.remove(subrowNode);
                     subrows_.erase(subrow);
-                    if (leftSubrowBox.max_corner().x() - leftSubrowBox.min_corner().x() > 0) {
+                    if (leftSubrowBox.max_corner().x() - leftSubrowBox.min_corner().x() > 0)
+                    {
                         subrowsRtree_.insert(RtreeNode(leftSubrowBox, leftSubrow));
                     }
-                    if (rightSubrowBox.max_corner().x() - rightSubrowBox.min_corner().x() > 0) {
+                    if (rightSubrowBox.max_corner().x() - rightSubrowBox.min_corner().x() > 0)
+                    {
                         subrowsRtree_.insert(RtreeNode(rightSubrowBox, rightSubrow));
                     }
 
@@ -89,6 +108,20 @@ void Subrows::createSubrows(unsigned rowsPerCell)
             }
         }
     }
+//    std::cout << "ROW PER CELL " <<rowsPerCell<<std::endl;
+//    for(auto subRowIt = subrows_.begin(); subRowIt != subrows_.end(); ++subRowIt)
+//    {
+////        std::cout << "sub: x: " << subrowOrigins_[*subRowIt].x() <<" y: "<< subrowOrigins_[*subRowIt].y() << " -> "
+////                  << subrowUpperCorners_[*subRowIt].x() << " " << subrowUpperCorners_[*subRowIt].y() <<std::endl;
+
+//        util::Location origin = subrowOrigins_[*subRowIt];
+//        util::Location upperCorner = subrowUpperCorners_[*subRowIt];
+//        std::cout << "<rect "
+//                  <<"x=\""<< units::unit_cast<double>(origin.x())/1000 << "\" y=\""<< units::unit_cast<double>(origin.y())/1000 << "\""
+//                  <<" width=\""<< units::unit_cast<double>(upperCorner.x() - origin.x())/1000 <<"\" height=\""<< units::unit_cast<double>(upperCorner.y() - origin.y())/1000 <<"\""
+//                  <<" style=\"fill:white;stroke:black;stroke-width:0.01;fill-opacity:0.1;stroke-opacity:0.9\" />" << std::endl;
+//    }
+
 }
 
 ophidian::util::Range<Subrows::SubrowsIterator> Subrows::range(Subrow) const
@@ -103,7 +136,8 @@ void Subrows::findClosestSubrows(unsigned numberOfSubrows, util::Location point,
     subrowsRtree_.query(boost::geometry::index::nearest(doublePoint, numberOfSubrows), std::back_inserter(closeSubrowNodes));
 
     subrows.reserve(closeSubrowNodes.size());
-    for (auto rtreeNode : closeSubrowNodes) {
+    for (auto rtreeNode : closeSubrowNodes)
+    {
         subrows.push_back(rtreeNode.second);
     }
 }
@@ -127,6 +161,6 @@ util::Location Subrows::upperCorner(Subrow subrow) const
 {
     return subrowUpperCorners_[subrow];
 }
-}
-}
+} // namespace legalization
+} // namespace ophidian
 

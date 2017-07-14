@@ -1,7 +1,9 @@
 #include "PlacementMapping.h"
 
-namespace ophidian {
-namespace placement {
+namespace ophidian
+{
+namespace placement
+{
 PlacementMapping::PlacementMapping(const Placement &placement, const Library &library, const circuit::Netlist &netlist, const circuit::LibraryMapping &libraryMapping)
     : placement_(placement), library_(library), netlist_(netlist), libraryMapping_(libraryMapping) {
 
@@ -25,5 +27,11 @@ util::Location PlacementMapping::location(const circuit::Pin &pin) const
     util::Location pinLocation(cellLocation.x() + pinOffset.x(), cellLocation.y() + pinOffset.y());
     return pinLocation;
 }
+
+RowAlignment PlacementMapping::alignment(const circuit::Cell &cell) const
+{
+    auto stdCell = libraryMapping_.cellStdCell(cell);
+    return library_.cellAlignment(stdCell);
 }
-}
+} // namespace placement
+} // namespace ophidian

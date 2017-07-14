@@ -3,16 +3,19 @@
 
 #include <ophidian/legalization/Abacus.h>
 
-namespace ophidian {
-namespace legalization {
+namespace ophidian
+{
+namespace legalization
+{
 class MultirowAbacus : public Abacus
 {
 public:
     MultirowAbacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
     void legalizePlacement();
+    void legalizeSubrows(std::vector<circuit::Cell> &cellsForOneHeight,unsigned rowsPerCell, unsigned subRowIndex);
 };
-}
-}
+} // namespace legalization
+} // namespace ophidian
 
 #endif // MULTIROWABACUS_H

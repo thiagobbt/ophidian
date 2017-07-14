@@ -5,14 +5,17 @@
 
 #include <ophidian/legalization/AbacusPlaceRow.h>
 
-namespace ophidian {
-namespace legalization {
+namespace ophidian
+{
+namespace legalization
+{
 
 class Abacus
 {
 public:
-    class CellPairComparator {
-    public:
+    class CellPairComparator
+    {
+public:
         bool operator()(const std::pair<AbacusCell, util::Location> & cellPair1, const std::pair<AbacusCell, util::Location> & cellPair2) {
             return cellPair1.second.x() < cellPair2.second.x();
         }
@@ -23,7 +26,7 @@ public:
     virtual void legalizePlacement();
 
 protected:
-    void legalize(const std::vector<std::pair<AbacusCell, util::Location>> & sortedCells);
+    void legalize(const std::vector<std::pair<AbacusCell, util::Location> > & sortedCells);
 
     const circuit::Netlist & netlist_;
     const floorplan::Floorplan & floorplan_;
@@ -40,12 +43,12 @@ protected:
 
     Subrows subrows_;
 
-    entity_system::Property<Subrow, std::vector<AbacusCell>> subrowCells_;
+    entity_system::Property<Subrow, std::vector<AbacusCell> > subrowCells_;
 
     AbacusPlaceRow abacusPlaceRow_;
 };
 
-}
-}
+} // namespace legalization
+} // namespace ophidian
 
 #endif // ABACUS_H
