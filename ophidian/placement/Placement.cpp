@@ -27,6 +27,7 @@ Placement::Placement(const circuit::Netlist &netlist) :
     cellLocations_(netlist.makeProperty<util::Location>(circuit::Cell())),
     cellFixed_(netlist.makeProperty<bool>(circuit::Cell())),
     cellOrientation_(netlist.makeProperty<std::string>(circuit::Cell())),
+    cellFence_(netlist.makeProperty<Fence>(circuit::Cell())),
     inputLocations_(netlist.makeProperty<util::Location>(circuit::Input())),
     outputLocations_(netlist.makeProperty<util::Location>(circuit::Output()))
 {
@@ -72,6 +73,10 @@ void Placement::cellOrientation(const circuit::Cell &cell, std::string orientati
     cellOrientation_[cell] = orientation;
 }
 
+void Placement::cellFence(const circuit::Cell &cell, Fence fence)
+{
+    cellFence_[cell] = fence;
+}
 
 } //namespace placement
 

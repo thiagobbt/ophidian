@@ -19,6 +19,7 @@ under the License.
 #ifndef OPHIDIAN_UTIL_UNITS_H
 #define OPHIDIAN_UTIL_UNITS_H
 
+#include <algorithm>
 #include <ratio>
 #include <vector>
 #include <3rdparty/units/include/units.h>
@@ -168,16 +169,11 @@ public:
     }
 
     bool operator==(const MultiBox & other) const {
-        for (auto box1 : this->boxes_) {
-            for (auto box2 : other.boxes_) {
-                bool comparison = (box1.min_corner().x() == box2.min_corner().x()) && (box1.min_corner().y() == box2.min_corner().y())
-                        && (box1.max_corner().x() == box2.max_corner().x()) && (box1.max_corner().y() == box2.max_corner().y());
-                if (!comparison) {
-                    return false;
-                }
+        return std::is_permutation(this->boxes_.begin(), this->boxes_.end(), other.boxes_.begin(),
+            [](const geometry::Box &a, const geometry::Box &b) {
+                return boost::geometry::equals(a, b);
             }
-        }
-        return true;
+        );
     }
 
     bool operator!=(const MultiBox & other) const {

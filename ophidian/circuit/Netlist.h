@@ -26,6 +26,10 @@ under the License.
 
 namespace ophidian
 {
+    namespace placement
+    {
+        class Fences;
+    }
     namespace circuit
     {
 
@@ -66,6 +70,8 @@ namespace ophidian
                 using CellNotifier = entity_system::EntitySystem<Cell>::NotifierType;
                 using PinNotifier = entity_system::EntitySystem<Pin>::NotifierType;
                 using NetNotifier = entity_system::EntitySystem<Net>::NotifierType;
+
+                friend class placement::Fences;
 
                 //! Construct Netlist
                 /*!
