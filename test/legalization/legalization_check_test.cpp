@@ -6,13 +6,28 @@
 TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: legal circuit", "[legalization][check]") {
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
 
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(legalized);
+}
+
+TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: cell outside fence", "[legalization][check]") {
+    auto cell5Location = ophidian::util::Location(4.0, 3.0);
+    addCell(cellStdCell_, "cell5", cell5Location, 2, false);
+
+    auto fence2 = fences_.add("fence2");
+    fences_.area(fence2, ophidian::util::MultiBox({ophidian::geometry::Box({0, 0}, {2, 2})}));
+
+    auto cell5 = netlist_.find(ophidian::circuit::Cell(), "cell5");
+    fences_.connect(fence2, cell5);
+    placement_.cellFence(cell5, fence2);
+
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
+    REQUIRE_FALSE(boundaries);
 }
 
 TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlapping cells in the same location", "[legalization][check]") {
@@ -26,12 +41,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlapping cells in 
 
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
 
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 }
 
@@ -42,12 +57,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: misaligned", "[legali
 
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
 
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 }
 
@@ -57,12 +72,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: outside boundaries", 
 
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
 
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     auto cell6Location = ophidian::util::Location(4.5, 2.0);
@@ -70,12 +85,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: outside boundaries", 
 
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
 
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     auto cell7Location = ophidian::util::Location(2.5, -0.5);
@@ -83,12 +98,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: outside boundaries", 
 
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
 
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 }
 
@@ -98,12 +113,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlaped", "[legaliz
 
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
 
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     auto cell6Location = ophidian::util::Location(1.5, 1.5);
@@ -111,12 +126,12 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlaped", "[legaliz
 
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
 
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     auto cell7Location = ophidian::util::Location(4.5, 1.5);
@@ -124,23 +139,23 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: overlaped", "[legaliz
 
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
 
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 }
 
 TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: cell multirow", "[legalization][check]") {
     bool aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    bool boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     bool overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
-    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    bool legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(legalized);
 
     ophidian::standard_cell::Cell cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
@@ -153,40 +168,40 @@ TEST_CASE_METHOD(LegalCircuitFixture, "Legalization Check: cell multirow", "[leg
 
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(legalized);
 
     placement_.placeCell(cellMR, ophidian::util::Location(2.5, 1.0));
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(!aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     placement_.placeCell(cellMR, ophidian::util::Location(3.0, 2.0));
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(!overlaps);
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 
     placement_.placeCell(cellMR, ophidian::util::Location(2.0, 3.0));
     aligned = ophidian::legalization::checkAlignment(floorplan_, placement_, placementMapping_, netlist_);
     REQUIRE(aligned);
-    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placementMapping_, netlist_);
+    boundaries = ophidian::legalization::checkBoundaries(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!boundaries);
     overlaps = ophidian::legalization::checkCellOverlaps(placementMapping_, netlist_);
     REQUIRE(overlaps);
-    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_);
+    legalized = ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_);
     REQUIRE(!legalized);
 }

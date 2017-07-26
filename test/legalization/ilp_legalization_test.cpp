@@ -25,7 +25,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit already legal", "[legalizat
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cells misaligned with sites", "[legalization][ILP]") {
@@ -52,7 +52,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cells misaligned with sites", "[leg
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cells misaligned with rows", "[legalization][ILP]") {
@@ -79,7 +79,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cells misaligned with rows", "[lega
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap between two cells", "[legalization][ILP]") {
@@ -106,7 +106,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap between two cells", "[legal
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap with multirow cell", "[legalization][ILP]") {
@@ -138,5 +138,5 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap with multirow cell", "[lega
 //    REQUIRE(cellLocations.size() == expectedLocations.size());
 //    REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }

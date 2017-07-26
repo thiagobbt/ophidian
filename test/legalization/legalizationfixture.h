@@ -21,6 +21,7 @@ protected:
     ophidian::floorplan::Floorplan floorplan_;
     ophidian::placement::Placement placement_;
     ophidian::placement::PlacementMapping placementMapping_;
+    ophidian::placement::Fences fences_;
 };
 
 class AbacusFixture : public CircuitFixture

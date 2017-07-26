@@ -85,9 +85,13 @@ public:
         return cellOrientation_[cell];
     }
 
+    bool cellHasFence(const circuit::Cell &cell) const {
+        return cellFence_[cell] != Fence();
+    }
+
     void cellFence(const circuit::Cell &cell, Fence fence);
 
-    Fence cellFence(const circuit::Cell &cell){
+    Fence cellFence(const circuit::Cell &cell) const {
         return cellFence_[cell];
     }
 
