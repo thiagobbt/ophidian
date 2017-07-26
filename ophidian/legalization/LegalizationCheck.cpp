@@ -38,8 +38,8 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             rows_rtree.query(boost::geometry::index::intersects(cell_box), std::back_inserter(found_nodes));
             if (found_nodes.empty())
             {
-//                std::cout << "cell not in line " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-//                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                std::cout << "cell not in line " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
             bool cell_aligned = false;
@@ -57,9 +57,9 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             }
             if(!cell_aligned)
             {
-//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-//                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
-//                std::cout << "cell movel? " <<  placement.isFixed(*cell_it) << std::endl;
+                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                std::cout << "cell movel? " <<  placement.isFixed(*cell_it) << std::endl;
                 return false;
             }
         }
@@ -98,8 +98,8 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
         {
             if (!boost::geometry::within(cell_box, chip_area))
             {
-//                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-//                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
             }
         }

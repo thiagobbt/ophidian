@@ -29,10 +29,16 @@ void ILPLegalization::legalizePlacement()
     for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt) {
         auto cellInitialLocation = placement_.cellLocation(*cellIt);
         auto cellName = netlist_.name(*cellIt);
-        GRBVar x = model.addVar(units::unit_cast<double>(chipOrigin.x()), units::unit_cast<double>(chipUpperRightCorner.x()),
+
+        auto cellGeometry = placementMapping_.geometry(*cellIt);
+
+        auto cellWidth = cellGeometry[0].max_corner().x() - cellGeometry[0].min_corner().x();
+        auto cellHeight = cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y();
+
+        GRBVar x = model.addVar(units::unit_cast<double>(chipOrigin.x()), units::unit_cast<double>(chipUpperRightCorner.x()) - cellWidth,
                                 0.0, GRB_INTEGER, cellName + "_x");
         xVariables[*cellIt] = x;
-        GRBVar y = model.addVar(units::unit_cast<double>(chipOrigin.y()), units::unit_cast<double>(chipUpperRightCorner.y()),
+        GRBVar y = model.addVar(units::unit_cast<double>(chipOrigin.y()), units::unit_cast<double>(chipUpperRightCorner.y()) - cellHeight,
                                 0.0, GRB_INTEGER, cellName + "_y");
         yVariables[*cellIt] = y;
         GRBVar Dx = model.addVar(0.0, units::unit_cast<double>(chipUpperRightCorner.x()),

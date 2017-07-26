@@ -135,8 +135,34 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap with multirow cell", "[lega
 //        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }
 
-//    REQUIRE(cellLocations.size() == expectedLocations.size());
-//    REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
+    REQUIRE(cellLocations.size() == expectedLocations.size());
+    REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
     REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+}
+
+TEST_CASE("Legalizing circuit with random cells", "[legalization][ILP][random]") {
+    ophidian::util::Location chipOrigin(0.0, 0.0);
+    ophidian::util::Location chipUpperCorner(2500.0, 2500.0);
+    unsigned numberOfCells = 1000;
+
+    CircuitFixtureWithRandomCells circuitFixture(chipOrigin, chipUpperCorner, numberOfCells);
+
+//    std::cout << "locations before legalization" << std::endl;
+//    for (auto cellIt = circuitFixture.netlist_.begin(ophidian::circuit::Cell()); cellIt != circuitFixture.netlist_.end(ophidian::circuit::Cell()); ++cellIt) {
+//        std::cout << circuitFixture.placement_.cellLocation(*cellIt).x() << ", " << circuitFixture.placement_.cellLocation(*cellIt).y() << std::endl;
+//    }
+
+    ophidian::legalization::ILPLegalization legalization(circuitFixture.netlist_, circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_);
+    legalization.legalizePlacement();
+
+//    std::cout << "locations after legalization" << std::endl;
+//    for (auto cellIt = circuitFixture.netlist_.begin(ophidian::circuit::Cell()); cellIt != circuitFixture.netlist_.end(ophidian::circuit::Cell()); ++cellIt) {
+//        std::cout << circuitFixture.placement_.cellLocation(*cellIt).x() << ", " << circuitFixture.placement_.cellLocation(*cellIt).y() << std::endl;
+//    }
+
+//    REQUIRE(ophidian::legalization::legalizationCheck(circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_, circuitFixture.netlist_));
+    REQUIRE(ophidian::legalization::checkBoundaries(circuitFixture.floorplan_, circuitFixture.placementMapping_, circuitFixture.netlist_));
+    REQUIRE(ophidian::legalization::checkAlignment(circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_, circuitFixture.netlist_));
+    REQUIRE(ophidian::legalization::checkCellOverlaps(circuitFixture.placementMapping_, circuitFixture.netlist_));
 }

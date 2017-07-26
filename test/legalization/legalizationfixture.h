@@ -4,6 +4,7 @@
 #include <ophidian/placement/PlacementMapping.h>
 #include <ophidian/floorplan/Floorplan.h>
 #include <string>
+#include <random>
 
 class CircuitFixture
 {
@@ -12,7 +13,7 @@ public:
 
     ophidian::circuit::Cell addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
 
-protected:
+public:
     ophidian::standard_cell::StandardCells stdCells_;
     ophidian::placement::Library placementLibrary_;
 
@@ -50,6 +51,13 @@ public:
 protected:
     ophidian::standard_cell::Cell cellStdCell_;
 };
+
+class CircuitFixtureWithRandomCells : public CircuitFixture
+{
+public:
+    CircuitFixtureWithRandomCells(ophidian::util::Location chipOrigin, ophidian::util::Location chipUpperCorner, unsigned numberOfCells);
+};
+
 
 
 #endif // LEGALIZATIONFIXTURE_H
