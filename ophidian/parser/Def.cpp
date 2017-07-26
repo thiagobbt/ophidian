@@ -24,7 +24,7 @@ namespace parser {
 
 std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const throw(InexistentFile)
 {
-    auto def = std::make_unique<Def>(); 
+    auto def = std::make_unique<Def>();
     defrInit();
 
     defrSetDesignCbk([](defrCallbackType_e, const char *string, defiUserData ud)->int{
@@ -77,6 +77,48 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const thr
         return 0;
     });
 
+    defrSetRegionStartCbk([](defrCallbackType_e, int number, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+        that.regions_.reserve(number);
+        return 0;
+    });
+
+    defrSetRegionCbk([](defrCallbackType_e, defiRegion *reg, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+
+        Def::region r;
+        r.name = reg->name();
+        r.rectangles.reserve(reg->numRectangles());
+
+        for (int i = 0; i < reg->numRectangles(); i++) {
+            r.rectangles.emplace_back(geometry::Point(reg->xl(i), reg->yl(i)), geometry::Point(reg->xh(i), reg->yh(i)));
+        }
+
+        that.regions_.push_back(r);
+        return 0;
+    });
+
+    defrSetGroupsStartCbk([](defrCallbackType_e, int number, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+        that.groups_.reserve(number);
+        return 0;
+    });
+
+    defrSetGroupNameCbk([](defrCallbackType_e, const char* group_name, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+
+        that.group_helper_ = group_name;
+        return 0;
+    });
+
+    defrSetGroupMemberCbk([](defrCallbackType_e, const char* group_members, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+
+        that.groups_[that.group_helper_].push_back(group_members);
+
+        return 0;
+    });
+
     FILE* ifp = fopen(filename.c_str(), "r");
     if(ifp){
         auto res = defrRead(ifp, filename.c_str(), def.get(), true);
@@ -86,7 +128,7 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const thr
 
     fclose(ifp);
     defrClear();
-    
+
     return def;
 }
 

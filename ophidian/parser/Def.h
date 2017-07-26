@@ -19,8 +19,10 @@
 #ifndef OPHIDIAN_PARSER_DEF_H
 #define OPHIDIAN_PARSER_DEF_H
 
+#include <ophidian/geometry/Models.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include <DEF/include/defrReader.hpp>
 #include "ParserException.h"
@@ -99,6 +101,18 @@ public:
     };
 
     /**
+     * @brief Type to represent a circuit region.
+     *
+     * This if the data necessary to identify a given
+     * region and it's characteristics.
+     */
+    struct region
+    {
+        std::string name;         ///< Region's name for identification.
+        std::vector<geometry::Box> rectangles;    ///< Vector of rectangles representing the area of the region
+    };
+
+    /**
      * @brief Constructor.
      *
      * Empty object.
@@ -128,6 +142,14 @@ public:
         return rows_;
     }
 
+    const std::vector<region>& regions() const {
+        return regions_;
+    }
+
+    const std::unordered_map<std::string, std::vector<std::string>>& groups() const {
+        return groups_;
+    }
+
     /**
      * Returns the DEF database units.
      */
@@ -143,6 +165,8 @@ public:
         die_.upper = {0, 0};
         components_.clear();
         rows_.clear();
+        regions_.clear();
+        groups_.clear();
     }
 
 private:
@@ -150,9 +174,12 @@ private:
     double units_;
     std::vector<component> components_;
     std::vector<row> rows_;
+    std::vector<region> regions_;
+    std::string group_helper_;
+    std::unordered_map<std::string, std::vector<std::string>> groups_;   //< Maps group name to its members
     std::string circuit_name;
 
-public:    
+public:
     friend class DefParser;
 };
 

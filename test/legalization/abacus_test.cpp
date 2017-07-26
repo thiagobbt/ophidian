@@ -27,5 +27,5 @@ TEST_CASE_METHOD(AbacusFixture, "Legalization: legalizing small circuit using Ab
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_));
+    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
 }

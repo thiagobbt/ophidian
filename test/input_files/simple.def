@@ -16,6 +16,11 @@ ROW core_SITE_ROW_1 core 0 3420 N DO 72 BY 1 STEP 380 0 ;
 ROW core_SITE_ROW_2 core 0 6840 N DO 72 BY 1 STEP 380 0 ;
 ROW core_SITE_ROW_3 core 0 10260 N DO 72 BY 1 STEP 380 0 ;
 
+REGIONS 2 ;
+   - r0       ( 0 0 ) ( 500400 146000 )          + TYPE FENCE ;
+   - r1       ( 305800 92000 ) ( 502400 146000 )       ( 305800 214000 ) ( 502400 264000 )          + TYPE FENCE ;
+END REGIONS
+
 COMPONENTS 6 ;
    - u1 NAND2_X1
       + PLACED ( 3420 6840 ) N ;
@@ -45,10 +50,17 @@ PINS 4 ;
       + FIXED ( 6840 13680 ) N
 			+ LAYER metal3 ( 0 0 ) ( 100 100 ) ;
    - iccad_clk + NET iccad_clk
-      + DIRECTION INPUT 
-      + FIXED ( 0 6840 ) N 
+      + DIRECTION INPUT
+      + FIXED ( 0 6840 ) N
 			+ LAYER metal3 ( 0 0 ) ( 100 100 ) ;
 END PINS
+
+GROUPS 2 ;
+   - r0 u*
+      + REGION r0 ;
+   - r1 f* lcb*
+      + REGION r1 ;
+END GROUPS
 
 END DESIGN
 
