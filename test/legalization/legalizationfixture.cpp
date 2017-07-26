@@ -2,10 +2,9 @@
 
 
 CircuitFixture::CircuitFixture()
-    : libraryMapping_(netlist_), placement_(netlist_),
+    : libraryMapping_(netlist_), placement_(netlist_), fences_(netlist_),
       placementLibrary_(stdCells_), placementMapping_(placement_, placementLibrary_, netlist_, libraryMapping_)
 {
-
 }
 
 ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed)
@@ -134,6 +133,17 @@ LegalCircuitFixture::LegalCircuitFixture()
 
     auto cell4Location = ophidian::util::Location(4.0, 1.0);
     addCell(cellStdCell_, "cell4", cell4Location, 2, false);
+
+    auto fence1 = fences_.add("fence1");
+    fences_.area(fence1, ophidian::util::MultiBox({ophidian::geometry::Box({0, 0}, {3, 3})}));
+
+    auto cell1 = netlist_.find(ophidian::circuit::Cell(), "cell1");
+    fences_.connect(fence1, cell1);
+    placement_.cellFence(cell1, fence1);
+
+    auto cell2 = netlist_.find(ophidian::circuit::Cell(), "cell2");
+    fences_.connect(fence1, cell2);
+    placement_.cellFence(cell2, fence1);
 }
 
 LargerLegalCircuitFixture::LargerLegalCircuitFixture()

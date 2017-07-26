@@ -24,6 +24,7 @@
 #include <ophidian/util/Range.h>
 #include <ophidian/util/Units.h>
 #include <ophidian/circuit/Netlist.h>
+#include <ophidian/placement/Fences.h>
 
 namespace ophidian
 {
@@ -84,10 +85,21 @@ public:
         return cellOrientation_[cell];
     }
 
+    bool cellHasFence(const circuit::Cell &cell) const {
+        return cellFence_[cell] != Fence();
+    }
+
+    void cellFence(const circuit::Cell &cell, Fence fence);
+
+    Fence cellFence(const circuit::Cell &cell) const {
+        return cellFence_[cell];
+    }
+
 private:
     entity_system::Property<circuit::Cell, util::Location> cellLocations_;
     entity_system::Property<circuit::Cell, bool> cellFixed_;
     entity_system::Property<circuit::Cell, std::string> cellOrientation_;
+    entity_system::Property<circuit::Cell, Fence> cellFence_;
     entity_system::Property<circuit::Input, util::Location> inputLocations_;
     entity_system::Property<circuit::Output, util::Location> outputLocations_;
 };

@@ -5,9 +5,13 @@ namespace ophidian
 namespace legalization
 {
 
-bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist)
+bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement,
+    const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist,
+    const placement::Fences &fences)
 {
-    bool legality = checkAlignment(floorplan, placement, placementMapping, netlist) && checkBoundaries(floorplan, placementMapping, netlist) && checkCellOverlaps(placementMapping, netlist);
+    bool legality = checkAlignment(floorplan, placement, placementMapping, netlist) &&
+                    checkBoundaries(floorplan, placement, placementMapping, netlist, fences) &&
+                    checkCellOverlaps(placementMapping, netlist);
     return legality;
 }
 
@@ -86,7 +90,9 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
     return true;
 }
 
-bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist)
+bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement,
+    const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist,
+    const placement::Fences &fences)
 {
     geometry::Point chipOrigin(units::unit_cast<double>(floorplan.chipOrigin().x()), units::unit_cast<double>(floorplan.chipOrigin().y()));
     geometry::Point chipUpperRightCorner(units::unit_cast<double>(floorplan.chipUpperRightCorner().x()), units::unit_cast<double>(floorplan.chipUpperRightCorner().y()));
@@ -94,6 +100,15 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
     for (auto cell_it = netlist.begin(circuit::Cell()); cell_it != netlist.end(circuit::Cell()); ++cell_it)
     {
         auto cellGeometry = placementMapping.geometry(*cell_it);
+        bool hasFence = placement.cellHasFence(*cell_it);
+        ophidian::util::MultiBox fenceGeometry;
+
+        if (hasFence)
+        {
+            auto cellFence = placement.cellFence(*cell_it);
+            fenceGeometry = fences.area(cellFence);
+        }
+
         for(auto cell_box : cellGeometry)
         {
             if (!boost::geometry::within(cell_box, chip_area))
@@ -101,6 +116,20 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
                 std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
                              cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                 return false;
+            }
+
+            bool inFence = false;
+            if (hasFence)
+            {
+                for (auto fence_box : fenceGeometry)
+                {
+                    inFence |= boost::geometry::covered_by(cell_box, fence_box);
+                }
+                if (!inFence)
+                {
+                    std::cout << netlist.name(*cell_it) << " not in fence" << std::endl;
+                    return false;
+                }
             }
         }
     }
