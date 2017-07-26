@@ -18,6 +18,10 @@ Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & fl
 
 void Abacus::legalizePlacement()
 {
+    geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
+    util::MultiBox legalizationArea({chipArea});
+    subrows_.createSubrows(legalizationArea);
+
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
     sortedCells.reserve(netlist_.size(circuit::Cell()));
     for (auto cell_it = netlist_.begin(circuit::Cell()); cell_it != netlist_.end(circuit::Cell()); ++cell_it)

@@ -144,7 +144,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap with multirow cell", "[lega
 TEST_CASE("Legalizing circuit with random cells", "[legalization][ILP][random]") {
     ophidian::util::Location chipOrigin(0.0, 0.0);
     ophidian::util::Location chipUpperCorner(2500.0, 2500.0);
-    unsigned numberOfCells = 1000;
+    unsigned numberOfCells = 10;
 
     CircuitFixtureWithRandomCells circuitFixture(chipOrigin, chipUpperCorner, numberOfCells);
 
@@ -162,7 +162,7 @@ TEST_CASE("Legalizing circuit with random cells", "[legalization][ILP][random]")
 //    }
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_, circuitFixture.netlist_));
-    REQUIRE(ophidian::legalization::checkBoundaries(circuitFixture.floorplan_, circuitFixture.placementMapping_, circuitFixture.netlist_));
+    REQUIRE(ophidian::legalization::checkBoundaries(circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_, circuitFixture.netlist_, circuitFixture.fences_));
     REQUIRE(ophidian::legalization::checkAlignment(circuitFixture.floorplan_, circuitFixture.placement_, circuitFixture.placementMapping_, circuitFixture.netlist_));
     REQUIRE(ophidian::legalization::checkCellOverlaps(circuitFixture.placementMapping_, circuitFixture.netlist_));
 }

@@ -58,7 +58,7 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
     REQUIRE(ophidian::legalization::checkAlignment(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-    REQUIRE(ophidian::legalization::checkBoundaries(iccad.mFloorplan, iccad.mPlacementMapping, iccad.mNetlist));
+    REQUIRE(ophidian::legalization::checkBoundaries(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist, iccad.mFences));
     REQUIRE(ophidian::legalization::checkCellOverlaps(iccad.mPlacementMapping, iccad.mNetlist));
 
     ophidian::util::micrometer_t totalDisplacement;
@@ -133,7 +133,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
     REQUIRE(ophidian::legalization::checkAlignment(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-    REQUIRE(ophidian::legalization::checkBoundaries(iccad.mFloorplan, iccad.mPlacementMapping, iccad.mNetlist));
+    REQUIRE(ophidian::legalization::checkBoundaries(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist, iccad.mFences));
     REQUIRE(ophidian::legalization::checkCellOverlaps(iccad.mPlacementMapping, iccad.mNetlist));
 
     ophidian::util::micrometer_t totalDisplacement;

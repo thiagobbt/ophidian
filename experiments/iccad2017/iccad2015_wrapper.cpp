@@ -1,7 +1,7 @@
 #include "iccad2015_wrapper.h"
 
 iccad2015_wrapper::iccad2015_wrapper(std::__cxx11::string circuitPath, std::__cxx11::string circuitName) :
-    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping), mCircuitName(circuitName)
+    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping), mCircuitName(circuitName), mFences(mNetlist)
 {
     std::cout << circuitPath+ "/" + circuitName + ".def" << std::endl;
 
@@ -18,4 +18,6 @@ iccad2015_wrapper::iccad2015_wrapper(std::__cxx11::string circuitPath, std::__cx
 
     ophidian::circuit::def2LibraryMapping(*def, mNetlist, mStdCells, mLibraryMapping);
     mDistanceMicrons = def->database_units();
+
+    ophidian::placement::def2fence(*def, mFences, mNetlist, mPlacement);
 }

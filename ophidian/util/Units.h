@@ -117,6 +117,10 @@ public:
     ///operator == overloading
     bool operator!=(const point_xy_location & point)
     { return !(*this==point);}
+
+    ophidian::geometry::Point toPoint() {
+            return ophidian::geometry::Point(units::unit_cast<double>(this->x()), units::unit_cast<double>(this->y()));
+        }
 };
 }
 }

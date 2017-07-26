@@ -10,7 +10,9 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 }
 
 void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex) {
-    subrows_.createSubrows(rowsPerCell, subRowIndex);
+    geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
+    util::MultiBox legalizationArea({chipArea});
+    subrows_.createSubrows(legalizationArea, rowsPerCell, subRowIndex);
 
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
