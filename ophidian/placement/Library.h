@@ -31,7 +31,7 @@ namespace placement
 
 enum class RowAlignment
 {
-    EVEN, ODD, NA
+    NA, EVEN, ODD
 };
 
 class Library

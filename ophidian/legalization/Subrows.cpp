@@ -7,34 +7,55 @@ namespace legalization
 Subrows::Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
     subrowOrigins_(subrows_), subrowUpperCorners_(subrows_), subrowCapacities_(subrows_) {
-    createSubrows();
+
 }
 
-void Subrows::createSubrows(unsigned rowsPerCell, unsigned rowIndex)
+void Subrows::createSubrows(util::MultiBox area, unsigned rowsPerCell, unsigned rowIndex)
 {
     subrows_.clear();
     subrowsRtree_.clear();
 
-    for (auto rowIt = floorplan_.rowsRange().begin(); rowIt != floorplan_.rowsRange().end(); ++rowIt)
-    {
-        if (rowIndex % rowsPerCell == 0)
-        {
+    auto rowHeight = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).y()) * rowsPerCell;
+
+    for (auto box : area) {
+        auto rowOrigin = util::Location(box.min_corner().x(), box.min_corner().y());
+        auto rowUpperRightCorner = util::Location(box.max_corner().x(), box.min_corner().y() + rowHeight);
+
+        while (units::unit_cast<double>(rowOrigin.y()) < box.max_corner().y()) {
             auto subrow = subrows_.add();
-            auto rowOrigin = floorplan_.origin(*rowIt);
 
-            auto rowUpperCorner = floorplan_.rowUpperRightCorner(*rowIt);
-            rowUpperCorner.x(rowOrigin.x() + rowUpperCorner.x());
-            rowUpperCorner.y(rowOrigin.y() + (rowsPerCell * rowUpperCorner.y()));
             subrowOrigins_[subrow] = rowOrigin;
-            subrowUpperCorners_[subrow] = rowUpperCorner;
-            subrowCapacities_[subrow] = rowUpperCorner.x() - rowOrigin.x();
+            subrowUpperCorners_[subrow] = rowUpperRightCorner;
+            subrowCapacities_[subrow] = rowUpperRightCorner.x() - rowOrigin.x();
 
-            geometry::Box subrowBox(geometry::Point(units::unit_cast<double>(rowOrigin.x()), units::unit_cast<double>(rowOrigin.y())),
-                                    geometry::Point(units::unit_cast<double>(rowUpperCorner.x()), units::unit_cast<double>(rowUpperCorner.y())));
+            geometry::Box subrowBox(rowOrigin.toPoint(), rowUpperRightCorner.toPoint());
             subrowsRtree_.insert(RtreeNode(subrowBox, subrow));
+
+            rowOrigin.y(rowOrigin.y() + util::micrometer_t(rowHeight));
+            rowUpperRightCorner.y(rowUpperRightCorner.y() + util::micrometer_t(rowHeight));
         }
-        rowIndex++;
+
     }
+//    for (auto rowIt = floorplan_.rowsRange().begin(); rowIt != floorplan_.rowsRange().end(); ++rowIt)
+//    {
+//        if (rowIndex % rowsPerCell == 0)
+//        {
+//            auto subrow = subrows_.add();
+//            auto rowOrigin = floorplan_.origin(*rowIt);
+
+//            auto rowUpperCorner = floorplan_.rowUpperRightCorner(*rowIt);
+//            rowUpperCorner.x(rowOrigin.x() + rowUpperCorner.x());
+//            rowUpperCorner.y(rowOrigin.y() + (rowsPerCell * rowUpperCorner.y()));
+//            subrowOrigins_[subrow] = rowOrigin;
+//            subrowUpperCorners_[subrow] = rowUpperCorner;
+//            subrowCapacities_[subrow] = rowUpperCorner.x() - rowOrigin.x();
+
+//            geometry::Box subrowBox(geometry::Point(units::unit_cast<double>(rowOrigin.x()), units::unit_cast<double>(rowOrigin.y())),
+//                                    geometry::Point(units::unit_cast<double>(rowUpperCorner.x()), units::unit_cast<double>(rowUpperCorner.y())));
+//            subrowsRtree_.insert(RtreeNode(subrowBox, subrow));
+//        }
+//        rowIndex++;
+//    }
 
     for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt)
     {

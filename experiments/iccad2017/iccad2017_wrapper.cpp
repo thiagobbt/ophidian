@@ -18,6 +18,8 @@ iccad2017_wrapper::iccad2017_wrapper(std::__cxx11::string circuitPath, std::__cx
     ophidian::circuit::def2LibraryMapping(*def, mNetlist, mStdCells, mLibraryMapping);
     mDistanceMicrons = def->database_units();
 
+    ophidian::placement::def2fence(*def, mFences, mNetlist, mPlacement);
+
 }
 
 void iccad2017_wrapper::writeDefFile(std::__cxx11::string filePath)

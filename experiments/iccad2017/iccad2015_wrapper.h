@@ -23,6 +23,9 @@
 #include <ophidian/floorplan/LefDef2Floorplan.h>
 #include <ophidian/circuit/Def2LibraryMapping.h>
 
+#include <ophidian/placement/Fences.h>
+#include <ophidian/placement/Def2Fence.h>
+
 class iccad2015_wrapper
 {
 public:
@@ -32,6 +35,7 @@ public:
     ophidian::circuit::Netlist mNetlist;
     ophidian::floorplan::Floorplan mFloorplan;
     ophidian::placement::Placement mPlacement;
+    ophidian::placement::Fences mFences;
 
     ophidian::standard_cell::StandardCells mStdCells;
     ophidian::placement::Library mLibrary;
