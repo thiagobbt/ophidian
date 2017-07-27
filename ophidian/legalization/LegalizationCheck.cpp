@@ -77,13 +77,17 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             if(rowAlignment == ophidian::placement::RowAlignment::EVEN)
             {
                 //Row alignmrnt = ODD
-                if(cellPlacedInOddRow)
+                if(cellPlacedInOddRow) {
+                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an ODD row" << std::endl;
                     return false;
+                }
             }
             else {
                 //Row alignmrnt = EVEN
-                if(!cellPlacedInOddRow)
+                if(!cellPlacedInOddRow) {
+                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an EVEN row" << std::endl;
                     return false;
+                }
             }
         }
     }

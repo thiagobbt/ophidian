@@ -1,6 +1,8 @@
 #ifndef SUBROWS_H
 #define SUBROWS_H
 
+#include <set>
+
 #include <ophidian/floorplan/Floorplan.h>
 #include <ophidian/placement/PlacementMapping.h>
 
@@ -17,6 +19,13 @@ public:
 
 using RtreeNode = std::pair<geometry::Box, Subrow>;
 using Rtree = boost::geometry::index::rtree<RtreeNode, boost::geometry::index::rstar<16> >;
+
+struct RtreeNodeComparator {
+    bool operator() (const RtreeNode & node1, const RtreeNode & node2) const {
+        return node1.second != node2.second;
+//        return boost::geometry::equals(node1.first, node2.first);
+    }
+};
 
 class Subrows
 {

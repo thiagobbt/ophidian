@@ -15,11 +15,12 @@ void Subrows::createSubrows(util::MultiBox area, unsigned rowsPerCell, unsigned 
     subrows_.clear();
     subrowsRtree_.clear();
 
+    auto singleRowHeight = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).y());
     auto rowHeight = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).y()) * rowsPerCell;
 
     for (auto box : area) {
-        auto rowOrigin = util::Location(box.min_corner().x(), box.min_corner().y());
-        auto rowUpperRightCorner = util::Location(box.max_corner().x(), box.min_corner().y() + rowHeight);
+        auto rowOrigin = util::Location(box.min_corner().x(), box.min_corner().y() + (rowIndex * singleRowHeight));
+        auto rowUpperRightCorner = util::Location(box.max_corner().x(), box.min_corner().y() + (rowIndex * singleRowHeight) + rowHeight);
 
         while (units::unit_cast<double>(rowOrigin.y()) < box.max_corner().y()) {
             auto subrow = subrows_.add();
@@ -74,7 +75,13 @@ void Subrows::createSubrows(util::MultiBox area, unsigned rowsPerCell, unsigned 
                 subrowsRtree_.query(boost::geometry::index::overlaps(cellBox), std::back_inserter(intersectingSubrowNodes));
                 subrowsRtree_.query(boost::geometry::index::covers(cellBox), std::back_inserter(intersectingSubrowNodes));
                 subrowsRtree_.query(boost::geometry::index::covered_by(cellBox), std::back_inserter(intersectingSubrowNodes));
-                for (auto subrowNode : intersectingSubrowNodes)
+
+//                std::set<RtreeNode> intersectingSubrowNodesSet(intersectingSubrowNodes.begin(), intersectingSubrowNodes.end(), RtreeNodeComparator());
+                std::set<RtreeNode, RtreeNodeComparator> intersectingSubrowNodesSet;
+                for (auto subrowNode : intersectingSubrowNodes) {
+                    intersectingSubrowNodesSet.insert(subrowNode);
+                }
+                for (auto subrowNode : intersectingSubrowNodesSet)
                 {
                     auto subrow = subrowNode.second;
 
