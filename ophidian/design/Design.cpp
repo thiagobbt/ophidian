@@ -16,19 +16,33 @@
    under the License.
  */
 
-#ifndef OPHIDIAN_CIRCUIT_VERILOG2NETLIST_H
-#define OPHIDIAN_CIRCUIT_VERILOG2NETLIST_H
-
-#include <ophidian/parser/VerilogParser.h>
-#include <ophidian/circuit/Netlist.h>
-#include <unordered_map>
+#include "Design.h"
 
 namespace ophidian
 {
-namespace circuit
-{
-void verilog2Netlist(const parser::Verilog & verilog, circuit::Netlist & netlist);
-} // namespace circuit
-} // namespace ophidian
 
-#endif // OPHIDIAN_CIRCUIT_VERILOG2NETLIST_H
+namespace design
+{
+
+Design::Design() :
+
+	mNetlist(),
+	mFloorplan(),
+	mPlacement(mNetlist),
+	mStandardCells(),
+	mLibrary(mStandardCells),
+    mLibraryMapping(mNetlist),
+    mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping),
+    mFences(mNetlist)
+{
+
+}
+
+Design::~Design()
+{
+
+}
+
+} //namespace design
+
+} //namespace ophidian

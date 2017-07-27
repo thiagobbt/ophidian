@@ -10,13 +10,15 @@
 #include "ophidian/placement/PlacementMapping.h"
 #include "ophidian/util/Units.h"
 
-namespace ophidian {
-namespace legalization {
+namespace ophidian
+{
+namespace legalization
+{
 
 using point = geometry::Point;
 using box = geometry::Box;
 using rtree_node = std::pair<box, circuit::Cell>;
-using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16>>;
+using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16> >;
 
 bool legalizationCheck(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const placement::Fences &fences);
 
@@ -24,7 +26,7 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
 bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const placement::Fences &fences);
 bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);
 
-}
-}
+} // namespace legalization
+} // namespace ophidian
 
 #endif // LEGALIZATIONCHECK_H
