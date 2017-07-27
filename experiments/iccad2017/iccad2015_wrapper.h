@@ -11,6 +11,7 @@
 #include <ophidian/placement/Placement.h>
 #include <ophidian/placement/Library.h>
 #include <ophidian/placement/PlacementMapping.h>
+#include <ophidian/placement/Fences.h>
 #include <ophidian/circuit/Netlist.h>
 #include <ophidian/floorplan/Floorplan.h>
 #include <ophidian/standard_cell/StandardCells.h>
@@ -37,6 +38,8 @@ public:
 
     ophidian::circuit::LibraryMapping mLibraryMapping;
     ophidian::placement::PlacementMapping mPlacementMapping;
+
+    ophidian::placement::Fences mFences;
 
     std::string mCircuitName;
     double mDistanceMicrons;

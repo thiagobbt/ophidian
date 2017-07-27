@@ -40,6 +40,8 @@ public:
     ophidian::circuit::LibraryMapping mLibraryMapping;
     ophidian::placement::PlacementMapping mPlacementMapping;
 
+    ophidian::placement::Fences mFences;
+
     std::string mCircuitName;
     double mDistanceMicrons;
 };

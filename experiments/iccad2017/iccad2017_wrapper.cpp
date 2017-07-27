@@ -1,7 +1,7 @@
 #include "iccad2017_wrapper.h"
 
 iccad2017_wrapper::iccad2017_wrapper(std::__cxx11::string circuitPath, std::__cxx11::string circuitName) :
-    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping), mCircuitName(circuitName)
+    mPlacement(mNetlist), mLibraryMapping(mNetlist), mLibrary(mStdCells), mPlacementMapping(mPlacement, mLibrary, mNetlist, mLibraryMapping), mCircuitName(circuitName), mFences(mNetlist)
 {
     ophidian::parser::DefParser defParser;
     std::unique_ptr<ophidian::parser::Def> def = defParser.readFile(circuitPath+"/placed.def");

@@ -36,6 +36,7 @@ void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
     abacusCells_.clear();
 }
 
+//void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
 void MultirowAbacus::legalizePlacement()
 {
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();
