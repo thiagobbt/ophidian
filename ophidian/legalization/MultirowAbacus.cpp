@@ -9,11 +9,8 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex) {
-    geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
-    util::MultiBox legalizationArea({chipArea});
+void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex, util::MultiBox legalizationArea) {
     subrows_.createSubrows(legalizationArea, rowsPerCell, subRowIndex);
-
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
     sortedCells.reserve(cellsForOneHeight.size());
@@ -38,25 +35,24 @@ void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
     abacusCells_.clear();
 }
 
-//void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
-void MultirowAbacus::legalizePlacement()
+void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
 {
+    ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(netlist_.makeProperty<bool>(ophidian::circuit::Cell()));
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();
 
     std::vector<std::vector<circuit::Cell> > cellsByHeight;
     cellsByHeight.resize(10);
     unsigned maximumHeight = 1;
-    unsigned cellId = 0;
-    for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt)
+    for (auto cell : cells)
     {
-        if (!placement_.isFixed(*cellIt))
+        initialFixed[cell] = placement_.isFixed(cell);
+        if (!placement_.isFixed(cell))
         {
-            cellId++;
-            auto cellGeometry = placementMapping_.geometry(*cellIt);
+            auto cellGeometry = placementMapping_.geometry(cell);
             auto cellHeight = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
             unsigned heightInNumberOfRows = cellHeight / rowHeight;
             maximumHeight = std::max(maximumHeight, heightInNumberOfRows);
-            cellsByHeight.at(heightInNumberOfRows - 1).push_back(*cellIt);
+            cellsByHeight.at(heightInNumberOfRows - 1).push_back(cell);
         }
     }
     cellsByHeight.resize(maximumHeight);
@@ -71,7 +67,7 @@ void MultirowAbacus::legalizePlacement()
         if(std::fmod((cellHeight/siteHeight), 2.0))
         {
             //Odd-sized cells -> place in all rows
-            legalizeSubrows(cellsForOneHeight, rowsPerCell, 0);
+            legalizeSubrows(cellsForOneHeight, rowsPerCell, 0, legalizationArea);
         }
         else {
             //Even-sized cells -> place in specific rows
@@ -90,11 +86,15 @@ void MultirowAbacus::legalizePlacement()
                     cellsOdd.push_back(cell);
                 }
             }
-            legalizeSubrows(cellsOdd, rowsPerCell, 1);
-            legalizeSubrows(cellsEven, rowsPerCell, 0);
+            legalizeSubrows(cellsOdd, rowsPerCell, 1, legalizationArea);
+            legalizeSubrows(cellsEven, rowsPerCell, 0, legalizationArea);
         }
         rowsPerCell--;
+    }
 
+    for (auto cell : cells)
+    {
+        placement_.fixLocation(cell, initialFixed[cell]);
     }
 }
 } // namespace legalization

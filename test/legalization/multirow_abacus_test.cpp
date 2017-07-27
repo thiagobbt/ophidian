@@ -4,7 +4,8 @@
 #include <ophidian/legalization/LegalizationCheck.h>
 #include "legalizationfixture.h"
 
-TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit using MultirowAbacus", "[legalization][abacus][multirow]") {
+TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit using MultirowAbacus", "[legalization][abacus][multirow]")
+{
     std::vector<ophidian::util::Location> expectedLocations = {
         ophidian::util::Location(7, 30),
         ophidian::util::Location(17, 30),
@@ -17,10 +18,16 @@ TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit 
     };
 
     ophidian::legalization::MultirowAbacus multirowAbacus(netlist_, floorplan_, placement_, placementMapping_);
-    multirowAbacus.legalizePlacement();
+
+    std::vector<ophidian::circuit::Cell> cells (netlist_.begin(ophidian::circuit::Cell()), netlist_.end(ophidian::circuit::Cell()));
+
+    ophidian::geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
+    ophidian::util::MultiBox legalizationArea({chipArea});
+    multirowAbacus.legalizePlacement(cells, legalizationArea);
 
     std::vector<ophidian::util::Location> cellLocations;
-    for (auto cellIt = netlist_.begin(ophidian::circuit::Cell()); cellIt != netlist_.end(ophidian::circuit::Cell()); ++cellIt) {
+    for (auto cellIt = netlist_.begin(ophidian::circuit::Cell()); cellIt != netlist_.end(ophidian::circuit::Cell()); ++cellIt)
+    {
         cellLocations.push_back(placement_.cellLocation(*cellIt));
         std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }

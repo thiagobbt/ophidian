@@ -16,7 +16,7 @@ add_subdirectory(iccad2017)
 
 add_executable( run_experiments ${SOURCE} ${HEADERS} )
 #target_link_libraries(run_experiments Catch ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem gurobi_g++5.2 gurobi70)
-target_link_libraries(run_experiments Catch ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem )
+target_link_libraries(run_experiments Catch ophidian_design ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem )
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_test(NAME unit_test COMMAND run_experiments "~[Profiling] ~[superblue18obs]")

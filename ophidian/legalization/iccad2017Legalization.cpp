@@ -63,12 +63,29 @@ void iccad2017Legalization::fixFencesCells(bool fix)
 void iccad2017Legalization::legalize()
 {
     //posiciona fences (paralelo)
+    for(auto fence : mDesign.fences().range())
+    {
+        std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
+        mMultirowAbacus.legalizePlacement(cells, mDesign.fences().area(fence));
+    }
 
     //fixa celulas das fences
     fixFencesCells(true);
     //cria blocos das fences
     initializeTemporaryBlocs();
     //posiciona circuito
+    std::vector<circuit::Cell> cells;
+    cells.reserve(mDesign.netlist().size(circuit::Cell()));
+    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
+    {
+        if(!mDesign.placement().cellHasFence(*cellIt))
+        {
+            cells.push_back(*cellIt);
+        }
+    }
+    geometry::Box chipArea(mDesign.floorplan().chipOrigin().toPoint(), mDesign.floorplan().chipUpperRightCorner().toPoint());
+    util::MultiBox legalizationArea({chipArea});
+    mMultirowAbacus.legalizePlacement(cells, legalizationArea);
 
     //deleta blocos das fences
     eraseTemporaryBlocs();

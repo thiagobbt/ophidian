@@ -4,6 +4,8 @@
 #include "iccad2015_wrapper.h"
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/legalization/LegalizationCheck.h>
+#include <ophidian/legalization/iccad2017Legalization.h>
+#include <ophidian/design/DesignBuilder.h>
 #include <sys/time.h>
 #include "MultirowAbacusFixture.h"
 
@@ -43,8 +45,12 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
     struct timeval startTime;
     gettimeofday(&startTime, NULL);
 
+    std::vector<ophidian::circuit::Cell> cells (iccad.mNetlist.begin(ophidian::circuit::Cell()), iccad.mNetlist.end(ophidian::circuit::Cell()));
+    ophidian::geometry::Box chipArea(iccad.mFloorplan.chipOrigin().toPoint(), iccad.mFloorplan.chipUpperRightCorner().toPoint());
+    ophidian::util::MultiBox legalizationArea({chipArea});
     MultiRowAbacusFixture multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
-    multirowAbacus.legalizePlacement();
+    multirowAbacus.legalizePlacement(cells, legalizationArea);
+
 
     struct timeval endTime;
     gettimeofday(&endTime, NULL);
@@ -86,30 +92,30 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 void runMultirowAbacusForOneCircuit(std::string circuitName) {
     iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
+    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
+                                                                                  "./input_files/ICCAD2017/" + circuitName + "/tech.lef",
+                                                                                  "./input_files/ICCAD2017/" + circuitName + "/placed.def");
+    ICCAD2017DesignBuilder.build();
+
+    ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
+
+
     unsigned movableCells = 0;
     unsigned fixedCells = 0;
 
-    ophidian::util::micrometer_t siteWidth(200);
-    ophidian::util::micrometer_t rowHeight(2000);
-    ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(iccad.mNetlist.makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
-    ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(iccad.mNetlist.makeProperty<bool>(ophidian::circuit::Cell()));
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+
+    ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(design.netlist().makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
+
+    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
-        if (iccad.mPlacement.isFixed(*cellIt))
+        if (design.placement().isFixed(*cellIt))
         {
             fixedCells++;
         }
         else {
             movableCells++;
         }
-
         initialLocations[*cellIt] = iccad.mPlacement.cellLocation(*cellIt);
-        initialFixed[*cellIt] = iccad.mPlacement.isFixed(*cellIt);
-
-//        auto cellLocation = iccad.mPlacement.cellLocation(*cellIt);
-//        auto alignedX = std::floor(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
-//        auto alignedY = std::floor(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
-//        iccad.mPlacement.placeCell(*cellIt, ophidian::util::Location(alignedX, alignedY));
     }
 
     std::cout << "fixed cells " << fixedCells << std::endl;
@@ -118,31 +124,26 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     struct timeval startTime;
     gettimeofday(&startTime, NULL);
 
-    MultiRowAbacusFixture multirowAbacus(iccad.mNetlist, iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping);
-    multirowAbacus.legalizePlacement();
+    ophidian::legalization::iccad2017Legalization iccad2017(design);
+    iccad2017.legalize();
 
     struct timeval endTime;
     gettimeofday(&endTime, NULL);
 
     double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
 
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
-    {
-        iccad.mPlacement.fixLocation(*cellIt, initialFixed[*cellIt]);
-    }
-
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-    REQUIRE(ophidian::legalization::checkAlignment(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-    REQUIRE(ophidian::legalization::checkBoundaries(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist, iccad.mFences));
-    REQUIRE(ophidian::legalization::checkCellOverlaps(iccad.mPlacementMapping, iccad.mNetlist));
+    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
+    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
+    REQUIRE(ophidian::legalization::checkCellOverlaps(design.placementMapping(), design.netlist()));
 
     ophidian::util::micrometer_t totalDisplacement;
     unsigned numberOfMovableCells = 0;
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
-        if (!initialFixed[*cellIt])
+        if (!design.placement().isFixed(*cellIt))
         {
-            auto currentLocation = iccad.mPlacement.cellLocation(*cellIt);
+            auto currentLocation = design.placement().cellLocation(*cellIt);
             auto cellDisplacement = std::abs(units::unit_cast<double>(initialLocations[*cellIt].x() - currentLocation.x())) +
                                     std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
             totalDisplacement = totalDisplacement + ophidian::util::micrometer_t(cellDisplacement);
@@ -153,7 +154,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     std::cout << circuitName << "," << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
 
-    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
+//    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
 //    iccad.writeDefFile(circuitName + "_legalized.def");
 }
