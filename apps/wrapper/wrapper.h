@@ -42,6 +42,8 @@ public:
 
     std::string mCircuitName;
     double mDistanceMicrons;
+
+    std::string mInputDefPath;
 };
 
 #endif // ICCAD2017_H
