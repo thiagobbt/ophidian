@@ -36,8 +36,9 @@ void iccad2017Legalization::initializeTemporaryBlocs()
             mDesign.libraryMapping().cellStdCell(circuitCell, stdCell);
 
             mTemporaryBlocs.push_back(circuitCell);
+
+            contBox++;
         }
-        contBox++;
     }
 }
 

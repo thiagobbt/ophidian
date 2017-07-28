@@ -156,7 +156,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
 //    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
-//    iccad.writeDefFile(circuitName + "_legalized.def");
+    design.writeDefFile(circuitName + "_legalized.def");
 }
 
 TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][multirow_abacus]")
