@@ -2,12 +2,15 @@
 #include "./wrapper/wrapper.h"
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/legalization/LegalizationCheck.h>
+#include <ophidian/legalization/iccad2017Legalization.h>
+#include <ophidian/design/Design.h>
+#include <ophidian/design/DesignBuilder.h>
 #include <string>
 
 
 
 void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, std::string input_def, unsigned int cpu, std::string placement_constraints, std::string output_def){
-    Wrapper iccad(tech_lef, cell_lef, input_def);
+//    Wrapper iccad(tech_lef, cell_lef, input_def);
 
 //    unsigned movableCells = 0;
 //    unsigned fixedCells = 0;
@@ -42,7 +45,7 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
     iccad2017.legalize();
 
 
-    iccad.writeDefFile(output_def);
+//    iccad.writeDefFile(output_def);
 }
 
 int main(int argc, char** argv){

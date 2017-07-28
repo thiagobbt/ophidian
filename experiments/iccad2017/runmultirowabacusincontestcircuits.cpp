@@ -90,7 +90,7 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 }
 
 void runMultirowAbacusForOneCircuit(std::string circuitName) {
-    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
+//    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
                                                                                   "./input_files/ICCAD2017/" + circuitName + "/tech.lef",
@@ -115,7 +115,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
         else {
             movableCells++;
         }
-        initialLocations[*cellIt] = iccad.mPlacement.cellLocation(*cellIt);
+        initialLocations[*cellIt] = design.placement().cellLocation(*cellIt);
     }
 
     std::cout << "fixed cells " << fixedCells << std::endl;
