@@ -45,7 +45,7 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
     iccad2017.legalize();
 
 
-//    iccad.writeDefFile(output_def);
+    design.writeDefFile(output_def);
 }
 
 int main(int argc, char** argv){

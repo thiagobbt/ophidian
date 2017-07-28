@@ -131,6 +131,11 @@ public:
         return mFences;
     }
 
+    void setInputDefPath(std::string defPath){
+        mInputDefPath = defPath;
+    }
+
+    void writeDefFile(std::string filePath);
 private:
 
 	circuit::Netlist mNetlist;
@@ -142,6 +147,7 @@ private:
     placement::PlacementMapping mPlacementMapping;
     placement::Fences mFences;
 
+    std::string mInputDefPath;
 };
 
 } //namespace design

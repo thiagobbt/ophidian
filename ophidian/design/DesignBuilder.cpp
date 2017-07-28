@@ -58,6 +58,7 @@ void ICCAD2017ContestDesignBuilder::build()
 	circuit::def2LibraryMapping(*mDef, mDesign.netlist(), mDesign.standardCells(), mDesign.libraryMapping());
     placement::def2fence(*mDef, mDesign.fences(), mDesign.netlist(), mDesign.placement());
 
+    mDesign.setInputDefPath(mPlacedDefFile);
 }
 
 
