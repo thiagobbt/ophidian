@@ -34,7 +34,7 @@ void Abacus::legalizePlacement()
             auto cellGeometry = placementMapping_.geometry(*cell_it);
             cellWidths_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().x() - cellGeometry[0].min_corner().x());
             cellHeights_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
-            cellWeights_[abacus_cell] = netlist_.pins(*cell_it).size();
+            cellWeights_[abacus_cell] = std::max((int)netlist_.pins(*cell_it).size(), 1);
             sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(*cell_it)));
         }
     }
@@ -48,8 +48,13 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
     util::micrometer_t siteWidth = floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).x();
     util::micrometer_t chipTop = floorplan_.chipUpperRightCorner().y();
 
+    unsigned cellIndex = 0;
+
     for (auto cellPair : sortedCells)
-    {
+    {        
+//        std::cout << cellIndex << std::endl;
+//        cellIndex++;
+
         auto abacusCell = cellPair.first;
         double bestCost = std::numeric_limits<double>::max();
         Subrow bestSubrow;
@@ -66,6 +71,8 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
                 {
                     subrowCells_[subrow].push_back(abacusCell);
                     abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
+                    auto cellLegalLocation = cellLegalLocations_[abacusCell];
+                    auto cellInitialLocation = cellInitialLocations_[abacusCell];
                     double cost = std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].x()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].x())) +
                                   std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].y()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].y()));
                     subrowCells_[subrow].pop_back();

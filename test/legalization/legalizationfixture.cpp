@@ -81,6 +81,7 @@ MultirowAbacusFixture::MultirowAbacusFixture()
     std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
     placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
+    placementLibrary_.cellAlignment(cellStdCellMultirow, ophidian::placement::RowAlignment::EVEN);
 
     auto cell1Location = ophidian::util::Location(10, 28);
     addCell(cellStdCell, "cell1", cell1Location, 2, false);

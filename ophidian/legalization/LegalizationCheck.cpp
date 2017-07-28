@@ -78,14 +78,14 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             {
                 //Row alignmrnt = ODD
                 if(cellPlacedInOddRow) {
-                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an ODD row" << std::endl;
+                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an EVEN row" << std::endl;
                     return false;
                 }
             }
             else {
                 //Row alignmrnt = EVEN
                 if(!cellPlacedInOddRow) {
-                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an EVEN row" << std::endl;
+                    std::cout << "cell " << netlist.name(*cell_it) << " " << cellLocation.x() << ", " << cellLocation.y() << " should be in an ODD row" << std::endl;
                     return false;
                 }
             }
@@ -115,23 +115,24 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
 
         for(auto cell_box : cellGeometry)
         {
-            if (!boost::geometry::within(cell_box, chip_area))
-            {
-                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
-                             cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
-                return false;
-            }
-
-            bool inFence = false;
             if (hasFence)
             {
+                bool inFence = false;
                 for (auto fence_box : fenceGeometry)
                 {
                     inFence |= boost::geometry::covered_by(cell_box, fence_box);
                 }
                 if (!inFence)
                 {
-                    std::cout << netlist.name(*cell_it) << " not in fence" << std::endl;
+                    std::cout << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                                 cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << " not in fence" << std::endl;
+                    return false;
+                }
+            } else {
+                if (!boost::geometry::within(cell_box, chip_area))
+                {
+                    std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                                 cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
                     return false;
                 }
             }

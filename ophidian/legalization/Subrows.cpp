@@ -16,13 +16,30 @@ void Subrows::createSubrows(util::MultiBox area, unsigned rowsPerCell, unsigned 
     subrowsRtree_.clear();
 
     auto singleRowHeight = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).y());
+    auto siteWidth = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).x());
     auto rowHeight = units::unit_cast<double>(floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).y()) * rowsPerCell;
 
     for (auto box : area) {
-        auto rowOrigin = util::Location(box.min_corner().x(), box.min_corner().y() + (rowIndex * singleRowHeight));
-        auto rowUpperRightCorner = util::Location(box.max_corner().x(), box.min_corner().y() + (rowIndex * singleRowHeight) + rowHeight);
 
-        while (units::unit_cast<double>(rowOrigin.y()) < box.max_corner().y()) {
+//        std::cout << "division " << (box.min_corner().y() / singleRowHeight) << std::endl;
+//        std::cout << "box origin " << box.min_corner().x() << ", " << box.min_corner().y() << std::endl;
+//        std::cout << "box in even origin " << boxInEvenOrigin << std::endl;
+
+        double rowOriginX = std::ceil(box.min_corner().x() / siteWidth) * siteWidth;
+        double rowOriginY = std::ceil(box.min_corner().y() / singleRowHeight) * singleRowHeight;
+
+        bool boxInEvenOrigin = ((int)(rowOriginY / singleRowHeight) % 2) == 0;
+        auto rowIncrement = rowIndex * singleRowHeight;
+        if (!boxInEvenOrigin) {
+            rowIncrement = (rowIndex) ? 0 : singleRowHeight;
+        }
+
+        auto rowOrigin = util::Location(rowOriginX, rowOriginY + rowIncrement);
+
+        double rowUpperX = std::floor(box.max_corner().x() / siteWidth) * siteWidth;
+        auto rowUpperRightCorner = util::Location(rowUpperX, units::unit_cast<double>(rowOrigin.y()) + rowHeight);
+
+        while (units::unit_cast<double>(rowUpperRightCorner.y()) <= box.max_corner().y()) {
             auto subrow = subrows_.add();
 
             subrowOrigins_[subrow] = rowOrigin;

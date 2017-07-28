@@ -36,8 +36,8 @@ void iccad2017Legalization::initializeTemporaryBlocs()
             mDesign.libraryMapping().cellStdCell(circuitCell, stdCell);
 
             mTemporaryBlocs.push_back(circuitCell);
+            contBox++;
         }
-        contBox++;
     }
 }
 
@@ -73,6 +73,7 @@ void iccad2017Legalization::legalize()
     fixFencesCells(true);
     //cria blocos das fences
     initializeTemporaryBlocs();
+
     //posiciona circuito
     std::vector<circuit::Cell> cells;
     cells.reserve(mDesign.netlist().size(circuit::Cell()));
