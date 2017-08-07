@@ -10,6 +10,7 @@ using namespace ophidian::placement;
 Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping)
     : netlist_(netlist), floorplan_(floorplan), placement_(placement), placementMapping_(placementMapping),
     subrows_(netlist, floorplan, placement, placementMapping),
+    cellName_(abacusCells_),
     abacusCell2NetlistCell_(abacusCells_), cellInitialLocations_(abacusCells_), cellLegalLocations_(abacusCells_), cellWidths_(abacusCells_), cellHeights_(abacusCells_), cellWeights_(abacusCells_),
     subrowCells_(subrows_.makeProperty<std::vector<AbacusCell> >(Subrow())),
     abacusPlaceRow_(subrows_, cellInitialLocations_, cellLegalLocations_, cellWidths_, cellWeights_){
@@ -35,6 +36,7 @@ void Abacus::legalizePlacement()
             cellWidths_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().x() - cellGeometry[0].min_corner().x());
             cellHeights_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
             cellWeights_[abacus_cell] = std::max((int)netlist_.pins(*cell_it).size(), 1);
+            cellName_[abacus_cell] = netlist_.name(*cell_it);
             sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(*cell_it)));
         }
     }
@@ -59,6 +61,11 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
         double bestCost = std::numeric_limits<double>::max();
         Subrow bestSubrow;
         unsigned rowsToSearch = 5;
+
+        auto cellName = cellName_[abacusCell];
+//        if (cellName == "FE_OFC991_n_15729" || cellName == "FE_OCPC1990_n_16000" || cellName == "FE_OCPC1968_n_15445") {
+//            std::cout << "stop " << cellName << std::endl;
+//        }
 
         while (bestCost == std::numeric_limits<double>::max())
         {
@@ -86,6 +93,7 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             rowsToSearch *= 2;
         }
 
+        auto subrowOrigin = subrows_.origin(bestSubrow);
         subrowCells_[bestSubrow].push_back(abacusCell);
         subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
     }
@@ -94,6 +102,10 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
 //    std::size_t maxCellsPerSubrow = 0;
     for (auto subrow : subrows_.range(Subrow()))
     {
+        auto subrowOrigin = subrows_.origin(subrow);
+//        if (units::unit_cast<double>(subrowOrigin.y()) == 176000 && units::unit_cast<double>(subrowOrigin.x()) == 92400) {
+//            std::cout << "stop " << std::endl;
+//        }
         abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
 //        averageCellsPerSubrow += subrowCells_[subrow].size();
 //        maxCellsPerSubrow = std::max(maxCellsPerSubrow, subrowCells_[subrow].size());

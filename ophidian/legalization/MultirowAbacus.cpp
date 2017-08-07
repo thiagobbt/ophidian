@@ -22,8 +22,9 @@ void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
         auto cellGeometry = placementMapping_.geometry(cell);
         cellWidths_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().x() - cellGeometry[0].min_corner().x());
         cellHeights_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
-//        cellWeights_[abacus_cell] = std::max((int)netlist_.pins(cell).size(), 1);
-        cellWeights_[abacus_cell] = netlist_.pins(cell).size();
+        cellWeights_[abacus_cell] = std::max((int)netlist_.pins(cell).size(), 1);
+//        cellWeights_[abacus_cell] = netlist_.pins(cell).size();
+        cellName_[abacus_cell] = netlist_.name(cell);
         sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(cell)));
     }
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());

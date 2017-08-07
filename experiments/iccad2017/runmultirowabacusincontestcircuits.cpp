@@ -185,14 +185,14 @@ TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][mult
     std::cout << "running for all circuits " << std::endl;
 
     std::vector<std::string> circuitNames = {
-//        "des_perf_b_md2",
+        "des_perf_b_md2",
         "edit_dist_1_md1",
         "edit_dist_a_md2",
         "fft_2_md2",
         "fft_a_md2",
         "fft_a_md3",
         "pci_bridge32_a_md1",
-//        "des_perf_b_md1",
+        "des_perf_b_md1",
     };
 
     for (auto circuitName : circuitNames)

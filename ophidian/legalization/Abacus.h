@@ -34,6 +34,7 @@ protected:
     const placement::PlacementMapping & placementMapping_;
 
     entity_system::EntitySystem<AbacusCell> abacusCells_;
+    entity_system::Property<AbacusCell, std::string> cellName_;
     entity_system::Property<AbacusCell, circuit::Cell> abacusCell2NetlistCell_;
     entity_system::Property<AbacusCell, util::Location> cellInitialLocations_;
     entity_system::Property<AbacusCell, util::Location> cellLegalLocations_;
