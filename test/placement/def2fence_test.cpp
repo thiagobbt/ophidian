@@ -7,6 +7,9 @@
 #include "ophidian/placement/Def2Placement.h"
 #include "ophidian/placement/Placement.h"
 #include "ophidian/circuit/Netlist.h"
+#include "ophidian/parser/Lef.h"
+#include "ophidian/floorplan/Floorplan.h"
+#include "ophidian/floorplan/LefDef2Floorplan.h"
 
 using namespace ophidian;
 
@@ -18,15 +21,22 @@ TEST_CASE("Def2Fence: Test library cell geometries.", "[placement][Def2Fence]")
     placement::Placement placement(netlist);
     placement::Fences fences(netlist);
 
+    floorplan::Floorplan floorplan;
+    ophidian::parser::LefParser lefParser;
+    auto mLef =  std::make_unique<ophidian::parser::Lef>();
+    lefParser.readFile("./input_files/simple.lef", mLef);
+    floorplan::lefDef2Floorplan(*mLef, *def, floorplan);
+
     placement::def2placement(*def, placement, netlist);
-    placement::def2fence(*def, fences, netlist, placement);
+    placement::def2fence(*def, fences, netlist, placement, floorplan);
 
     REQUIRE(fences.size() == 2);
 
     auto region0 = fences.find("r0");
     auto region1 = fences.find("r1");
 
-    SECTION("Def2Fence: Check fence areas") {
+    SECTION("Def2Fence: Check fence areas")
+    {
         auto r0area = fences.area(region0);
         auto r1area = fences.area(region1);
 
@@ -37,7 +47,8 @@ TEST_CASE("Def2Fence: Test library cell geometries.", "[placement][Def2Fence]")
         }));
     }
 
-    SECTION("Def2Fence: Check fence members") {
+    SECTION("Def2Fence: Check fence members")
+    {
         std::vector<circuit::Cell> r0cells;
         r0cells.push_back(netlist.find(circuit::Cell(), "u1"));
         r0cells.push_back(netlist.find(circuit::Cell(), "u2"));
@@ -52,7 +63,8 @@ TEST_CASE("Def2Fence: Test library cell geometries.", "[placement][Def2Fence]")
         REQUIRE(std::is_permutation(r1cells.begin(), r1cells.end(), fences.members(region1).begin()));
     }
 
-    SECTION("Def2Fence: Check if components have a fence") {
+    SECTION("Def2Fence: Check if components have a fence")
+    {
         auto lcb1 = netlist.find(ophidian::circuit::Cell(), "lcb1");
         auto lcb1Fence = placement.cellFence(lcb1);
 
