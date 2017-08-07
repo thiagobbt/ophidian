@@ -27,15 +27,26 @@ namespace ophidian
 namespace placement
 {
 
-void def2fence(const parser::Def &def, Fences &fences, circuit::Netlist &netlist, Placement &placement) {
+void def2fence(const parser::Def &def, Fences &fences, circuit::Netlist &netlist, Placement &placement, floorplan::Floorplan &floorplan) {
     auto def_regions = def.regions();
     auto def_groups = def.groups();
 
-    for (auto region : def_regions) {
+    for (auto region : def_regions)
+    {
         auto fence = fences.add(region.name);
 
         util::MultiBox mb(region.rectangles);
-        fences.area(fence, mb);
+        ophidian::geometry::Box chipBox(floorplan.chipOrigin().toPoint(), floorplan.chipUpperRightCorner().toPoint());
+
+        util::MultiBox intersection;
+        for(auto box : mb)
+        {
+            ophidian::geometry::Box resp;
+            boost::geometry::intersection(box, chipBox, resp);
+            intersection.push_back(resp);
+        }
+
+        fences.area(fence, intersection);
 
 
         auto member_vector = def_groups[region.name];
@@ -51,8 +62,10 @@ void def2fence(const parser::Def &def, Fences &fences, circuit::Netlist &netlist
 
         auto members_regex = std::regex(members_regex_str);
 
-        for (auto component : def.components()) {
-            if (std::regex_match(component.name, members_regex)) {
+        for (auto component : def.components())
+        {
+            if (std::regex_match(component.name, members_regex))
+            {
                 auto netlist_cell = netlist.add(circuit::Cell(), component.name);
 
                 fences.connect(fence, netlist_cell);

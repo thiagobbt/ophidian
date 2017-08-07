@@ -19,6 +19,7 @@ private:
     void eraseTemporaryBlocs();
     void fixFencesCells(bool fix);
     void releaseFencesCells();
+    void flipCells();
 private:
     ophidian::design::Design & mDesign;
     MultirowAbacus mMultirowAbacus;

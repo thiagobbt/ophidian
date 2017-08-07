@@ -23,13 +23,14 @@
 #include <ophidian/parser/Def.h>
 #include <ophidian/placement/Fences.h>
 #include <ophidian/placement/Placement.h>
+#include <ophidian/floorplan/Floorplan.h>
 
 namespace ophidian
 {
 namespace placement
 {
 
-void def2fence(const parser::Def &def, Fences &fence, circuit::Netlist &netlist, Placement &placement);
+void def2fence(const parser::Def &def, Fences &fence, circuit::Netlist &netlist, Placement &placement, ophidian::floorplan::Floorplan &floorplan);
 
 } // namespace placement
 } // namespace ophidian

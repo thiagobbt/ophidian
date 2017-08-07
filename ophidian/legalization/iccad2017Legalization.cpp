@@ -60,6 +60,26 @@ void iccad2017Legalization::fixFencesCells(bool fix)
     }
 }
 
+void iccad2017Legalization::flipCells()
+{
+    auto siteHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).y();
+    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
+    {
+        auto cellGeometry = mDesign.placementMapping().geometry(*cellIt);
+        auto cellHeight = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
+        if(std::fmod((cellHeight/siteHeight), 2.0))
+        {
+            //Odd-sized cells
+            auto cellPosition = mDesign.placement().cellLocation(*cellIt).y();
+            if(std::fmod((cellPosition/siteHeight), 2.0))
+            {
+                //placed in odd line -> flip cell
+                mDesign.placement().cellOrientation(*cellIt, "S");
+            }
+        }
+    }
+}
+
 void iccad2017Legalization::legalize()
 {
     //posiciona fences (paralelo)
@@ -93,6 +113,9 @@ void iccad2017Legalization::legalize()
 
     //desfixa celulas das fences
     fixFencesCells(false);
+
+    //flip cells
+    flipCells();
 }
 
 } // namespace legalization
