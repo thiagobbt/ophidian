@@ -55,7 +55,10 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
     for (auto cellPair : sortedCells)
     {        
 //        std::cout << cellIndex << std::endl;
-//        cellIndex++;
+//        if (cellIndex == 115) {
+//            std::cout << "stop" << std::endl;
+//        }
+        cellIndex++;
 
         auto abacusCell = cellPair.first;
         double bestCost = std::numeric_limits<double>::max();
@@ -74,6 +77,10 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             subrows_.findClosestSubrows(rowsToSearch, cellInitialLocations_[abacusCell], closeSubrows);
             for (auto subrow : closeSubrows)
             {
+                auto capacity = subrows_.capacity(subrow);
+                auto cellWidth = cellWidths_[abacusCell];
+                auto cellHeight = cellHeights_[abacusCell];
+                auto origin = subrows_.origin(subrow).y();
                 if ((subrows_.capacity(subrow) >= cellWidths_[abacusCell]) && ((subrows_.origin(subrow).y() + cellHeights_[abacusCell]) <= chipTop))
                 {
                     subrowCells_[subrow].push_back(abacusCell);

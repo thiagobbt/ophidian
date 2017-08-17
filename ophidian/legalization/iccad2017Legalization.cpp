@@ -83,6 +83,7 @@ void iccad2017Legalization::flipCells()
 void iccad2017Legalization::legalize()
 {
     //posiciona fences (paralelo)
+    unsigned cellId = 0;
     for(auto fence : mDesign.fences().range())
     {
         std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
