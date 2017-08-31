@@ -40,6 +40,8 @@ public:
 
     void findClosestSubrows(unsigned numberOfSubrows, util::Location point, std::vector<Subrow> & subrows) const;
 
+    Subrow findContainedSubrow(geometry::Box cellBox) const;
+
     ophidian::util::micrometer_t capacity(Subrow subrow) const;
 
     void capacity(Subrow subrow, ophidian::util::micrometer_t capacity);

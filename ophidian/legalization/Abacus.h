@@ -4,6 +4,7 @@
 #include <ophidian/geometry/Distance.h>
 
 #include <ophidian/legalization/AbacusPlaceRow.h>
+#include <ophidian/legalization/RtreeLegalization.h>
 
 namespace ophidian
 {
@@ -45,6 +46,8 @@ protected:
     Subrows subrows_;
 
     entity_system::Property<Subrow, std::vector<AbacusCell> > subrowCells_;
+
+    entity_system::Property<AbacusCell, Subrow > cells2Subrow_;
 
     AbacusPlaceRow abacusPlaceRow_;
 };

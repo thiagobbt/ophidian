@@ -3,6 +3,8 @@
 
 #include <ophidian/placement/PlacementMapping.h>
 #include <ophidian/floorplan/Floorplan.h>
+#include <ophidian/design/Design.h>
+
 #include <string>
 #include <random>
 
@@ -14,15 +16,7 @@ public:
     ophidian::circuit::Cell addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed);
 
 public:
-    ophidian::standard_cell::StandardCells stdCells_;
-    ophidian::placement::Library placementLibrary_;
-
-    ophidian::circuit::Netlist netlist_;
-    ophidian::circuit::LibraryMapping libraryMapping_;
-    ophidian::floorplan::Floorplan floorplan_;
-    ophidian::placement::Placement placement_;
-    ophidian::placement::PlacementMapping placementMapping_;
-    ophidian::placement::Fences fences_;
+    ophidian::design::Design design_;
 };
 
 class AbacusFixture : public CircuitFixture

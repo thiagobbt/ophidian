@@ -88,8 +88,8 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
                     cellsOdd.push_back(cell);
                 }
             }
-            legalizeSubrows(cellsOdd, rowsPerCell, 1, legalizationArea);
             legalizeSubrows(cellsEven, rowsPerCell, 0, legalizationArea);
+            legalizeSubrows(cellsOdd, rowsPerCell, 1, legalizationArea);
         }
         rowsPerCell--;
     }
