@@ -112,6 +112,17 @@ public:
         std::vector<geometry::Box> rectangles;    ///< Vector of rectangles representing the area of the region
     };
 
+    struct pin {
+        std::string name;
+        std::string instance;
+    };
+
+    struct net
+    {
+        std::string name;
+        std::vector<pin> pins;
+    };
+
     /**
      * @brief Constructor.
      *
@@ -150,6 +161,10 @@ public:
         return groups_;
     }
 
+    const std::vector<net>& nets() const {
+        return nets_;
+    }
+
     /**
      * Returns the DEF database units.
      */
@@ -166,6 +181,7 @@ public:
         components_.clear();
         rows_.clear();
         regions_.clear();
+        nets_.clear();
         groups_.clear();
     }
 
@@ -175,6 +191,7 @@ private:
     std::vector<component> components_;
     std::vector<row> rows_;
     std::vector<region> regions_;
+    std::vector<net> nets_;
     std::string group_helper_;
     std::unordered_map<std::string, std::vector<std::string>> groups_;   //< Maps group name to its members
     std::string circuit_name;
