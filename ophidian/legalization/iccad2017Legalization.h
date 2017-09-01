@@ -3,6 +3,7 @@
 
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/design/Design.h>
+#include <ophidian/legalization/RtreeLegalization.h>
 
 namespace ophidian
 {
@@ -21,10 +22,16 @@ private:
     void releaseFencesCells();
     void flipCells();
 private:
+    bool cellIsLegalized(circuit::Cell cell);
+
     ophidian::design::Design & mDesign;
     MultirowAbacus mMultirowAbacus;
 
+    RtreeLegalization mRtreeLegalization;
+
     std::vector<circuit::Cell> mTemporaryBlocs;
+
+    entity_system::Property<circuit::Cell, util::Location> mCellsInitialLocations;
 };
 
 } // namespace legalization

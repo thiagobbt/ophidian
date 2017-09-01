@@ -17,23 +17,23 @@ TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit 
         ophidian::util::Location(35, 20),
     };
 
-    ophidian::legalization::MultirowAbacus multirowAbacus(netlist_, floorplan_, placement_, placementMapping_);
+    ophidian::legalization::MultirowAbacus multirowAbacus(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
-    std::vector<ophidian::circuit::Cell> cells (netlist_.begin(ophidian::circuit::Cell()), netlist_.end(ophidian::circuit::Cell()));
+    std::vector<ophidian::circuit::Cell> cells (design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
 
-    ophidian::geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
+    ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
     multirowAbacus.legalizePlacement(cells, legalizationArea);
 
     std::vector<ophidian::util::Location> cellLocations;
-    for (auto cellIt = netlist_.begin(ophidian::circuit::Cell()); cellIt != netlist_.end(ophidian::circuit::Cell()); ++cellIt)
+    for (auto cellIt = design_.netlist().begin(ophidian::circuit::Cell()); cellIt != design_.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
-        cellLocations.push_back(placement_.cellLocation(*cellIt));
+        cellLocations.push_back(design_.placement().cellLocation(*cellIt));
         std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }
 
     REQUIRE(cellLocations.size() == expectedLocations.size());
     REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 
-    REQUIRE(ophidian::legalization::legalizationCheck(floorplan_, placement_, placementMapping_, netlist_, fences_));
+    REQUIRE(ophidian::legalization::legalizationCheck(design_.floorplan(), design_.placement(), design_.placementMapping(), design_.netlist(), design_.fences()));
 }

@@ -7,7 +7,10 @@ namespace ophidian
 namespace legalization
 {
 iccad2017Legalization::iccad2017Legalization(design::Design &design)
-    : mDesign(design), mMultirowAbacus(design.netlist(), design.floorplan(), design.placement(), design.placementMapping())
+    : mDesign(design),
+      mCellsInitialLocations(design.netlist().makeProperty<util::Location>(circuit::Cell())),
+      mMultirowAbacus(design.netlist(), design.floorplan(), design.placement(), design.placementMapping()),
+      mRtreeLegalization(design)
 {
 
 }
@@ -65,28 +68,61 @@ void iccad2017Legalization::flipCells()
     auto siteHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).y();
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
     {
-        auto cellGeometry = mDesign.placementMapping().geometry(*cellIt);
-        auto cellHeight = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
-        if(std::fmod((cellHeight/siteHeight), 2.0))
-        {
-            //Odd-sized cells
-            auto cellPosition = mDesign.placement().cellLocation(*cellIt).y();
-            if(std::fmod((cellPosition/siteHeight), 2.0))
+        if (!mDesign.placement().isFixed(*cellIt)) {
+            auto cellGeometry = mDesign.placementMapping().geometry(*cellIt);
+            auto cellHeight = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
+            if(std::fmod((cellHeight/siteHeight), 2.0))
             {
-                //placed in odd line -> flip cell
-                mDesign.placement().cellOrientation(*cellIt, "S");
+                //Odd-sized cells
+                auto cellPosition = mDesign.placement().cellLocation(*cellIt).y();
+                if(std::fmod((cellPosition/siteHeight), 2.0))
+                {
+                    //placed in odd line -> flip cell
+                    mDesign.placement().cellOrientation(*cellIt, "S");
+                }
             }
         }
     }
 }
 
+bool iccad2017Legalization::cellIsLegalized(circuit::Cell cell)
+{
+    if (mDesign.placement().isFixed(cell)) {
+        return true;
+    }
+
+    auto siteWidth = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).x();
+    auto rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).y();
+    auto cellLocation = mDesign.placement().cellLocation(cell);
+
+    bool siteAlignment = std::remainder(cellLocation.toPoint().x(), units::unit_cast<double>(siteWidth)) <= std::numeric_limits<double>::epsilon();
+    bool rowAlignment = std::remainder(cellLocation.toPoint().y(), units::unit_cast<double>(rowHeight)) <= std::numeric_limits<double>::epsilon();
+
+    return siteAlignment && rowAlignment;
+}
+
 void iccad2017Legalization::legalize()
 {
+    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt) {
+        mCellsInitialLocations[*cellIt] = mDesign.placement().cellLocation(*cellIt);
+    }
+
     //posiciona fences (paralelo)
+    unsigned cellId = 0;
     for(auto fence : mDesign.fences().range())
     {
         std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
         mMultirowAbacus.legalizePlacement(cells, mDesign.fences().area(fence));
+
+        mRtreeLegalization.buildRtree(cells, mDesign.fences().area(fence));
+
+        unsigned unlegalized_cell = 0;
+        for (auto cell : cells) {
+            if (!cellIsLegalized(cell)) {
+               std::cout << "unlegalized cells " << unlegalized_cell++ << std::endl;
+               mRtreeLegalization.legalizeCell(cell);
+            }
+        }
     }
 
     //fixa celulas das fences
@@ -107,6 +143,13 @@ void iccad2017Legalization::legalize()
     geometry::Box chipArea(mDesign.floorplan().chipOrigin().toPoint(), mDesign.floorplan().chipUpperRightCorner().toPoint());
     util::MultiBox legalizationArea({chipArea});
     mMultirowAbacus.legalizePlacement(cells, legalizationArea);
+
+    mRtreeLegalization.buildRtree(cells, legalizationArea);
+    for (auto cell : cells) {
+        if (!cellIsLegalized(cell)) {
+            mRtreeLegalization.legalizeCell(cell);
+        }
+    }
 
     //deleta blocos das fences
     eraseTemporaryBlocs();

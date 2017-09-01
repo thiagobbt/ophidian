@@ -32,6 +32,7 @@ include(ExternalProject)
 include_directories(.)
 
 set(THIRD_PARTY_PATH ${CMAKE_SOURCE_DIR}/3rdparty)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
 
 ExternalProject_Add(
 	lef_parser

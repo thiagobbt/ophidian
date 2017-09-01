@@ -13,6 +13,7 @@ Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & fl
     cellName_(abacusCells_),
     abacusCell2NetlistCell_(abacusCells_), cellInitialLocations_(abacusCells_), cellLegalLocations_(abacusCells_), cellWidths_(abacusCells_), cellHeights_(abacusCells_), cellWeights_(abacusCells_),
     subrowCells_(subrows_.makeProperty<std::vector<AbacusCell> >(Subrow())),
+    cells2Subrow_(abacusCells_),
     abacusPlaceRow_(subrows_, cellInitialLocations_, cellLegalLocations_, cellWidths_, cellWeights_){
 
 }
@@ -54,8 +55,7 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
 
     for (auto cellPair : sortedCells)
     {        
-//        std::cout << cellIndex << std::endl;
-//        cellIndex++;
+        cellIndex++;
 
         auto abacusCell = cellPair.first;
         double bestCost = std::numeric_limits<double>::max();
@@ -63,9 +63,6 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
         unsigned rowsToSearch = 5;
 
         auto cellName = cellName_[abacusCell];
-//        if (cellName == "FE_OFC991_n_15729" || cellName == "FE_OCPC1990_n_16000" || cellName == "FE_OCPC1968_n_15445") {
-//            std::cout << "stop " << cellName << std::endl;
-//        }
 
         while (bestCost == std::numeric_limits<double>::max())
         {
@@ -74,6 +71,10 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             subrows_.findClosestSubrows(rowsToSearch, cellInitialLocations_[abacusCell], closeSubrows);
             for (auto subrow : closeSubrows)
             {
+                auto capacity = subrows_.capacity(subrow);
+                auto cellWidth = cellWidths_[abacusCell];
+                auto cellHeight = cellHeights_[abacusCell];
+                auto origin = subrows_.origin(subrow).y();
                 if ((subrows_.capacity(subrow) >= cellWidths_[abacusCell]) && ((subrows_.origin(subrow).y() + cellHeights_[abacusCell]) <= chipTop))
                 {
                     subrowCells_[subrow].push_back(abacusCell);
@@ -91,11 +92,18 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
                 }
             }
             rowsToSearch *= 2;
+            if (rowsToSearch > subrows_.rowCount()) {
+                break;
+            }
         }
 
-        auto subrowOrigin = subrows_.origin(bestSubrow);
-        subrowCells_[bestSubrow].push_back(abacusCell);
-        subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
+        if (bestCost != std::numeric_limits<double>::max()) {
+            auto subrowOrigin = subrows_.origin(bestSubrow);
+            subrowCells_[bestSubrow].push_back(abacusCell);
+            subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
+
+            cells2Subrow_[abacusCell] = bestSubrow;
+        }
     }
 
 //    double averageCellsPerSubrow = 0;
@@ -116,9 +124,11 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
 
     for (auto cellPair : sortedCells)
     {
-        auto netlistCell = abacusCell2NetlistCell_[cellPair.first];
-        auto cellLocation = cellLegalLocations_[cellPair.first];
-        placement_.placeCell(netlistCell, cellLocation);
+        if (cells2Subrow_[cellPair.first] != Subrow()) {
+            auto netlistCell = abacusCell2NetlistCell_[cellPair.first];
+            auto cellLocation = cellLegalLocations_[cellPair.first];
+            placement_.placeCell(netlistCell, cellLocation);
+        }
     }
 }
 

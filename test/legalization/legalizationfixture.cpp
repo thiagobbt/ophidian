@@ -2,43 +2,41 @@
 
 
 CircuitFixture::CircuitFixture()
-    : libraryMapping_(netlist_), placement_(netlist_), fences_(netlist_),
-      placementLibrary_(stdCells_), placementMapping_(placement_, placementLibrary_, netlist_, libraryMapping_)
 {
 }
 
 ophidian::circuit::Cell CircuitFixture::addCell(ophidian::standard_cell::Cell stdCell, std::string cellName, ophidian::util::Location cellLocation, unsigned numberOfPins, bool fixed)
 {
-    auto cell = netlist_.add(ophidian::circuit::Cell(), cellName);
+    auto cell = design_.netlist().add(ophidian::circuit::Cell(), cellName);
     for (unsigned pinIndex = 0; pinIndex < numberOfPins; ++pinIndex) {
-        auto cellPin = netlist_.add(ophidian::circuit::Pin(), "pin:"+std::to_string(pinIndex));
-        netlist_.add(cell, cellPin);
+        auto cellPin = design_.netlist().add(ophidian::circuit::Pin(), "pin:"+std::to_string(pinIndex));
+        design_.netlist().add(cell, cellPin);
     }
-    libraryMapping_.cellStdCell(cell, stdCell);
-    placement_.placeCell(cell, cellLocation);
-    placement_.fixLocation(cell, fixed);
+    design_.libraryMapping().cellStdCell(cell, stdCell);
+    design_.placement().placeCell(cell, cellLocation);
+    design_.placement().fixLocation(cell, fixed);
     return cell;
 }
 
 AbacusFixture::AbacusFixture()
 {
-    floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(50, 40));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
 
-    auto cellStdCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
+    auto cellStdCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
-    placementLibrary_.geometry(cellStdCell, stdCellGeometry);
+    design_.library().geometry(cellStdCell, stdCellGeometry);
 
-    auto cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    auto cellStdCellMultirow = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
     std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
-    placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
+    design_.library().geometry(cellStdCellMultirow, stdCellGeometryMR);
 
     auto cell1Location = ophidian::util::Location(10, 28);
     addCell(cellStdCell, "cell1", cell1Location, 2, false);
@@ -52,7 +50,7 @@ AbacusFixture::AbacusFixture()
     auto cell4Location = ophidian::util::Location(40, 30);
     addCell(cellStdCell, "cell4", cell4Location, 2, false);
 
-    auto cell5Location = ophidian::util::Location(30, 00);
+    auto cell5Location = ophidian::util::Location(30, 0);
     addCell(cellStdCell, "cell5", cell5Location, 2, false);
 
     auto cell6Location = ophidian::util::Location(30, 10);
@@ -64,24 +62,24 @@ AbacusFixture::AbacusFixture()
 
 MultirowAbacusFixture::MultirowAbacusFixture()
 {
-    floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(50, 40));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 50, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 50, site);
 
-    auto cellStdCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
+    auto cellStdCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
-    placementLibrary_.geometry(cellStdCell, stdCellGeometry);
+    design_.library().geometry(cellStdCell, stdCellGeometry);
 
-    auto cellStdCellMultirow = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    auto cellStdCellMultirow = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
     std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
-    placementLibrary_.geometry(cellStdCellMultirow, stdCellGeometryMR);
-    placementLibrary_.cellAlignment(cellStdCellMultirow, ophidian::placement::RowAlignment::EVEN);
+    design_.library().geometry(cellStdCellMultirow, stdCellGeometryMR);
+    design_.library().cellAlignment(cellStdCellMultirow, ophidian::placement::RowAlignment::EVEN);
 
     auto cell1Location = ophidian::util::Location(10, 28);
     addCell(cellStdCell, "cell1", cell1Location, 2, false);
@@ -110,18 +108,18 @@ MultirowAbacusFixture::MultirowAbacusFixture()
 
 LegalCircuitFixture::LegalCircuitFixture()
 {
-    floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(5, 4));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 1.0));
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 1.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 2.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 3.0), 5, site);
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(5, 4));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(1.0, 1.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 1.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 2.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 3.0), 5, site);
 
-    cellStdCell_ = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
+    cellStdCell_ = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(1, 1))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
-    placementLibrary_.geometry(cellStdCell_, stdCellGeometry);
+    design_.library().geometry(cellStdCell_, stdCellGeometry);
 
     auto cell1Location = ophidian::util::Location(1.0, 2.0);
     addCell(cellStdCell_, "cell1", cell1Location, 2, false);
@@ -135,32 +133,32 @@ LegalCircuitFixture::LegalCircuitFixture()
     auto cell4Location = ophidian::util::Location(4.0, 1.0);
     addCell(cellStdCell_, "cell4", cell4Location, 2, false);
 
-    auto fence1 = fences_.add("fence1");
-    fences_.area(fence1, ophidian::util::MultiBox({ophidian::geometry::Box({0, 0}, {3, 3})}));
+    auto fence1 = design_.fences().add("fence1");
+    design_.fences().area(fence1, ophidian::util::MultiBox({ophidian::geometry::Box({0, 0}, {3, 3})}));
 
-    auto cell1 = netlist_.find(ophidian::circuit::Cell(), "cell1");
-    fences_.connect(fence1, cell1);
-    placement_.cellFence(cell1, fence1);
+    auto cell1 = design_.netlist().find(ophidian::circuit::Cell(), "cell1");
+    design_.fences().connect(fence1, cell1);
+    design_.placement().cellFence(cell1, fence1);
 
-    auto cell2 = netlist_.find(ophidian::circuit::Cell(), "cell2");
-    fences_.connect(fence1, cell2);
-    placement_.cellFence(cell2, fence1);
+    auto cell2 = design_.netlist().find(ophidian::circuit::Cell(), "cell2");
+    design_.fences().connect(fence1, cell2);
+    design_.placement().cellFence(cell2, fence1);
 }
 
 LargerLegalCircuitFixture::LargerLegalCircuitFixture()
 {
-    floorplan_.chipOrigin(ophidian::util::Location(0, 0));
-    floorplan_.chipUpperRightCorner(ophidian::util::Location(50, 40));
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 5, site);
-    floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 5, site);
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 5, site);
 
-    cellStdCell_ = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
+    cellStdCell_ = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
-    placementLibrary_.geometry(cellStdCell_, stdCellGeometry);
+    design_.library().geometry(cellStdCell_, stdCellGeometry);
 
     auto cell1Location = ophidian::util::Location(10.0, 20.0);
     addCell(cellStdCell_, "cell1", cell1Location, 2, false);
@@ -177,26 +175,26 @@ LargerLegalCircuitFixture::LargerLegalCircuitFixture()
 
 CircuitFixtureWithRandomCells::CircuitFixtureWithRandomCells(ophidian::util::Location chipOrigin, ophidian::util::Location chipUpperCorner, unsigned numberOfCells)
 {
-    floorplan_.chipOrigin(chipOrigin);
-    floorplan_.chipUpperRightCorner(chipUpperCorner);
-    auto site = floorplan_.add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
+    design_.floorplan().chipOrigin(chipOrigin);
+    design_.floorplan().chipUpperRightCorner(chipUpperCorner);
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
     unsigned numberOfRows = units::unit_cast<double>(chipUpperCorner.y())/10;
     unsigned sitesPerRow = units::unit_cast<double>(chipUpperCorner.x())/10;
     for (unsigned rowIndex = 0; rowIndex < numberOfRows; ++rowIndex) {
-        floorplan_.add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, rowIndex*10), sitesPerRow, site);
+        design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, rowIndex*10), sitesPerRow, site);
     }
 
-    auto singleRowStandardCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1");
+    auto singleRowStandardCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
     ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
-    placementLibrary_.geometry(singleRowStandardCell, stdCellGeometry);
-    placementLibrary_.cellAlignment(singleRowStandardCell, ophidian::placement::RowAlignment::NA);
+    design_.library().geometry(singleRowStandardCell, stdCellGeometry);
+    design_.library().cellAlignment(singleRowStandardCell, ophidian::placement::RowAlignment::NA);
 
-    auto multiRowStandardCell = stdCells_.add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    auto multiRowStandardCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
     std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
     ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
-    placementLibrary_.geometry(multiRowStandardCell, stdCellGeometryMR);
-    placementLibrary_.cellAlignment(multiRowStandardCell, ophidian::placement::RowAlignment::NA);
+    design_.library().geometry(multiRowStandardCell, stdCellGeometryMR);
+    design_.library().cellAlignment(multiRowStandardCell, ophidian::placement::RowAlignment::NA);
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> xDistribution(units::unit_cast<double>(chipOrigin.x()), units::unit_cast<double>(chipUpperCorner.x()));

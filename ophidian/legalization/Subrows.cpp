@@ -187,6 +187,23 @@ void Subrows::findClosestSubrows(unsigned numberOfSubrows, util::Location point,
     }
 }
 
+Subrow Subrows::findContainedSubrow(geometry::Box cellBox) const
+{
+    std::vector<RtreeNode> closeSubrowNodes;
+    subrowsRtree_.query(boost::geometry::index::contains(cellBox), std::back_inserter(closeSubrowNodes));
+
+    if (closeSubrowNodes.empty()) {
+        std::vector<Subrow> closeSubrows;
+        findClosestSubrows(1, util::Location(cellBox.min_corner().x(), cellBox.min_corner().y()), closeSubrows);
+        return closeSubrows.front();
+    } else {
+        return closeSubrowNodes.front().second;
+    }
+
+    assert(closeSubrowNodes.size() == 1);
+
+}
+
 util::micrometer_t Subrows::capacity(Subrow subrow) const
 {
     return subrowCapacities_[subrow];

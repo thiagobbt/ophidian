@@ -1,26 +1,52 @@
 #include <catch.hpp>
 #include <iostream>
-#include "iccad2017_wrapper.h"
+#include <ophidian/design/Design.h>
+#include <ophidian/design/DesignBuilder.h>
 
 void measureAreaRelationshipForOneCircuit(std::string circuitName) {
     std::cout << "circuit " << circuitName << std::endl;
 
-    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
+    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
+                                                                                  "./input_files/ICCAD2017/" + circuitName + "/tech.lef",
+                                                                                  "./input_files/ICCAD2017/" + circuitName + "/placed.def");
+    ICCAD2017DesignBuilder.build();
 
-    double totalCellArea = 0.0;
-    for (auto cellIt = iccad.mNetlist.begin(ophidian::circuit::Cell()); cellIt != iccad.mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
-    {
-        auto cellGeometry = iccad.mPlacementMapping.geometry(*cellIt);
+    ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
-        auto cellWidth = cellGeometry[0].max_corner().x() - cellGeometry[0].min_corner().x();
-        auto cellHeight = cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y();
+    std::cout << "area of fences" << std::endl;
+    for (auto fence : design.fences().range()) {
+        auto fenceRegion = design.fences().area(fence);
+        double fenceArea = 0.0;
+        for (auto box : fenceRegion) {
+            fenceArea += boost::geometry::area(box);
+        }
+        double cellArea = 0.0;
+        for (auto cell : design.fences().members(fence)) {
+            auto cellGeometry = design.placementMapping().geometry(cell);
+            for (auto box : cellGeometry) {
+                cellArea += boost::geometry::area(box);
+            }
+        }
 
-        auto cellArea = cellWidth * cellHeight;
-        totalCellArea += cellArea;
+        std::cout << "fence area " << design.fences().name(fence) << " " << fenceArea << std::endl;
+        std::cout << "cells area " << cellArea << std::endl;
     }
 
-    auto chipUpperRightCorner = iccad.mFloorplan.chipUpperRightCorner();
+    double totalCellArea = 0.0;
+    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        auto cellGeometry = design.placementMapping().geometry(*cellIt);
+
+        for (auto box : cellGeometry) {
+            totalCellArea += boost::geometry::area(box);
+        }
+    }
+
+    auto chipUpperRightCorner = design.floorplan().chipUpperRightCorner();
     double chipArea = units::unit_cast<double>(chipUpperRightCorner.x()) * units::unit_cast<double>(chipUpperRightCorner.y());
+
+    std::cout << "chip area " << chipArea << std::endl;
+    std::cout << "cells area " << totalCellArea << std::endl;
 
     std::cout << "area relationship " << chipArea / totalCellArea << std::endl;
 }
