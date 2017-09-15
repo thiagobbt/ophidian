@@ -90,6 +90,9 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 }
 
 void runMultirowAbacusForOneCircuit(std::string circuitName) {
+    std::ofstream csvFile;
+    csvFile.open (circuitName + "_movements.csv");
+
 //    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
@@ -105,6 +108,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
 
     ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(design.netlist().makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
+    ophidian::entity_system::Property<ophidian::circuit::Cell, std::string> initialOrientations(design.netlist().makeProperty<std::string>(ophidian::circuit::Cell()));
 
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
@@ -116,6 +120,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
             movableCells++;
         }
         initialLocations[*cellIt] = design.placement().cellLocation(*cellIt);
+        initialOrientations[*cellIt] = design.placement().cellOrientation(*cellIt);
     }
 
     std::cout << "fixed cells " << fixedCells << std::endl;
@@ -139,6 +144,9 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     ophidian::util::micrometer_t totalDisplacement;
     unsigned numberOfMovableCells = 0;
+
+    double maxDisplacement = std::numeric_limits<double>::min();
+
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
         if (!design.placement().isFixed(*cellIt))
@@ -148,8 +156,22 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
                                     std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
             totalDisplacement = totalDisplacement + ophidian::util::micrometer_t(cellDisplacement);
             numberOfMovableCells++;
+
+            maxDisplacement = std::max(maxDisplacement, cellDisplacement);
+
+            csvFile << cellDisplacement << std::endl;
+        } else {
+            auto currentLocation = design.placement().cellLocation(*cellIt);
+            auto currentOrientation = design.placement().cellOrientation(*cellIt);
+            if (currentLocation != initialLocations[*cellIt] || currentOrientation != initialOrientations[*cellIt]) {
+                std::string cellName = design.netlist().name(*cellIt);
+                std::cout << "cell " << cellName << " has been relocated or flipped " << std::endl;
+            }
         }
     }
+
+    std::cout << "max displacement " << maxDisplacement << std::endl;
+
     ophidian::util::micrometer_t averageDisplacement = totalDisplacement / numberOfMovableCells;
 
     std::cout << circuitName << "," << totalDisplacement << "," << averageDisplacement << "," << runtime << std::endl;
@@ -157,6 +179,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 //    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
     design.writeDefFile(circuitName + "_legalized.def");
+
+    csvFile.close();
 }
 
 TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][multirow_abacus]")

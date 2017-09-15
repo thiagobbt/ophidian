@@ -199,7 +199,7 @@ CircuitFixtureWithRandomCells::CircuitFixtureWithRandomCells(ophidian::util::Loc
     std::default_random_engine generator;
     std::uniform_int_distribution<int> xDistribution(units::unit_cast<double>(chipOrigin.x()), units::unit_cast<double>(chipUpperCorner.x()));
     std::uniform_int_distribution<int> yDistribution(units::unit_cast<double>(chipOrigin.y()), units::unit_cast<double>(chipUpperCorner.y()));
-    std::uniform_int_distribution<int> stdCellDistribution(0, 1);
+    std::uniform_real_distribution<double> stdCellDistribution(0, 1);
     for (unsigned cellIndex = 0; cellIndex < numberOfCells; ++cellIndex) {
         std::string cellName = "cell" + std::to_string(cellIndex);
 
@@ -207,7 +207,8 @@ CircuitFixtureWithRandomCells::CircuitFixtureWithRandomCells(ophidian::util::Loc
         auto y = yDistribution(generator);
 
         auto cellLocation = ophidian::util::Location(x, y);
-        auto cellStdCell = (stdCellDistribution(generator)) ? singleRowStandardCell : multiRowStandardCell;
+        auto cellStdCell = (stdCellDistribution(generator) < 0.8) ? singleRowStandardCell : multiRowStandardCell;
+//        auto cellStdCell = singleRowStandardCell;
         addCell(cellStdCell, cellName, cellLocation, 2, false);
     }
 }

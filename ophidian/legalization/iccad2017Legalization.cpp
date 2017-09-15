@@ -109,20 +109,19 @@ void iccad2017Legalization::legalize()
 
     //posiciona fences (paralelo)
     unsigned cellId = 0;
-    for(auto fence : mDesign.fences().range())
+    for(auto fenceIt = mDesign.fences().range().begin(); fenceIt < mDesign.fences().range().end(); fenceIt++)
     {
+        auto fence = *fenceIt;
         std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
         mMultirowAbacus.legalizePlacement(cells, mDesign.fences().area(fence));
 
-        mRtreeLegalization.buildRtree(cells, mDesign.fences().area(fence));
+//        mRtreeLegalization.buildRtree(cells, mDesign.fences().area(fence));
 
-        unsigned unlegalized_cell = 0;
-        for (auto cell : cells) {
-            if (!cellIsLegalized(cell)) {
-               std::cout << "unlegalized cells " << unlegalized_cell++ << std::endl;
-               mRtreeLegalization.legalizeCell(cell);
-            }
-        }
+//        for (auto cell : cells) {
+//            if (!cellIsLegalized(cell)) {
+//               mRtreeLegalization.legalizeCell(cell);
+//            }
+//        }
     }
 
     //fixa celulas das fences
@@ -144,12 +143,12 @@ void iccad2017Legalization::legalize()
     util::MultiBox legalizationArea({chipArea});
     mMultirowAbacus.legalizePlacement(cells, legalizationArea);
 
-    mRtreeLegalization.buildRtree(cells, legalizationArea);
-    for (auto cell : cells) {
-        if (!cellIsLegalized(cell)) {
-            mRtreeLegalization.legalizeCell(cell);
-        }
-    }
+//    mRtreeLegalization.buildRtree(cells, legalizationArea);
+//    for (auto cell : cells) {
+//        if (!cellIsLegalized(cell)) {
+//            mRtreeLegalization.legalizeCell(cell);
+//        }
+//    }
 
     //deleta blocos das fences
     eraseTemporaryBlocs();

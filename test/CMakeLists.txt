@@ -21,8 +21,8 @@ add_subdirectory(standard_cell)
 add_subdirectory(legalization)
 
 add_executable( run_tests ${SOURCE} ${HEADERS} )
-#target_link_libraries(run_tests Catch ophidian_entitysystem ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon gurobi_g++5.2 gurobi70)
-target_link_libraries(run_tests Catch ophidian_design ophidian_entitysystem ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization ophidian_circuit emon )
+target_link_libraries(run_tests Catch ophidian_design ophidian_entitysystem ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon gurobi_g++5.2 gurobi70)
+#target_link_libraries(run_tests Catch ophidian_design ophidian_entitysystem ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization ophidian_circuit emon )
 
 include_directories(${CMAKE_SOURCE_DIR})
 add_test(NAME unit_test COMMAND run_tests "~[Profiling] ~[superblue18obs]")

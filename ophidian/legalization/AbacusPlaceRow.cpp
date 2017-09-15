@@ -4,7 +4,7 @@ namespace ophidian {
 namespace legalization {
 AbacusPlaceRow::AbacusPlaceRow(Subrows &subrows, entity_system::Property<AbacusCell, util::Location> &cellInitialLocations, entity_system::Property<AbacusCell, util::Location> &cellLegalLocations, entity_system::Property<AbacusCell, util::micrometer_t> &cellWidths, entity_system::Property<AbacusCell, double> &cellWeigths)
     : subrows_(subrows), cellInitialLocations_(cellInitialLocations), cellLegalLocations_(cellLegalLocations), cellWidths_(cellWidths), cellWeights_(cellWeigths),
-      clusterOrigins_(clusters_), clusterWidths_(clusters_), clusterWeights_(clusters_), clusterDisplacements_(clusters_), clusterLastCells_(clusters_) {
+      clusterOrigins_(clusters_), clusterWidths_(clusters_), clusterWeights_(clusters_), clusterDisplacements_(clusters_), clusterFirstCells_(clusters_), clusterLastCells_(clusters_) {
 
 }
 
@@ -23,6 +23,8 @@ void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & 
 
             clusterOrigins_[cluster] = x;
             addCell(abacusCellIt, cluster);
+
+            clusterFirstCells_[cluster] = abacusCellIt;
         } else {
             addCell(abacusCellIt, *clusterIt);
             collapse(clusterIt, subrow, siteWidth);
@@ -69,6 +71,18 @@ void AbacusPlaceRow::collapse(std::vector<Cluster>::const_iterator clusterIt, Su
     ophidian::util::micrometer_t xMax = subrows_.upperCorner(subrow).x() - clusterWidths_[cluster];
 
     ophidian::util::micrometer_t optimalX = clusterDisplacements_[cluster] / clusterWeights_[cluster];
+
+//    std::vector<util::micrometer_t> displacements;
+//    util::micrometer_t accumulatedWidth(0);
+//    for (auto cellIt = clusterFirstCells_[cluster]; cellIt != clusterLastCells_[cluster]; cellIt++) {
+//        util::micrometer_t displacement = cellInitialLocations_[*cellIt].x() - accumulatedWidth;
+//        displacements.push_back(displacement);
+//        accumulatedWidth = accumulatedWidth + cellWidths_[*cellIt];
+//    }
+//    std::sort(displacements.begin(), displacements.end());
+//    auto medianIndex = (displacements.size() > 2) ? (displacements.size() / 2) + 1 : 1;
+//    ophidian::util::micrometer_t optimalX = displacements[medianIndex];
+
     optimalX = std::min(std::max(optimalX, xMin), xMax);
     optimalX = std::floor(units::unit_cast<double>(optimalX / siteWidth)) * siteWidth;
     clusterOrigins_[cluster] = optimalX;

@@ -1,6 +1,10 @@
 #ifndef ABACUSPLACEROW_H
 #define ABACUSPLACEROW_H
 
+#include <vector>
+
+#include <ophidian/util/Units.h>
+
 #include <ophidian/legalization/Subrows.h>
 
 namespace ophidian {
@@ -40,6 +44,7 @@ private:
     entity_system::Property<Cluster, ophidian::util::micrometer_t> clusterWidths_;
     entity_system::Property<Cluster, double> clusterWeights_;
     entity_system::Property<Cluster, ophidian::util::micrometer_t> clusterDisplacements_;
+    entity_system::Property<Cluster, std::vector<AbacusCell>::const_iterator> clusterFirstCells_;
     entity_system::Property<Cluster, std::vector<AbacusCell>::const_iterator> clusterLastCells_;
 
     entity_system::Property<AbacusCell, util::Location> & cellInitialLocations_;
