@@ -119,6 +119,21 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const thr
         return 0;
     });
 
+    defrSetNetCbk([](defrCallbackType_e, defiNet *net, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+        Def::net defNet;
+        defNet.name = net->name();
+        defNet.pins.reserve(net->numConnections());
+        for(std::size_t i = 0; i < net->numConnections(); i++){
+            Def::pin pin;
+            pin.name = net->pin(i);
+            pin.instance = net->instance(i);
+            defNet.pins.push_back(pin);
+        }
+        that.nets_.push_back(defNet);
+        return 0;
+    });
+
     FILE* ifp = fopen(filename.c_str(), "r");
     if(ifp){
         auto res = defrRead(ifp, filename.c_str(), def.get(), true);

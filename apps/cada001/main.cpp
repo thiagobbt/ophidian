@@ -5,6 +5,7 @@
 #include <ophidian/legalization/iccad2017Legalization.h>
 #include <ophidian/design/Design.h>
 #include <ophidian/design/DesignBuilder.h>
+#include <ophidian/legalization/iccad2017SolutionQuality.h>
 #include <string>
 
 
@@ -41,9 +42,12 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
     ICCAD2017DesignBuilder.build();
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
+    ophidian::legalization::ICCAD2017SolutionQuality solutionQuality(design);
+
     ophidian::legalization::iccad2017Legalization iccad2017(design);
     iccad2017.legalize();
 
+    std::cout<<"Solution score: "<<solutionQuality.rawScore()<<std::endl;
 
     design.writeDefFile(output_def);
 }

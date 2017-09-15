@@ -135,6 +135,14 @@ public:
         mInputDefPath = defPath;
     }
 
+    void circuitName(const std::string &circuitName){
+        mCircuitName = circuitName;
+    }
+
+    std::string circuitName(){
+        return mCircuitName;
+    }
+
     void writeDefFile(std::string filePath);
 private:
 
@@ -148,6 +156,7 @@ private:
     placement::Fences mFences;
 
     std::string mInputDefPath;
+    std::string mCircuitName;
 };
 
 } //namespace design

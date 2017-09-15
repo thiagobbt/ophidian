@@ -52,6 +52,7 @@ void ICCAD2017ContestDesignBuilder::build()
 
 	mDef = defParser.readFile(mPlacedDefFile);
 
+    mDesign.circuitName(mDef->circuitName());
 	placement::def2placement(*mDef, mDesign.placement(), mDesign.netlist());
 	floorplan::lefDef2Floorplan(*mLef, *mDef, mDesign.floorplan());
 	placement::lef2Library(*mLef, mDesign.library(), mDesign.standardCells());
