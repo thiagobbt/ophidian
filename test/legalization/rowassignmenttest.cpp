@@ -19,7 +19,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit already legal", "[legalizat
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
 
-    rowAssignment.assignCellsToRows(legalizationArea);
+    rowAssignment.assignCellsToRows();
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit with one overflowed row", "[legalization][row_assignment]") {
@@ -51,7 +51,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit with one overflowed row", "
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
 
-    rowAssignment.assignCellsToRows(legalizationArea);
+    rowAssignment.assignCellsToRows();
 }
 
 TEST_CASE("Assigning rows in circuit with random cells", "[legalization][row_assignment][random]") {
@@ -76,7 +76,7 @@ TEST_CASE("Assigning rows in circuit with random cells", "[legalization][row_ass
 
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
-    rowAssignment.assignCellsToRows(legalizationArea);
+    rowAssignment.assignCellsToRows();
     gettimeofday(&endTime, NULL);
     std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
 

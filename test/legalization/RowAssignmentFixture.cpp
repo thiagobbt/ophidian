@@ -6,9 +6,9 @@ RowAssignmentFixture::RowAssignmentFixture(ophidian::design::Design &design)
 
 }
 
-void RowAssignmentFixture::assignCellsToRows(ophidian::util::MultiBox area)
+void RowAssignmentFixture::assignCellsToRows()
 {
-    RowAssignment::assignCellsToRows(area);
+    RowAssignment::assignCellsToRows();
 
     for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); ++cellIt) {
         auto cellBox = mDesign.placementMapping().geometry(*cellIt)[0];

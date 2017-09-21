@@ -59,6 +59,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals")
 endif()
 
+option(BUILD_SHARED_LIBS "on/off -> (build every non statc lib shared)/(build everything static)" OFF)
+
+set(GCC_CXX_FLAGS ${GCC_CXX_FLAGS} "-static-libgcc -static-libstdc++ -static")
+
 
 enable_testing()
 add_subdirectory(ophidian)

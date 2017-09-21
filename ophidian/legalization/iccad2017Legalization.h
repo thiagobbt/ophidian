@@ -4,6 +4,7 @@
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/design/Design.h>
 #include <ophidian/legalization/RtreeLegalization.h>
+#include <ophidian/legalization/FenceRegionIsolation.h>
 
 namespace ophidian
 {
@@ -16,20 +17,12 @@ public:
 
     void legalize();
 private:
-    void initializeTemporaryBlocs();
-    void eraseTemporaryBlocs();
-    void fixFencesCells(bool fix);
-    void releaseFencesCells();
     void flipCells();
-private:
-    bool cellIsLegalized(circuit::Cell cell);
 
     ophidian::design::Design & mDesign;
     MultirowAbacus mMultirowAbacus;
 
-    RtreeLegalization mRtreeLegalization;
-
-    std::vector<circuit::Cell> mTemporaryBlocs;
+    FenceRegionIsolation mFenceRegionIsolation;
 
     entity_system::Property<circuit::Cell, util::Location> mCellsInitialLocations;
 };

@@ -6,21 +6,18 @@
 #include <ophidian/legalization/RowAssignment.h>
 
 void runRowAssignmentForOneCircuit(std::string circuitName) {
-    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
-                                                                                  "./input_files/ICCAD2017/" + circuitName + "/tech.lef",
-                                                                                  "./input_files/ICCAD2017/" + circuitName + "/placed.def");
+    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/tech.lef",
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def");
     ICCAD2017DesignBuilder.build();
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
     ophidian::legalization::RowAssignment rowAssignment(design);
 
-    ophidian::geometry::Box chipArea(design.floorplan().chipOrigin().toPoint(), design.floorplan().chipUpperRightCorner().toPoint());
-    ophidian::util::MultiBox legalizationArea({chipArea});
-
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
-    rowAssignment.assignCellsToRows(legalizationArea);
+    rowAssignment.assignCellsToRows();
     gettimeofday(&endTime, NULL);
     std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
 }

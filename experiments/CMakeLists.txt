@@ -13,6 +13,7 @@ add_subdirectory(iccad2017)
 #SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 #SET(BUILD_SHARED_LIBRARIES OFF)
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 
 add_executable( run_experiments ${SOURCE} ${HEADERS} )
 target_link_libraries(run_experiments Catch ophidian_design ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem gurobi_g++5.2 gurobi70)
@@ -30,5 +31,5 @@ add_custom_command(
         )
 
 message("Creating symlink for test files")
-execute_process(COMMAND ln -f -s ${CMAKE_SOURCE_DIR}/experiments/input_files ${CMAKE_BINARY_DIR}/experiments/.
-                RESULT_VARIABLE result )
+#execute_process(COMMAND ln -f -s ${CMAKE_SOURCE_DIR}/experiments/input_files ${CMAKE_BINARY_DIR}/experiments/.
+ #               RESULT_VARIABLE result )

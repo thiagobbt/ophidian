@@ -8,7 +8,7 @@ class RowAssignmentFixture : public ophidian::legalization::RowAssignment
 public:
     RowAssignmentFixture(ophidian::design::Design & design);
 
-    void assignCellsToRows(ophidian::util::MultiBox area);
+    void assignCellsToRows();
 
     bool checkSubrowsCapacities();
 
