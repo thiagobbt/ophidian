@@ -4,6 +4,7 @@
 #include <ophidian/design/DesignBuilder.h>
 
 #include <ophidian/legalization/RowAssignment.h>
+#include <ophidian/legalization/MixedRowAssignment.h>
 
 void runRowAssignmentForOneCircuit(std::string circuitName) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
@@ -13,7 +14,8 @@ void runRowAssignmentForOneCircuit(std::string circuitName) {
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
-    ophidian::legalization::RowAssignment rowAssignment(design);
+//    ophidian::legalization::RowAssignment rowAssignment(design);
+    ophidian::legalization::MixedRowAssignment rowAssignment(design);
 
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);

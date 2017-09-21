@@ -5,7 +5,7 @@ namespace legalization {
 RowAssignment::RowAssignment(design::Design &design)
     : mDesign(design), mSubrows(design.netlist(), design.floorplan(), design.placement(), design.placementMapping()),
         mCircuitCellsSlices(mDesign.netlist().makeProperty<std::vector<CellSlice>>(circuit::Cell())),
-        mSlice2Cell(mCellSlices), mSliceAlignment(mCellSlices), mSliceAssignment(mCellSlices)
+        mSlice2Cell(mCellSlices), mSliceAlignment(mCellSlices)
 {
 
 }
@@ -40,6 +40,53 @@ void RowAssignment::assignCellsToRows()
     fenceRegionIsolation.restoreAllFenceCells();
 }
 
+void RowAssignment::addAssignmentVariables(CellSlice cellSlice, entity_system::Property<Subrow, GRBLinExpr> & capacityConstraints, entity_system::Property<CellSlice, std::vector<AssignmentPair>> & assignmentVariables, std::string cellName, util::Location cellLocation, GRBModel & model, double cellWidth, GRBLinExpr & objectiveFunction)
+{
+    assignmentVariables[cellSlice].reserve(mSubrows.rowCount());
+
+    GRBLinExpr assignmentConstraintExpression;
+    unsigned subrowIndex = 0;
+    for (auto subrow : mSubrows.range(Subrow())) {
+        if (sameAlignment(cellSlice, subrow)) {
+            std::string variableName = cellName + "_" + boost::lexical_cast<std::string>(subrowIndex++) + "_assignment";
+            GRBVar assignmentVariable = model.addVar(0.0, 1.0, 0.0, GRB_BINARY, variableName);
+            assignmentConstraintExpression += assignmentVariable;
+
+            assignmentVariables[cellSlice].push_back(std::make_pair(assignmentVariable, subrow));
+
+            GRBLinExpr & capacityConstraint = capacityConstraints[subrow];
+            capacityConstraint += cellWidth*assignmentVariable;
+
+            auto subrowOrigin = mSubrows.origin(subrow);
+            auto subrowUpperCorner = mSubrows.upperCorner(subrow);
+
+            double displacement = std::abs(cellLocation.toPoint().y() - subrowOrigin.toPoint().y());
+            if (cellLocation.x() < subrowOrigin.x()) {
+                displacement = displacement + std::abs(cellLocation.toPoint().x() - subrowOrigin.toPoint().x());
+            } else if (cellLocation.toPoint().x() + cellWidth > subrowUpperCorner.toPoint().x()) {
+                displacement = displacement + std::abs(cellLocation.toPoint().x() + cellWidth - subrowUpperCorner.toPoint().x());
+            }
+
+            objectiveFunction += displacement * assignmentVariable;
+        }
+    }
+
+    model.addConstr(assignmentConstraintExpression == 1, cellName + "_assignmentConstraint");
+}
+
+bool RowAssignment::sameAlignment(CellSlice cellSlice, Subrow subrow)
+{
+    float rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
+
+    auto cellAlignment = mSliceAlignment[cellSlice];
+
+    auto subrowOrigin = mSubrows.origin(subrow);
+    int rowIndex = subrowOrigin.toPoint().y() / rowHeight;
+    placement::RowAlignment rowAlignment = (rowIndex % 2 == 0) ? placement::RowAlignment::EVEN : placement::RowAlignment::ODD;
+
+    return (cellAlignment == placement::RowAlignment::NA) || (cellAlignment == rowAlignment);
+}
+
 void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> &cells)
 {
     mCellSlices.clear();
@@ -48,28 +95,6 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
 
     sliceCells(cells);
 
-    entity_system::Property<circuit::Cell, char> cellVariableTypes(mDesign.netlist().makeProperty<char>(circuit::Cell()));
-
-    unsigned numberOfBinaryCells = 1000;
-    unsigned numberOfIterations = std::ceil(cells.size() / (double)numberOfBinaryCells);
-    for (unsigned iterationIndex = 0; iterationIndex < numberOfIterations; iterationIndex++) {
-        std::size_t iterationBegin = iterationIndex*numberOfBinaryCells;
-        std::size_t iterationEnd = std::min(iterationBegin + numberOfBinaryCells, cells.size());
-
-        for (unsigned cellIndex = 0; cellIndex < cells.size(); cellIndex++) {
-            auto cell = cells[cellIndex];
-            if (cellIndex >= iterationBegin && cellIndex < iterationEnd) {
-                cellVariableTypes[cell] = GRB_BINARY;
-            } else {
-                cellVariableTypes[cell] = GRB_CONTINUOUS;
-            }
-        }
-        assignCellsToRows(area, cells, cellVariableTypes);
-    }
-}
-
-void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> &cells, entity_system::Property<circuit::Cell, char> &cellVariableTypes)
-{
     float rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
 
     GRBEnv env = GRBEnv();
@@ -88,17 +113,16 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
             auto cellGeometry = mDesign.placementMapping().geometry(cell)[0];
             auto cellWidth = cellGeometry.max_corner().x() - cellGeometry.min_corner().x();
 
-            auto variableType = cellVariableTypes[cell];
             auto cellSlices = mCircuitCellsSlices[cell];
             if (cellSlices.size() == 1) {
                 auto cellSlice = cellSlices[0];
-                addAssignmentVariables(cellSlice, capacityConstraints, assignmentVariables, cellName, cellLocation, model, cellWidth, objectiveFunction, variableType);
+                addAssignmentVariables(cellSlice, capacityConstraints, assignmentVariables, cellName, cellLocation, model, cellWidth, objectiveFunction);
             } else {
                 unsigned sliceIndex = 0;
                 for (auto cellSlice : cellSlices) {
                     std::string sliceName = cellName + "_slice" + boost::lexical_cast<std::string>(sliceIndex);
                     util::Location sliceLocation(cellLocation.toPoint().x(), cellLocation.toPoint().y() + rowHeight * sliceIndex);
-                    addAssignmentVariables(cellSlice, capacityConstraints, assignmentVariables, sliceName, sliceLocation, model, cellWidth, objectiveFunction, variableType);
+                    addAssignmentVariables(cellSlice, capacityConstraints, assignmentVariables, sliceName, sliceLocation, model, cellWidth, objectiveFunction);
                 }
 
                 for (unsigned sliceIndex = 1; sliceIndex < cellSlices.size(); sliceIndex++) {
@@ -135,8 +159,7 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
 
     for (auto cellSlice : mCellSlices) {
         auto circuitCell = mSlice2Cell[cellSlice];
-
-        if (cellVariableTypes[circuitCell] == GRB_BINARY) {
+        if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
             Subrow assignedSubrow;
             auto assignments = assignmentVariables[cellSlice];
             for (auto assignment : assignments) {
@@ -147,86 +170,10 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
                 }
             }
 
-            mSliceAssignment[cellSlice] = assignedSubrow;
-
-            if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
-                auto assignedSubrowOrigin = mSubrows.origin(assignedSubrow);
-                mDesign.placement().placeCell(circuitCell, assignedSubrowOrigin);
-            }
+            auto assignedSubrowOrigin = mSubrows.origin(assignedSubrow);
+            mDesign.placement().placeCell(circuitCell, assignedSubrowOrigin);
         }
     }
-}
-
-void RowAssignment::addAssignmentVariables(CellSlice cellSlice, entity_system::Property<Subrow, GRBLinExpr> & capacityConstraints, entity_system::Property<CellSlice, std::vector<AssignmentPair>> & assignmentVariables, std::string cellName, util::Location cellLocation, GRBModel & model, double cellWidth, GRBLinExpr & objectiveFunction, char variableType)
-{
-    if (mSliceAssignment[cellSlice] != Subrow()) {
-        auto subrow = mSliceAssignment[cellSlice];
-        std::string variableName = cellName + "_assignment";
-        GRBVar assignmentVariable = model.addVar(0.0, 1.0, 0.0, variableType, variableName);
-        assignmentVariables[cellSlice].push_back(std::make_pair(assignmentVariable, subrow));
-
-        GRBLinExpr & capacityConstraint = capacityConstraints[subrow];
-        capacityConstraint += cellWidth*assignmentVariable;
-
-        auto subrowOrigin = mSubrows.origin(subrow);
-        auto subrowUpperCorner = mSubrows.upperCorner(subrow);
-
-        double displacement = std::abs(cellLocation.toPoint().y() - subrowOrigin.toPoint().y());
-        if (cellLocation.x() < subrowOrigin.x()) {
-            displacement = displacement + std::abs(cellLocation.toPoint().x() - subrowOrigin.toPoint().x());
-        } else if (cellLocation.toPoint().x() + cellWidth > subrowUpperCorner.toPoint().x()) {
-            displacement = displacement + std::abs(cellLocation.toPoint().x() + cellWidth - subrowUpperCorner.toPoint().x());
-        }
-
-        objectiveFunction += displacement * assignmentVariable;
-
-        model.addConstr(assignmentVariable == 1, cellName + "_assignmentConstraint");
-    } else {
-        assignmentVariables[cellSlice].reserve(mSubrows.rowCount());
-
-        GRBLinExpr assignmentConstraintExpression;
-        unsigned subrowIndex = 0;
-        for (auto subrow : mSubrows.range(Subrow())) {
-            if (sameAlignment(cellSlice, subrow)) {
-                std::string variableName = cellName + "_" + boost::lexical_cast<std::string>(subrowIndex++) + "_assignment";
-                GRBVar assignmentVariable = model.addVar(0.0, 1.0, 0.0, variableType, variableName);
-                assignmentConstraintExpression += assignmentVariable;
-
-                assignmentVariables[cellSlice].push_back(std::make_pair(assignmentVariable, subrow));
-
-                GRBLinExpr & capacityConstraint = capacityConstraints[subrow];
-                capacityConstraint += cellWidth*assignmentVariable;
-
-                auto subrowOrigin = mSubrows.origin(subrow);
-                auto subrowUpperCorner = mSubrows.upperCorner(subrow);
-
-                double displacement = std::abs(cellLocation.toPoint().y() - subrowOrigin.toPoint().y());
-                if (cellLocation.x() < subrowOrigin.x()) {
-                    displacement = displacement + std::abs(cellLocation.toPoint().x() - subrowOrigin.toPoint().x());
-                } else if (cellLocation.toPoint().x() + cellWidth > subrowUpperCorner.toPoint().x()) {
-                    displacement = displacement + std::abs(cellLocation.toPoint().x() + cellWidth - subrowUpperCorner.toPoint().x());
-                }
-
-                objectiveFunction += displacement * assignmentVariable;
-            }
-        }
-
-        model.addConstr(assignmentConstraintExpression == 1, cellName + "_assignmentConstraint");
-    }
-
-}
-
-bool RowAssignment::sameAlignment(CellSlice cellSlice, Subrow subrow)
-{
-    float rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
-
-    auto cellAlignment = mSliceAlignment[cellSlice];
-
-    auto subrowOrigin = mSubrows.origin(subrow);
-    int rowIndex = subrowOrigin.toPoint().y() / rowHeight;
-    placement::RowAlignment rowAlignment = (rowIndex % 2 == 0) ? placement::RowAlignment::EVEN : placement::RowAlignment::ODD;
-
-    return (cellAlignment == placement::RowAlignment::NA) || (cellAlignment == rowAlignment);
 }
 
 void RowAssignment::sliceCells(std::vector<circuit::Cell> & cells)

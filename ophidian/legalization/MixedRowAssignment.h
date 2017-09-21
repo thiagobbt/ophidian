@@ -1,5 +1,5 @@
-#ifndef ROWASSIGNMENT_H
-#define ROWASSIGNMENT_H
+#ifndef MIXEDROWASSIGNMENT_H
+#define MIXEDROWASSIGNMENT_H
 
 #include <unordered_map>
 
@@ -11,28 +11,27 @@
 
 #include <ophidian/legalization/FenceRegionIsolation.h>
 
+#include <ophidian/legalization/RowAssignment.h>
+
 namespace ophidian {
 namespace legalization {
-class CellSlice : public entity_system::EntityBase
-{
-public:
-    using entity_system::EntityBase::EntityBase;
-};
 
-class RowAssignment
+class MixedRowAssignment
 {
 public:
     using AssignmentPair = std::pair<GRBVar, Subrow>;
 
-    RowAssignment(design::Design & design);
+    MixedRowAssignment(design::Design & design);
 
     void assignCellsToRows();
 protected:
     void assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> & cells);
 
+    void assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> & cells, entity_system::Property<circuit::Cell, char> & cellVariableTypes);
+
     void sliceCells(std::vector<circuit::Cell> & cells);
 
-    void addAssignmentVariables(CellSlice cellSlice, entity_system::Property<Subrow, GRBLinExpr> & capacityConstraints, entity_system::Property<CellSlice, std::vector<AssignmentPair> > &assignmentVariables, std::string cellName, util::Location cellLocation, GRBModel & model, double cellWidth, GRBLinExpr & objectiveFunction);
+    void addAssignmentVariables(CellSlice cellSlice, entity_system::Property<Subrow, GRBLinExpr> & capacityConstraints, entity_system::Property<CellSlice, std::vector<AssignmentPair> > &assignmentVariables, std::string cellName, util::Location cellLocation, GRBModel & model, double cellWidth, GRBLinExpr & objectiveFunction, char variableType);
 
     bool sameAlignment(CellSlice cellSlice, Subrow subrow);
 
@@ -44,8 +43,10 @@ protected:
     entity_system::Property<circuit::Cell, std::vector<CellSlice>> mCircuitCellsSlices;
     entity_system::Property<CellSlice, circuit::Cell> mSlice2Cell;
     entity_system::Property<CellSlice, placement::RowAlignment> mSliceAlignment;
+
+    entity_system::Property<CellSlice, Subrow> mSliceAssignment;
 };
 }
 }
 
-#endif // ROWASSIGNMENT_H
+#endif // MIXEDROWASSIGNMENT_H
