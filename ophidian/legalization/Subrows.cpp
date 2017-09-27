@@ -191,6 +191,7 @@ Subrow Subrows::findContainedSubrow(geometry::Box cellBox) const
 {
     std::vector<RtreeNode> closeSubrowNodes;
     subrowsRtree_.query(boost::geometry::index::contains(cellBox), std::back_inserter(closeSubrowNodes));
+    subrowsRtree_.query(boost::geometry::index::overlaps(cellBox), std::back_inserter(closeSubrowNodes));
 
     if (closeSubrowNodes.empty()) {
         std::vector<Subrow> closeSubrows;

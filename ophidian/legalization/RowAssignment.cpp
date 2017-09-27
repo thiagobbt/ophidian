@@ -22,7 +22,6 @@ void RowAssignment::assignCellsToRows()
 
     fenceRegionIsolation.isolateAllFenceCells();
 
-    //posiciona circuito
     std::vector<circuit::Cell> cells;
     cells.reserve(mDesign.netlist().size(circuit::Cell()));
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)

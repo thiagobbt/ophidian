@@ -2,8 +2,9 @@
 #define ROWASSIGNMENTFIXTURE_H
 
 #include <ophidian/legalization/RowAssignment.h>
+#include <ophidian/legalization/MixedRowAssignment.h>
 
-class RowAssignmentFixture : public ophidian::legalization::RowAssignment
+class RowAssignmentFixture : public ophidian::legalization::MixedRowAssignment
 {
 public:
     RowAssignmentFixture(ophidian::design::Design & design);

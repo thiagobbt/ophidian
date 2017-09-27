@@ -6,7 +6,7 @@
 #include <ophidian/legalization/RowAssignment.h>
 #include "RowAssignmentFixture.h"
 
-TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit already legal", "[legalization][row_assignment]") {
+TEST_CASE_METHOD(LargerLegalCircuitFixture, "Row assignment on circuit already legal", "[legalization][row_assignment]") {
     std::vector<ophidian::util::Location> expectedLocations = {
         ophidian::util::Location(0, 20),
         ophidian::util::Location(0, 0),
@@ -20,9 +20,18 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit already legal", "[legalizat
     ophidian::util::MultiBox legalizationArea({chipArea});
 
     rowAssignment.assignCellsToRows();
+
+    std::vector<ophidian::util::Location> cellLocations;
+    for (auto cellIt = design_.netlist().begin(ophidian::circuit::Cell()); cellIt != design_.netlist().end(ophidian::circuit::Cell()); ++cellIt) {
+        cellLocations.push_back(design_.placement().cellLocation(*cellIt));
+        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
+    }
+
+    REQUIRE(cellLocations.size() == expectedLocations.size());
+    REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 }
 
-TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit with one overflowed row", "[legalization][row_assignment]") {
+TEST_CASE_METHOD(LargerLegalCircuitFixture, "Row assignment on circuit with one overflowed row", "[legalization][row_assignment]") {
     auto cell5Location = ophidian::util::Location(0, 0);
     addCell(cellStdCell_, "cell5", cell5Location, 2, false);
     auto cell6Location = ophidian::util::Location(10, 0);
@@ -32,18 +41,18 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit with one overflowed row", "
     auto cell8Location = ophidian::util::Location(40, 0);
     addCell(cellStdCell_, "cell8", cell8Location, 2, false);
     auto cell9Location = ophidian::util::Location(0, 5);
-    addCell(cellStdCell_, "cell8", cell9Location, 2, false);
+    addCell(cellStdCell_, "cell9", cell9Location, 2, false);
 
     std::vector<ophidian::util::Location> expectedLocations = {
         ophidian::util::Location(0, 20),
         ophidian::util::Location(0, 0),
         ophidian::util::Location(0, 30),
         ophidian::util::Location(0, 10),
+        ophidian::util::Location(0, 0),
+        ophidian::util::Location(0, 0),
+        ophidian::util::Location(0, 0),
+        ophidian::util::Location(0, 0),
         ophidian::util::Location(0, 10),
-        ophidian::util::Location(0, 10),
-        ophidian::util::Location(0, 10),
-        ophidian::util::Location(0, 10),
-        ophidian::util::Location(0, 20),
     };
 
     ophidian::legalization::RowAssignment rowAssignment(design_);
@@ -52,12 +61,21 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit with one overflowed row", "
     ophidian::util::MultiBox legalizationArea({chipArea});
 
     rowAssignment.assignCellsToRows();
+
+    std::vector<ophidian::util::Location> cellLocations;
+    for (auto cellIt = design_.netlist().begin(ophidian::circuit::Cell()); cellIt != design_.netlist().end(ophidian::circuit::Cell()); ++cellIt) {
+        cellLocations.push_back(design_.placement().cellLocation(*cellIt));
+        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
+    }
+
+    REQUIRE(cellLocations.size() == expectedLocations.size());
+    REQUIRE(std::is_permutation(expectedLocations.begin(), expectedLocations.end(), cellLocations.begin()));
 }
 
 TEST_CASE("Assigning rows in circuit with random cells", "[legalization][row_assignment][random]") {
     ophidian::util::Location chipOrigin(0, 0);
     ophidian::util::Location chipUpperCorner(2000, 2000);
-    unsigned numberOfCells = 20000;
+    unsigned numberOfCells = 100;
 
     CircuitFixtureWithRandomCells circuit(chipOrigin, chipUpperCorner, numberOfCells);
 

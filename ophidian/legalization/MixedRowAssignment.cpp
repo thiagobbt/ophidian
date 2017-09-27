@@ -50,7 +50,7 @@ void MixedRowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circ
 
     entity_system::Property<circuit::Cell, char> cellVariableTypes(mDesign.netlist().makeProperty<char>(circuit::Cell()));
 
-    unsigned numberOfBinaryCells = 30000;
+    unsigned numberOfBinaryCells = 2000;
     unsigned numberOfIterations = std::ceil(cells.size() / (double)numberOfBinaryCells);
     for (unsigned iterationIndex = 0; iterationIndex < numberOfIterations; iterationIndex++) {
         std::size_t iterationBegin = iterationIndex*numberOfBinaryCells;

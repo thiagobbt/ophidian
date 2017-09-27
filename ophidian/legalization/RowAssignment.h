@@ -1,15 +1,12 @@
 #ifndef ROWASSIGNMENT_H
 #define ROWASSIGNMENT_H
 
-#include <unordered_map>
-
 #include <gurobi_c++.h>
 
 #include <ophidian/legalization/Subrows.h>
+#include <ophidian/legalization/FenceRegionIsolation.h>
 
 #include <ophidian/design/Design.h>
-
-#include <ophidian/legalization/FenceRegionIsolation.h>
 
 namespace ophidian {
 namespace legalization {

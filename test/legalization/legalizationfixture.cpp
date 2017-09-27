@@ -207,6 +207,48 @@ CircuitFixtureWithRandomCells::CircuitFixtureWithRandomCells(ophidian::util::Loc
         auto y = yDistribution(generator);
 
         auto cellLocation = ophidian::util::Location(x, y);
+        auto cellStdCell = (stdCellDistribution(generator) < 1.0) ? singleRowStandardCell : multiRowStandardCell;
+//        auto cellStdCell = singleRowStandardCell;
+        addCell(cellStdCell, cellName, cellLocation, 2, false);
+    }
+}
+
+CircuitFixtureWithRandomAlignedCells::CircuitFixtureWithRandomAlignedCells(ophidian::util::Location chipOrigin, ophidian::util::Location chipUpperCorner, unsigned numberOfCells)
+{
+    float rowHeight = 10;
+
+    design_.floorplan().chipOrigin(chipOrigin);
+    design_.floorplan().chipUpperRightCorner(chipUpperCorner);
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, rowHeight));
+    unsigned numberOfRows = units::unit_cast<double>(chipUpperCorner.y())/rowHeight;
+    unsigned sitesPerRow = units::unit_cast<double>(chipUpperCorner.x())/rowHeight;
+    for (unsigned rowIndex = 0; rowIndex < numberOfRows; ++rowIndex) {
+        design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, rowIndex*rowHeight), sitesPerRow, site);
+    }
+
+    auto singleRowStandardCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
+    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
+    ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
+    design_.library().geometry(singleRowStandardCell, stdCellGeometry);
+    design_.library().cellAlignment(singleRowStandardCell, ophidian::placement::RowAlignment::NA);
+
+    auto multiRowStandardCell = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
+    ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
+    design_.library().geometry(multiRowStandardCell, stdCellGeometryMR);
+    design_.library().cellAlignment(multiRowStandardCell, ophidian::placement::RowAlignment::NA);
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> xDistribution(units::unit_cast<double>(chipOrigin.x()), units::unit_cast<double>(chipUpperCorner.x()));
+    std::uniform_int_distribution<int> yDistribution(units::unit_cast<double>(chipOrigin.y()) / rowHeight, (units::unit_cast<double>(chipUpperCorner.y()) - rowHeight) / rowHeight);
+    std::uniform_real_distribution<double> stdCellDistribution(0, 1);
+    for (unsigned cellIndex = 0; cellIndex < numberOfCells; ++cellIndex) {
+        std::string cellName = "cell" + std::to_string(cellIndex);
+
+        auto x = xDistribution(generator);
+        auto y = yDistribution(generator);
+
+        auto cellLocation = ophidian::util::Location(x, y * rowHeight);
         auto cellStdCell = (stdCellDistribution(generator) < 0.8) ? singleRowStandardCell : multiRowStandardCell;
 //        auto cellStdCell = singleRowStandardCell;
         addCell(cellStdCell, cellName, cellLocation, 2, false);

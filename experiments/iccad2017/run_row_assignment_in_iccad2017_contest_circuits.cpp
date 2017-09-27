@@ -14,14 +14,23 @@ void runRowAssignmentForOneCircuit(std::string circuitName) {
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
-//    ophidian::legalization::RowAssignment rowAssignment(design);
-    ophidian::legalization::MixedRowAssignment rowAssignment(design);
+    ophidian::legalization::RowAssignment rowAssignment(design);
+//    ophidian::legalization::MixedRowAssignment rowAssignment(design);
 
     struct timeval startTime, endTime;
     gettimeofday(&startTime, NULL);
     rowAssignment.assignCellsToRows();
     gettimeofday(&endTime, NULL);
     std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
+
+    std::ofstream solutionFile;
+    solutionFile.open (circuitName + "_row_assignment_solution");
+    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); cellIt++) {
+        auto cellName = design.netlist().name(*cellIt);
+        auto cellLocation = design.placement().cellLocation(*cellIt);
+        solutionFile << cellName << " " << cellLocation.toPoint().x() << " " << cellLocation.toPoint().y() << std::endl;
+    }
+    solutionFile.close();
 }
 
 TEST_CASE("run row assignment for all 2017 contest circuits", "[iccad2017][row_assignment]")

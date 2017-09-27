@@ -1,14 +1,14 @@
 #include "RowAssignmentFixture.h"
 
 RowAssignmentFixture::RowAssignmentFixture(ophidian::design::Design &design)
-    : ophidian::legalization::RowAssignment(design),
+    : ophidian::legalization::MixedRowAssignment(design),
       mSubrowsCells(mSubrows.makeProperty<std::vector<ophidian::circuit::Cell>>(ophidian::legalization::Subrow())) {
 
 }
 
 void RowAssignmentFixture::assignCellsToRows()
 {
-    RowAssignment::assignCellsToRows();
+    MixedRowAssignment::assignCellsToRows();
 
     for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); ++cellIt) {
         auto cellBox = mDesign.placementMapping().geometry(*cellIt)[0];
