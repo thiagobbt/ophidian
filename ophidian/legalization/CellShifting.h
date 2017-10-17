@@ -14,9 +14,6 @@ namespace legalization {
 class CellShifting
 {
 public:
-    using RtreeNode = std::pair<geometry::Box, circuit::Cell>;
-    using Rtree = boost::geometry::index::rtree<RtreeNode, boost::geometry::index::rstar<16> >;
-
     class CellSlicePairComparator
     {
     public:

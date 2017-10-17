@@ -5,6 +5,7 @@
 
 #include <ophidian/legalization/Subrows.h>
 #include <ophidian/legalization/FenceRegionIsolation.h>
+#include <ophidian/legalization/BinDecomposition.h>
 
 #include <ophidian/design/Design.h>
 
@@ -26,6 +27,7 @@ public:
     void assignCellsToRows();
 protected:
     void assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> & cells);
+    void createAndSolveGurobiModel(std::vector<circuit::Cell> &cells);
 
     void sliceCells(std::vector<circuit::Cell> & cells);
 

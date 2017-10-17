@@ -95,9 +95,9 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
 //    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
-    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/ICCAD2017/" + circuitName + "/cells_modified.lef",
-                                                                                  "./input_files/ICCAD2017/" + circuitName + "/tech.lef",
-                                                                                  "./input_files/ICCAD2017/" + circuitName + "/placed.def");
+    ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/tech.lef",
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def");
     ICCAD2017DesignBuilder.build();
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();

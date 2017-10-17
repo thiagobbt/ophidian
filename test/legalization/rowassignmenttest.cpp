@@ -8,10 +8,10 @@
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Row assignment on circuit already legal", "[legalization][row_assignment]") {
     std::vector<ophidian::util::Location> expectedLocations = {
-        ophidian::util::Location(0, 20),
-        ophidian::util::Location(0, 0),
-        ophidian::util::Location(0, 30),
-        ophidian::util::Location(0, 10),
+        ophidian::util::Location(10, 20),
+        ophidian::util::Location(20, 0),
+        ophidian::util::Location(30, 30),
+        ophidian::util::Location(40, 10),
     };
 
     ophidian::legalization::RowAssignment rowAssignment(design_);
@@ -44,14 +44,14 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Row assignment on circuit with one 
     addCell(cellStdCell_, "cell9", cell9Location, 2, false);
 
     std::vector<ophidian::util::Location> expectedLocations = {
-        ophidian::util::Location(0, 20),
+        ophidian::util::Location(10, 20),
+        ophidian::util::Location(20, 0),
+        ophidian::util::Location(30, 30),
+        ophidian::util::Location(40, 10),
         ophidian::util::Location(0, 0),
-        ophidian::util::Location(0, 30),
-        ophidian::util::Location(0, 10),
-        ophidian::util::Location(0, 0),
-        ophidian::util::Location(0, 0),
-        ophidian::util::Location(0, 0),
-        ophidian::util::Location(0, 0),
+        ophidian::util::Location(10, 0),
+        ophidian::util::Location(30, 0),
+        ophidian::util::Location(40, 0),
         ophidian::util::Location(0, 10),
     };
 

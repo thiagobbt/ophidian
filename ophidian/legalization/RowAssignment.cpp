@@ -4,8 +4,8 @@ namespace ophidian {
 namespace legalization {
 RowAssignment::RowAssignment(design::Design &design)
     : mDesign(design), mSubrows(design.netlist(), design.floorplan(), design.placement(), design.placementMapping()),
-        mCircuitCellsSlices(mDesign.netlist().makeProperty<std::vector<CellSlice>>(circuit::Cell())),
-        mSlice2Cell(mCellSlices), mSliceAlignment(mCellSlices)
+      mCircuitCellsSlices(mDesign.netlist().makeProperty<std::vector<CellSlice>>(circuit::Cell())),
+      mSlice2Cell(mCellSlices), mSliceAlignment(mCellSlices)
 {
 
 }
@@ -14,13 +14,21 @@ void RowAssignment::assignCellsToRows()
 {
     FenceRegionIsolation fenceRegionIsolation(mDesign);
 
+    unsigned fenceIndex = 0;
     for(auto fence : mDesign.fences().range())
     {
-        std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
-        assignCellsToRows(mDesign.fences().area(fence), cells);
+//        if (fenceIndex == 3) {
+            std::cout << "solving fence " << fenceIndex++ << std::endl;
+            std::cout << "fence " << mDesign.fences().name(fence) << std::endl;
+            std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
+            assignCellsToRows(mDesign.fences().area(fence), cells);
+//        }
+        fenceIndex++;
     }
 
     fenceRegionIsolation.isolateAllFenceCells();
+
+    std::cout << "solving rest of the circuit " << std::endl;
 
     std::vector<circuit::Cell> cells;
     cells.reserve(mDesign.netlist().size(circuit::Cell()));
@@ -86,12 +94,8 @@ bool RowAssignment::sameAlignment(CellSlice cellSlice, Subrow subrow)
     return (cellAlignment == placement::RowAlignment::NA) || (cellAlignment == rowAlignment);
 }
 
-void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> &cells)
-{
+void RowAssignment::createAndSolveGurobiModel(std::vector<circuit::Cell> &cells) {
     mCellSlices.clear();
-
-    mSubrows.createSubrows(area);
-
     sliceCells(cells);
 
     float rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
@@ -142,6 +146,19 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
                     model.addConstr(sliceDistanceConstraint == rowHeight, cellName + "_slice_constraint");
                 }
             }
+
+//                for (auto cellSlice : cellSlices) {
+//                    auto cellAssignmentVariables = assignmentVariables[cellSlice];
+//                    unsigned numberOfVariables = cellAssignmentVariables.size();
+//                    GRBVar * sosVariables = new GRBVar[numberOfVariables];
+//                    double * sosWeights = new double[numberOfVariables];
+//                    for (unsigned variableIndex = 0; variableIndex < numberOfVariables; variableIndex++) {
+//                        auto assignmentPair = cellAssignmentVariables[variableIndex];
+//                        sosVariables[variableIndex] = assignmentPair.first;
+//                        sosWeights[variableIndex] = variableIndex + 1;
+//                    }
+//                    model.addSOS(sosVariables, sosWeights, numberOfVariables, GRB_SOS_TYPE1);
+//                }
         }
     }
 
@@ -156,6 +173,8 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
     model.setObjective(objectiveFunction, GRB_MINIMIZE);
     model.optimize();
 
+
+    unsigned sliceIndex = 0;
     for (auto cellSlice : mCellSlices) {
         auto circuitCell = mSlice2Cell[cellSlice];
         if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
@@ -163,16 +182,69 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
             auto assignments = assignmentVariables[cellSlice];
             for (auto assignment : assignments) {
                 double assignmentValue = assignment.first.get(GRB_DoubleAttr_X);
-                if (assignmentValue == 1.0) {
+                if (assignmentValue > 0.0) {
                     assignedSubrow = assignment.second;
                     break;
                 }
             }
 
             auto assignedSubrowOrigin = mSubrows.origin(assignedSubrow);
-            mDesign.placement().placeCell(circuitCell, assignedSubrowOrigin);
+            util::Location finalLocation(mDesign.placement().cellLocation(circuitCell).x(), assignedSubrowOrigin.y());
+            //            mDesign.placement().placeCell(circuitCell, assignedSubrowOrigin);
+            mDesign.placement().placeCell(circuitCell, finalLocation);
         }
     }
+}
+
+void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> &cells)
+{
+    std::cout << "number of cells " << cells.size() << std::endl;
+    if (cells.size() > 10000) {
+        std::cout << "too many cells, decomposing in bins " << std::endl;
+
+        BinDecomposition binDecomposition(mDesign);
+        binDecomposition.decomposeCircuitInBins(area, cells, 50);
+
+        for (auto bin : binDecomposition.range(Bin())) {
+            auto binBox = binDecomposition.box(bin);
+            ophidian::util::MultiBox binArea({binBox});
+
+            auto binBoxArea = boost::geometry::area(binBox);
+//            std::cout << "bin area " << binBoxArea << std::endl;
+//            std::cout << "bin width " << binBox.max_corner().x() - binBox.min_corner().x() << std::endl;
+//            std::cout << "bin height " << binBox.max_corner().y() - binBox.min_corner().y() << std::endl;
+
+            auto & binCells = binDecomposition.cells(bin);
+
+            //    util::micrometer_t maximumSubrowWidth(256*200);
+            //    mSubrows.createSubrows(area, maximumSubrowWidth);
+    //        mSubrows.createSubrows(area);
+            mSubrows.createSubrows(binArea);
+
+    //        sliceCells(cells);
+            createAndSolveGurobiModel(binCells);
+        }
+    } else {
+        std::cout << "small enough, solve everything " << std::endl;
+
+        double fenceArea = 0.0;
+        double cellsArea = 0.0;
+        for (auto box : area) {
+            fenceArea += boost::geometry::area(box);
+        }
+
+        for (auto cell : cells) {
+            auto cellBox = mDesign.placementMapping().geometry(cell)[0];
+            cellsArea += boost::geometry::area(cellBox);
+        }
+
+        std::cout << "fence area " << fenceArea << std::endl;
+        std::cout << "cells area " << cellsArea << std::endl;
+
+        mSubrows.createSubrows(area);
+        createAndSolveGurobiModel(cells);
+    }
+
 }
 
 void RowAssignment::sliceCells(std::vector<circuit::Cell> & cells)

@@ -172,6 +172,10 @@ public:
         return boxes_[index];
     }
 
+    std::size_t size() {
+        return boxes_.size();
+    }
+
     bool operator==(const MultiBox & other) const {
         return std::is_permutation(this->boxes_.begin(), this->boxes_.end(), other.boxes_.begin(),
             [](const geometry::Box &a, const geometry::Box &b) {

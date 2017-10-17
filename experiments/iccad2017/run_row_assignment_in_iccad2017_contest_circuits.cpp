@@ -41,11 +41,11 @@ TEST_CASE("run row assignment for all 2017 contest circuits", "[iccad2017][row_a
 //        "des_perf_b_md2",
 //        "edit_dist_1_md1",
 //        "edit_dist_a_md2",
-        "fft_2_md2",
+//        "fft_2_md2",
 //        "fft_a_md2",
 //        "fft_a_md3",
 //        "pci_bridge32_a_md1",
-//        "des_perf_b_md1",
+        "des_perf_b_md1",
     };
 
     for (auto circuitName : circuitNames)
@@ -53,4 +53,44 @@ TEST_CASE("run row assignment for all 2017 contest circuits", "[iccad2017][row_a
         std::cout << "running circuit: " << circuitName << std::endl;
         runRowAssignmentForOneCircuit(circuitName);
     }
+}
+
+TEST_CASE("run row assignment for des_perf_b_md1", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("des_perf_b_md1");
+}
+
+TEST_CASE("run row assignment for des_perf_b_md2", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("des_perf_b_md2");
+}
+
+TEST_CASE("run row assignment for edit_dist_1_md1", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("edit_dist_1_md1");
+}
+
+TEST_CASE("run row assignment for edit_dist_a_md2", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("edit_dist_a_md2");
+}
+
+TEST_CASE("run row assignment for fft_2_md2", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("fft_2_md2");
+}
+
+TEST_CASE("run row assignment for fft_a_md2", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("fft_a_md2");
+}
+
+TEST_CASE("run row assignment for fft_a_md3", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("fft_a_md3");
+}
+
+TEST_CASE("run row assignment for pci_bridge32_a_md1", "[iccad2017][row_assignment]")
+{
+    runRowAssignmentForOneCircuit("pci_bridge32_a_md1");
 }

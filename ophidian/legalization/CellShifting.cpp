@@ -150,7 +150,7 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
             auto previousSliceName = mSliceNames[previousSlice];
 
 //            model.addConstr(currentSliceVariable == previousSliceVariable, currentSliceName + "_" + previousSliceName + "_slice_constraint");
-            objectiveFunction += (currentSliceVariable - previousSliceVariable)*(currentSliceVariable - previousSliceVariable)*sliceForce;
+//            objectiveFunction += (currentSliceVariable - previousSliceVariable)*(currentSliceVariable - previousSliceVariable)*sliceForce;
         }
     }
 

@@ -12,7 +12,9 @@ iccad2017Legalization::iccad2017Legalization(design::Design &design)
       mMultirowAbacus(design.netlist(), design.floorplan(), design.placement(), design.placementMapping()),
       mFenceRegionIsolation(design)
 {
-
+    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt) {
+        mCellsInitialLocations[*cellIt] = mDesign.placement().cellLocation(*cellIt);
+    }
 }
 
 void iccad2017Legalization::flipCells()
@@ -39,10 +41,6 @@ void iccad2017Legalization::flipCells()
 
 void iccad2017Legalization::legalize()
 {
-    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt) {
-        mCellsInitialLocations[*cellIt] = mDesign.placement().cellLocation(*cellIt);
-    }
-
     //posiciona fences (paralelo)
     for(auto fenceIt = mDesign.fences().range().begin(); fenceIt < mDesign.fences().range().end(); fenceIt++)
     {
