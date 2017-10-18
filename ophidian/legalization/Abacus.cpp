@@ -66,6 +66,14 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
 
         while (bestCost == std::numeric_limits<double>::max())
         {
+//            if (rowsToSearch == subrows_.rowCount()) {
+//                std::cout << "stop " << std::endl;
+//            }
+
+//            if (cellIndex == 239) {
+//                std::cout << "stop " << std::endl;
+//            }
+
             std::vector<Subrow> closeSubrows;
             closeSubrows.reserve(rowsToSearch);
             subrows_.findClosestSubrows(rowsToSearch, cellInitialLocations_[abacusCell], closeSubrows);
@@ -91,9 +99,13 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
                     }
                 }
             }
-            rowsToSearch *= 2;
-            if (rowsToSearch > subrows_.rowCount()) {
+            if (rowsToSearch == subrows_.rowCount()) {
                 break;
+            } else {
+                rowsToSearch *= 2;
+                if (rowsToSearch > subrows_.rowCount()) {
+                    rowsToSearch = subrows_.rowCount();
+                }
             }
         }
 

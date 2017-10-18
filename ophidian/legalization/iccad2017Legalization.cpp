@@ -42,8 +42,10 @@ void iccad2017Legalization::flipCells()
 void iccad2017Legalization::legalize()
 {
     //posiciona fences (paralelo)
+    std::size_t fenceIndex = 0;
     for(auto fenceIt = mDesign.fences().range().begin(); fenceIt < mDesign.fences().range().end(); fenceIt++)
     {
+        std::cout << "fence index " << fenceIndex++ << std::endl;
         auto fence = *fenceIt;
         std::vector<circuit::Cell> cells (mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
         mMultirowAbacus.legalizePlacement(cells, mDesign.fences().area(fence));

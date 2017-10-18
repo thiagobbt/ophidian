@@ -200,11 +200,14 @@ void Subrows::createSubrows(util::MultiBox area)
 //        std::cout << "box origin " << box.min_corner().x() << ", " << box.min_corner().y() << std::endl;
 //        std::cout << "box in even origin " << boxInEvenOrigin << std::endl;
 
-        double rowOriginX = std::ceil(box.min_corner().x() / siteWidth) * siteWidth;
-        double rowOriginY = std::ceil(box.min_corner().y() / rowHeight) * rowHeight;
+//        double rowOriginX = std::ceil(box.min_corner().x() / siteWidth) * siteWidth;
+//        double rowOriginY = std::ceil(box.min_corner().y() / rowHeight) * rowHeight;
+        double rowOriginX = box.min_corner().x();
+        double rowOriginY = box.min_corner().y();
         auto rowOrigin = util::Location(rowOriginX, rowOriginY);
 
-        double rowUpperX = std::floor(box.max_corner().x() / siteWidth) * siteWidth;
+//        double rowUpperX = std::floor(box.max_corner().x() / siteWidth) * siteWidth;
+        double rowUpperX = box.max_corner().x();
         auto rowUpperRightCorner = util::Location(rowUpperX, units::unit_cast<double>(rowOrigin.y()) + rowHeight);
 
         while (units::unit_cast<double>(rowUpperRightCorner.y()) <= box.max_corner().y()) {
@@ -223,53 +226,73 @@ void Subrows::createSubrows(util::MultiBox area)
 
     }
 
-//    for (auto subrow : subrows_) {
-//        auto rowOrigin = subrowOrigins_[subrow];
-//        auto rowUpperRightCorner = subrowUpperCorners_[subrow];
-//        geometry::Box subrowBox(rowOrigin.toPoint(), rowUpperRightCorner.toPoint());
+    for (auto subrow : subrows_) {
+        auto rowOrigin = subrowOrigins_[subrow];
+        auto rowUpperRightCorner = subrowUpperCorners_[subrow];
+        geometry::Box subrowBox(rowOrigin.toPoint(), rowUpperRightCorner.toPoint());
 
-//        std::vector<Subrow> intersectingSubrows;
-//        for (auto otherSubrow : subrows_) {
-//            auto otherSubrowOrigin = subrowOrigins_[otherSubrow];
+        std::vector<Subrow> intersectingSubrows;
+        for (auto otherSubrow : subrows_) {
+            auto otherSubrowOrigin = subrowOrigins_[otherSubrow];
 
-//            if (rowOrigin.y() == otherSubrowOrigin.y() && rowUpperRightCorner.x() == otherSubrowOrigin.x() && subrow != otherSubrow) {
-//                intersectingSubrows.push_back(otherSubrow);
-//            }
-//        }
+            if (rowOrigin.y() == otherSubrowOrigin.y() && rowUpperRightCorner.x() == otherSubrowOrigin.x() && subrow != otherSubrow) {
+                intersectingSubrows.push_back(otherSubrow);
+            }
+        }
 
-//        if (!intersectingSubrows.empty()) {
+        if (!intersectingSubrows.empty()) {
 //            std::cout << "subrow " << rowOrigin.x() << ", " << rowOrigin.y() << std::endl;
 
-//            util::Location newSubrowOrigin = rowOrigin;
-//            util::Location newSubrowUpperCorner = rowUpperRightCorner;
-//            for (auto intersectingSubrow : intersectingSubrows) {
-//                auto intersectingSubrowOrigin = subrowOrigins_[intersectingSubrow];
-//                auto intersectingSubrowUpperCorner = subrowUpperCorners_[intersectingSubrow];
+            util::Location newSubrowOrigin = rowOrigin;
+            util::Location newSubrowUpperCorner = rowUpperRightCorner;
+            for (auto intersectingSubrow : intersectingSubrows) {
+                auto intersectingSubrowOrigin = subrowOrigins_[intersectingSubrow];
+                auto intersectingSubrowUpperCorner = subrowUpperCorners_[intersectingSubrow];
 
 //                std::cout << "intersecting subrow " << intersectingSubrowOrigin.x() << ", " << intersectingSubrowOrigin.y() << std::endl;
 
-//                newSubrowOrigin.x(util::micrometer_t(std::min(newSubrowOrigin.x(), intersectingSubrowOrigin.x())));
-//                newSubrowOrigin.y(util::micrometer_t(std::min(newSubrowOrigin.y(), intersectingSubrowOrigin.y())));
-//                newSubrowUpperCorner.x(util::micrometer_t(std::min(newSubrowUpperCorner.x(), intersectingSubrowUpperCorner.x())));
-//                newSubrowUpperCorner.y(util::micrometer_t(std::min(newSubrowUpperCorner.y(), intersectingSubrowUpperCorner.y())));
+                newSubrowOrigin.x(util::micrometer_t(std::min(newSubrowOrigin.x(), intersectingSubrowOrigin.x())));
+                newSubrowOrigin.y(util::micrometer_t(std::min(newSubrowOrigin.y(), intersectingSubrowOrigin.y())));
+                newSubrowUpperCorner.x(util::micrometer_t(std::max(newSubrowUpperCorner.x(), intersectingSubrowUpperCorner.x())));
+                newSubrowUpperCorner.y(util::micrometer_t(std::max(newSubrowUpperCorner.y(), intersectingSubrowUpperCorner.y())));
 
-//                geometry::Box intersectingSubrowBox(intersectingSubrowOrigin.toPoint(), intersectingSubrowUpperCorner.toPoint());
-//                subrowsRtree_.remove(RtreeNode(intersectingSubrowBox, intersectingSubrow));
-//                subrows_.erase(intersectingSubrow);
-//            }
+                geometry::Box intersectingSubrowBox(intersectingSubrowOrigin.toPoint(), intersectingSubrowUpperCorner.toPoint());
+                subrowsRtree_.remove(RtreeNode(intersectingSubrowBox, intersectingSubrow));
+                subrows_.erase(intersectingSubrow);
+            }
 
-//            auto newSubrow = subrows_.add();
-//            subrowOrigins_[newSubrow] = newSubrowOrigin;
-//            subrowUpperCorners_[newSubrow] = newSubrowUpperCorner;
-//            subrowCapacities_[newSubrow] = newSubrowUpperCorner.x() - newSubrowOrigin.x();
+            auto newSubrow = subrows_.add();
+            subrowOrigins_[newSubrow] = newSubrowOrigin;
+            subrowUpperCorners_[newSubrow] = newSubrowUpperCorner;
+            subrowCapacities_[newSubrow] = newSubrowUpperCorner.x() - newSubrowOrigin.x();
 
-//            geometry::Box newSubrowBox(newSubrowOrigin.toPoint(), newSubrowUpperCorner.toPoint());
-//            subrowsRtree_.insert(RtreeNode(newSubrowBox, newSubrow));
+            geometry::Box newSubrowBox(newSubrowOrigin.toPoint(), newSubrowUpperCorner.toPoint());
+            subrowsRtree_.insert(RtreeNode(newSubrowBox, newSubrow));
 
-//            subrowsRtree_.remove(RtreeNode(subrowBox, subrow));
-//            subrows_.erase(subrow);
-//        }
-//    }
+            subrowsRtree_.remove(RtreeNode(subrowBox, subrow));
+            subrows_.erase(subrow);
+        }
+    }
+
+    for (auto subrow : subrows_) {
+        auto subrowOrigin = subrowOrigins_[subrow];
+        auto subrowUpperCorner = subrowUpperCorners_[subrow];
+
+        geometry::Box subrowBox(subrowOrigin.toPoint(), subrowUpperCorner.toPoint());
+        subrowsRtree_.remove(RtreeNode(subrowBox, subrow));
+
+        subrowOrigin.x(util::micrometer_t(std::ceil(subrowOrigin.toPoint().x() / siteWidth) * siteWidth));
+        subrowOrigin.y(util::micrometer_t(std::ceil(subrowOrigin.toPoint().y() / rowHeight) * rowHeight));
+        subrowUpperCorner.x(util::micrometer_t(std::ceil(subrowUpperCorner.toPoint().x() / siteWidth) * siteWidth));
+        subrowUpperCorner.y(util::micrometer_t(std::ceil(subrowUpperCorner.toPoint().y() / rowHeight) * rowHeight));
+
+        subrowOrigins_[subrow] = subrowOrigin;
+        subrowUpperCorners_[subrow] = subrowUpperCorner;
+        subrowCapacities_[subrow] = subrowUpperCorner.x() - subrowOrigin.x();
+
+        geometry::Box newSubrowBox(subrowOrigin.toPoint(), subrowUpperCorner.toPoint());
+        subrowsRtree_.insert(RtreeNode(newSubrowBox, subrow));
+    }
 
     for (auto cellIt = netlist_.begin(circuit::Cell()); cellIt != netlist_.end(circuit::Cell()); ++cellIt)
     {

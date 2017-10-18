@@ -91,7 +91,7 @@ void runMultirowAbacusForOneCircuit2015(std::string circuitName) {
 
 void runMultirowAbacusForOneCircuit(std::string circuitName) {
     std::ofstream csvFile;
-    csvFile.open (circuitName + "_movements.csv");
+//    csvFile.open (circuitName + "_movements.csv");
 
 //    iccad2017_wrapper iccad("./input_files/ICCAD2017/" + circuitName, circuitName);
 
@@ -138,9 +138,9 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
-    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
-    REQUIRE(ophidian::legalization::checkCellOverlaps(design.placementMapping(), design.netlist()));
+//    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
+//    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
+//    REQUIRE(ophidian::legalization::checkCellOverlaps(design.placementMapping(), design.netlist()));
 
     ophidian::util::micrometer_t totalDisplacement;
     unsigned numberOfMovableCells = 0;
@@ -159,7 +159,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
             maxDisplacement = std::max(maxDisplacement, cellDisplacement);
 
-            csvFile << cellDisplacement << std::endl;
+//            csvFile << cellDisplacement << std::endl;
         } else {
             auto currentLocation = design.placement().cellLocation(*cellIt);
             auto currentOrientation = design.placement().cellOrientation(*cellIt);
@@ -178,9 +178,9 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
 //    multirowAbacus.writeCsvWithCellsPerSubrow(circuitName + "_cells_per_subrow.csv");
 
-    design.writeDefFile(circuitName + "_legalized.def");
+    design.writeDefFile(circuitName + "_legalized_with_multirow_abacus.def");
 
-    csvFile.close();
+//    csvFile.close();
 }
 
 TEST_CASE("run multirow abacus for all 2015 contest circuits", "[iccad2015][multirow_abacus]")

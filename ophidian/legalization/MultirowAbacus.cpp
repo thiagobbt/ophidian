@@ -10,7 +10,7 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 }
 
 void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex, util::MultiBox legalizationArea) {
-    if (rowsPerCell == 1) {
+    if (rowsPerCell == 1 || rowsPerCell == 3) {
         subrows_.createSubrows(legalizationArea);
     } else {
         subrows_.createSubrows(legalizationArea, rowsPerCell, subRowIndex);
@@ -64,7 +64,9 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
     cellsByHeight.resize(maximumHeight);
 
     unsigned rowsPerCell = cellsByHeight.size();
+//    unsigned rowsPerCell = 1;
     for (auto cellsByHeightIt = cellsByHeight.rbegin(); cellsByHeightIt != cellsByHeight.rend(); ++cellsByHeightIt)
+//    for (auto cellsByHeightIt = cellsByHeight.begin(); cellsByHeightIt != cellsByHeight.end(); ++cellsByHeightIt)
     {
         std::vector<circuit::Cell> cellsForOneHeight = *cellsByHeightIt;
         auto cellGeometry = placementMapping_.geometry(*cellsForOneHeight.begin());
@@ -96,6 +98,7 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
             legalizeSubrows(cellsOdd, rowsPerCell, 1, legalizationArea);
         }
         rowsPerCell--;
+//        rowsPerCell++;
     }
 
     for (auto cell : cells)
