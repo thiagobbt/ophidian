@@ -63,10 +63,11 @@ void Design::writeDefFile(std::__cxx11::string filePath)
             if (line.substr(0, 3) == "END")
             {
                 defFile << "COMPONENTS "<< mNetlist.size(ophidian::circuit::Cell()) << " ;\n";
-//                for (auto cellIt = mNetlist.begin(ophidian::circuit::Cell()); cellIt != mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
-                for (auto cell : mFences.members(mFences.find("er3")))
+                for (auto cellIt = mNetlist.begin(ophidian::circuit::Cell()); cellIt != mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
+//                for (auto cell : mFences.members(mFences.find("er3")))
                 {
-//                    auto cell = *cellIt;
+                    auto cell = *cellIt;
+
                     defFile << "   - " << mNetlist.name(cell);
                     defFile << " " << mStandardCells.name(mLibraryMapping.cellStdCell(cell)) << "\n";
                     defFile << "      + ";

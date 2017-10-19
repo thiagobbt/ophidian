@@ -9,12 +9,8 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex, util::MultiBox legalizationArea) {
-    if (rowsPerCell == 1 || rowsPerCell == 3) {
-        subrows_.createSubrows(legalizationArea);
-    } else {
-        subrows_.createSubrows(legalizationArea, rowsPerCell, subRowIndex);
-    }
+void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea) {
+    subrows_.createSubrows(legalizationArea, rowsPerCell, alignment);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
     sortedCells.reserve(cellsForOneHeight.size());
@@ -75,7 +71,7 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
         if(std::fmod((cellHeight/siteHeight), 2.0))
         {
             //Odd-sized cells -> place in all rows
-            legalizeSubrows(cellsForOneHeight, rowsPerCell, 0, legalizationArea);
+            legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea);
         }
         else {
             //Even-sized cells -> place in specific rows
@@ -94,8 +90,8 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
                     cellsOdd.push_back(cell);
                 }
             }
-            legalizeSubrows(cellsEven, rowsPerCell, 0, legalizationArea);
-            legalizeSubrows(cellsOdd, rowsPerCell, 1, legalizationArea);
+            legalizeSubrows(cellsEven, rowsPerCell, placement::RowAlignment::EVEN, legalizationArea);
+            legalizeSubrows(cellsOdd, rowsPerCell, placement::RowAlignment::ODD, legalizationArea);
         }
         rowsPerCell--;
 //        rowsPerCell++;

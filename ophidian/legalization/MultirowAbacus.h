@@ -13,7 +13,7 @@ public:
     MultirowAbacus(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
     void legalizePlacement(std::vector<circuit::Cell> cells, ophidian::util::MultiBox legalizationArea);
-    void legalizeSubrows(std::vector<circuit::Cell> &cellsForOneHeight, unsigned rowsPerCell, unsigned subRowIndex, util::MultiBox legalizationArea);
+    void legalizeSubrows(std::vector<circuit::Cell> &cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea);
 };
 } // namespace legalization
 } // namespace ophidian

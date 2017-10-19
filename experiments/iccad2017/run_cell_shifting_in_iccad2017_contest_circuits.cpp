@@ -30,7 +30,7 @@ void readRowAssignmentFile(std::string circuitName, ophidian::design::Design & d
 }
 
 void printDisplacement(ophidian::design::Design & design, ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> & initialLocations) {
-    double totalDisplacement;
+    double totalDisplacement = 0;
     double maxDisplacement = 0;
     unsigned numberOfMovableCells = 0;
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
@@ -69,7 +69,7 @@ void runCellShiftingForOneCircuit(std::string circuitName) {
 //    ophidian::legalization::GreedyRowAssignment rowAssignment(design);
 ////    ophidian::legalization::MixedRowAssignment rowAssignment(design);
 //    rowAssignment.assignCellsToRows();
-    readRowAssignmentFile(circuitName, design);
+//    readRowAssignmentFile(circuitName, design);
 
 //    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
 //    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
@@ -80,15 +80,15 @@ void runCellShiftingForOneCircuit(std::string circuitName) {
 //    gettimeofday(&endTime, NULL);
 //    std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
 
-//    printDisplacement(design, initialLocations);
+    printDisplacement(design, initialLocations);
 
-//    iccad2017Legalization.legalize();
+    iccad2017Legalization.legalize();
 
 //    design.writeDefFile(circuitName + "_legalized.def");
 
     printDisplacement(design, initialLocations);
 
-//    REQUIRE(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
+    REQUIRE(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
 }
 
 TEST_CASE("run cell shifting for all 2017 contest circuits", "[iccad2017][cell_shifting]")

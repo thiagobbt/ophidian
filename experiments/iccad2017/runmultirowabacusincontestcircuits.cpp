@@ -138,11 +138,11 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     double runtime = (endTime.tv_sec - startTime.tv_sec) + (endTime.tv_usec - startTime.tv_usec)/1000000.0;
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
-//    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
-//    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
-//    REQUIRE(ophidian::legalization::checkCellOverlaps(design.placementMapping(), design.netlist()));
+    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
+    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
+    REQUIRE(ophidian::legalization::checkCellOverlaps(design.placementMapping(), design.netlist()));
 
-    ophidian::util::micrometer_t totalDisplacement;
+    ophidian::util::micrometer_t totalDisplacement(0);
     unsigned numberOfMovableCells = 0;
 
     double maxDisplacement = std::numeric_limits<double>::min();

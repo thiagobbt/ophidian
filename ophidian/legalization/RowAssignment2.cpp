@@ -70,24 +70,26 @@ void RowAssignment2::addAssignmentVariables(CellSlice cellSlice, entity_system::
             double displacement = std::abs(cellLocation.toPoint().y() - subrowOrigin.toPoint().y());
 
             auto currentSubrowSlices = subrowsSlices[subrow];
-            if (cellSlice != currentSubrowSlices[0].first) {
+            if (!currentSubrowSlices.empty()) {
                 auto otherSlice = currentSubrowSlices[0].first;
                 auto otherCell = mSlice2Cell[otherSlice];
                 auto otherCellGeometry = mDesign.placementMapping().geometry(otherCell)[0];
                 double x = mDesign.placement().cellLocation(otherCell).toPoint().x();
-                double lastWidth = otherCellGeometry.max_corner().x() - otherCellGeometry.min_corner().x();
-                for (unsigned sliceIndex = 1; sliceIndex < currentSubrowSlices.size(); sliceIndex++) {
-                    auto otherSlice = currentSubrowSlices[sliceIndex].first;
-                    if (otherSlice == cellSlice) {
-                        break;
+                if (x < cellLocation.toPoint().x()) {
+                    x += otherCellGeometry.max_corner().x() - otherCellGeometry.min_corner().x();
+                    for (unsigned sliceIndex = 1; sliceIndex < currentSubrowSlices.size(); sliceIndex++) {
+                        auto otherSlice = currentSubrowSlices[sliceIndex].first;
+                        auto otherCell = mSlice2Cell[otherSlice];
+                        double otherX = mDesign.placement().cellLocation(otherCell).toPoint().x();
+                        if (otherX > cellLocation.toPoint().x()) {
+                            break;
+                        }
+                        auto otherCellGeometry = mDesign.placementMapping().geometry(otherCell)[0];
+                        double nextWidth = otherCellGeometry.max_corner().x() - otherCellGeometry.min_corner().x();
+                        x = (x < otherX) ? otherX + nextWidth : x + nextWidth;
                     }
-                    auto otherCell = mSlice2Cell[otherSlice];
-                    auto otherCellGeometry = mDesign.placementMapping().geometry(otherCell)[0];
-                    double otherX = mDesign.placement().cellLocation(otherCell).toPoint().x();
-                    x = (x + lastWidth < otherX) ? otherX : x + lastWidth;
-                    lastWidth = otherCellGeometry.max_corner().x() - otherCellGeometry.min_corner().x();
+                    displacement += std::abs(cellLocation.toPoint().x() - x);
                 }
-                displacement += std::abs(cellLocation.toPoint().x() - x);
             }
 //            if (cellLocation.x() < subrowOrigin.x()) {
 //                displacement = displacement + std::abs(cellLocation.toPoint().x() - subrowOrigin.toPoint().x());
