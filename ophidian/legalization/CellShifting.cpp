@@ -150,23 +150,29 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
             auto previousSliceName = mSliceNames[previousSlice];
 
 //            model.addConstr(currentSliceVariable == previousSliceVariable, currentSliceName + "_" + previousSliceName + "_slice_constraint");
-//            objectiveFunction += (currentSliceVariable - previousSliceVariable)*(currentSliceVariable - previousSliceVariable)*sliceForce;
+            objectiveFunction += (currentSliceVariable - previousSliceVariable)*(currentSliceVariable - previousSliceVariable)*sliceForce;
         }
     }
 
     model.setObjective(objectiveFunction, GRB_MINIMIZE);
     model.optimize();
 
-    for (auto cellSlice : mCellSlices) {
-        auto circuitCell = mSlice2Cell[cellSlice];
-        if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
-            auto sliceVariable = sliceVariables[cellSlice];
-            auto currentCellLocation = mDesign.placement().cellLocation(circuitCell);
-//            auto cellXLocation = std::round(sliceVariable.get(GRB_DoubleAttr_X)) * siteWidth;
-            auto cellXLocation = std::round(sliceVariable.get(GRB_DoubleAttr_X) / siteWidth) * siteWidth;
-            mDesign.placement().placeCell(circuitCell, util::Location(cellXLocation, currentCellLocation.toPoint().y()));
+    auto status = model.get(GRB_IntAttr_Status);
+
+    if (status == GRB_OPTIMAL) {
+        for (auto cellSlice : mCellSlices) {
+            auto circuitCell = mSlice2Cell[cellSlice];
+            if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
+                auto sliceVariable = sliceVariables[cellSlice];
+                auto currentCellLocation = mDesign.placement().cellLocation(circuitCell);
+    //            auto cellXLocation = std::round(sliceVariable.get(GRB_DoubleAttr_X)) * siteWidth;
+                auto cellXLocation = std::round(sliceVariable.get(GRB_DoubleAttr_X) / siteWidth) * siteWidth;
+                mDesign.placement().placeCell(circuitCell, util::Location(cellXLocation, currentCellLocation.toPoint().y()));
+            }
         }
     }
+
+//    model.reset();
 }
 
 void CellShifting::sliceCells(std::vector<circuit::Cell> & cells)

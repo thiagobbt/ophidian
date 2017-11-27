@@ -173,6 +173,7 @@ public:
 	{
 		notifier_.clear();
 		container_.clear();
+        id2Index_.clear();
 	}
 	//! Allocate space for storing Entities
 	/*!

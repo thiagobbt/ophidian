@@ -11,7 +11,7 @@ TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit 
         ophidian::util::Location(17, 30),
         ophidian::util::Location(25, 20),
         ophidian::util::Location(40, 30),
-        ophidian::util::Location(40, 0.0),
+        ophidian::util::Location(20, 0.0),
         ophidian::util::Location(30, 0.0),
         ophidian::util::Location(40, 10),
         ophidian::util::Location(35, 20),
@@ -29,7 +29,7 @@ TEST_CASE_METHOD(MultirowAbacusFixture, "Legalization: legalizing small circuit 
     for (auto cellIt = design_.netlist().begin(ophidian::circuit::Cell()); cellIt != design_.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
         cellLocations.push_back(design_.placement().cellLocation(*cellIt));
-        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
+//        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }
 
     REQUIRE(cellLocations.size() == expectedLocations.size());

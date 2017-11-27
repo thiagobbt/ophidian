@@ -40,10 +40,10 @@ TEST_CASE("Def2Fence: Test library cell geometries.", "[placement][Def2Fence]")
         auto r0area = fences.area(region0);
         auto r1area = fences.area(region1);
 
-        REQUIRE(r0area == util::MultiBox({geometry::Box({0, 0}, {500400, 146000})}));
+        REQUIRE(r0area == util::MultiBox({geometry::Box({0, 0}, {20000, 10000})}));
         REQUIRE(r1area == util::MultiBox({
-            geometry::Box({305800, 92000}, {502400, 146000}),
-            geometry::Box({305800, 214000}, {502400, 264000})
+            geometry::Box({700, 0}, {5000, 5000}),
+            geometry::Box({5000, 0}, {10000, 10000})
         }));
     }
 

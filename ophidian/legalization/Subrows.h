@@ -42,6 +42,8 @@ public:
 
     Subrow findContainedSubrow(geometry::Box cellBox) const;
 
+    void findContainedSubrows(geometry::Box cellBox, std::vector<Subrow> & subrows) const;
+
     ophidian::util::micrometer_t capacity(Subrow subrow) const;
 
     void capacity(Subrow subrow, ophidian::util::micrometer_t capacity);

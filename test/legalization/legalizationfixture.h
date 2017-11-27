@@ -59,6 +59,14 @@ public:
     CircuitFixtureWithRandomAlignedCells(ophidian::util::Location chipOrigin, ophidian::util::Location chipUpperCorner, unsigned numberOfCells);
 };
 
+class ConstraintGraphCircuitFixture : public CircuitFixture
+{
+public:
+    ConstraintGraphCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
 
 
 #endif // LEGALIZATIONFIXTURE_H

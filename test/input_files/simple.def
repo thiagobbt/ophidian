@@ -17,8 +17,8 @@ ROW core_SITE_ROW_2 core 0 6840 N DO 72 BY 1 STEP 380 0 ;
 ROW core_SITE_ROW_3 core 0 10260 N DO 72 BY 1 STEP 380 0 ;
 
 REGIONS 2 ;
-   - r0       ( 0 0 ) ( 500400 146000 )          + TYPE FENCE ;
-   - r1       ( 305800 92000 ) ( 502400 146000 )       ( 305800 214000 ) ( 502400 264000 )          + TYPE FENCE ;
+   - r0       ( 0 0 ) ( 20000 10000 )          + TYPE FENCE ;
+   - r1       ( 700 0 ) ( 5000 5000 )       ( 5000 0 ) ( 10000 10000 )          + TYPE FENCE ;
 END REGIONS
 
 COMPONENTS 6 ;

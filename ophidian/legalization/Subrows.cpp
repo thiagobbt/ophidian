@@ -207,8 +207,21 @@ Subrow Subrows::findContainedSubrow(geometry::Box cellBox) const
         return closeSubrowNodes.front().second;
     }
 
-    assert(closeSubrowNodes.size() == 1);
+}
 
+void Subrows::findContainedSubrows(geometry::Box cellBox, std::vector<Subrow> &subrows) const
+{
+    std::vector<RtreeNode> closeSubrowNodes;
+    subrowsRtree_.query(boost::geometry::index::contains(cellBox), std::back_inserter(closeSubrowNodes));
+    subrowsRtree_.query(boost::geometry::index::overlaps(cellBox), std::back_inserter(closeSubrowNodes));
+
+    if (closeSubrowNodes.empty()) {
+        findClosestSubrows(1, util::Location(cellBox.min_corner().x(), cellBox.min_corner().y()), subrows);
+    } else {
+        for (auto subrowNode : closeSubrowNodes) {
+            subrows.push_back(subrowNode.second);
+        }
+    }
 }
 
 util::micrometer_t Subrows::capacity(Subrow subrow) const

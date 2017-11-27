@@ -26,9 +26,9 @@ public:
 
     void shiftCellsInsideRows();
 
-private:
     void shiftCellsInsideRows(util::MultiBox area, std::vector<circuit::Cell> & cells);
 
+private:
     void sliceCells(std::vector<circuit::Cell> & cells);
 
     design::Design & mDesign;
