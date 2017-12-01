@@ -8,7 +8,21 @@
 #include <ophidian/legalization/iccad2017SolutionQuality.h>
 #include <string>
 
+void runMultirowAbacusICCAD2015(std::string lef, std::string def, std::string verilog, std::string output_def){
+    ophidian::designBuilder::ICCAD2015ContestDesignBuilder ICCAD2015DesignBuilder(lef, def, verilog);
+    ICCAD2015DesignBuilder.build();
+    ophidian::design::Design & design = ICCAD2015DesignBuilder.design();
 
+    ophidian::legalization::iccad2017Legalization iccad2017(design);
+    iccad2017.legalize();
+
+    if(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()))
+        std::cout<<"Circuit is legalized."<<std::endl;
+    else
+        std::cout<<"Circuit is ilegal."<<std::endl;
+
+    design.writeDefFile(output_def);
+}
 
 void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, std::string input_def, unsigned int cpu, std::string placement_constraints, std::string output_def){
 //    Wrapper iccad(tech_lef, cell_lef, input_def);
@@ -37,20 +51,35 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
 //        iccad.mPlacement.placeCell(*cellIt, ophidian::util::Location(alignedX, alignedY));
 //    }
 
-
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder(cell_lef, tech_lef, input_def);
     ICCAD2017DesignBuilder.build();
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
-    ophidian::legalization::ICCAD2017SolutionQuality solutionQuality(design);
 
     ophidian::legalization::iccad2017Legalization iccad2017(design);
-    iccad2017.legalize();
+//    iccad2017.legalize();
+    iccad2017.ancientLegalization();
 
-    std::cout<<"Solution score: "<<solutionQuality.rawScore()<<std::endl;
-
+    if(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()))
+        std::cout<<"Circuit is legalized."<<std::endl;
+    else
+        std::cout<<"Circuit is ilegal."<<std::endl;
     design.writeDefFile(output_def);
 }
+
+//int main(int argc, char** argv){
+//    if (argc != 9)
+//    {
+//        std::cout << "Error, usage: ./cada001 -lef superblue.lef -def superblue.def -verilog superblue.v -output_def lg.def" << std::endl;
+//        return -1;
+//    }
+//    if(std::string(argv[1]) == "-lef" && std::string(argv[3]) == "-def" && std::string(argv[5]) == "-verilog" && std::string(argv[7]) == "-output_def")
+//        runMultirowAbacusICCAD2015(argv[2], argv[4], argv[6], argv[8]);
+//    else {
+//        std::cout << "Error, usage: ./cada001 -lef superblue.lef -def superblue.def -verilog superblue.v -output_def lg.def" << std::endl;
+//        return -1;
+//    }
+//}
 
 int main(int argc, char** argv){
     if (argc != 13)
