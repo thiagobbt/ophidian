@@ -25,7 +25,6 @@ void CellShifting::shiftCellsInsideRows()
 
     fenceRegionIsolation.isolateAllFenceCells();
 
-    //posiciona circuito
     std::vector<circuit::Cell> cells;
     cells.reserve(mDesign.netlist().size(circuit::Cell()));
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
@@ -118,22 +117,6 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
 //                model.addConstr(previousSliceVariable + (previousSliceWidth / siteWidth) <= sliceXVariable, cellName + "_" + previousSliceName + "_overlap_constraint");
                 model.addConstr(previousSliceVariable + previousSliceWidth <= sliceXVariable, cellName + "_" + previousSliceName + "_overlap_constraint");
             }
-
-//            for (std::size_t slice2Index = 0; slice2Index < sliceIndex; slice2Index++) {
-//                auto slice2 = sortedCellSlices[slice2Index].first;
-//                auto slice2Name = mSliceNames[slice2];
-//                GRBVar leftVariable = model.addVar(0, 1, 0, GRB_BINARY, cellName + "_" + slice2Name + "_left_variable");
-//                GRBVar rightVariable = model.addVar(0, 1, 0, GRB_BINARY, cellName + "_" + slice2Name + "_right_variable");
-
-//                auto slice2Cell = mSlice2Cell[slice2];
-//                auto slice2CellGeometry = mDesign.placementMapping().geometry(slice2Cell)[0];
-//                auto slice2Width = slice2CellGeometry.max_corner().x() - slice2CellGeometry.min_corner().x();
-//                auto slice2Variable = sliceVariables[slice2];
-
-//                model.addConstr(slice2Variable + slice2Width - (1-leftVariable)*subrowUpperCorner.x() <= sliceXVariable, cellName + "_" + slice2Name + "_left_constraint");
-//                model.addConstr(sliceXVariable + cellWidth - (1-rightVariable)*subrowUpperCorner.x() <= slice2Variable, cellName + "_" + slice2Name + "_right_constraint");
-//                model.addConstr(leftVariable + rightVariable == 1, cellName + "_" + slice2Name + "_overlap_constraint");
-//            }
         }
     }
 
@@ -157,9 +140,11 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
     model.setObjective(objectiveFunction, GRB_MINIMIZE);
     model.optimize();
 
+    model.write("cell_shifting.lp");
+
     auto status = model.get(GRB_IntAttr_Status);
 
-    if (status == GRB_OPTIMAL) {
+    if (status == GRB_OPTIMAL || status == GRB_SUBOPTIMAL) {
         for (auto cellSlice : mCellSlices) {
             auto circuitCell = mSlice2Cell[cellSlice];
             if (mCircuitCellsSlices[circuitCell][0] == cellSlice) {
@@ -171,8 +156,6 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
             }
         }
     }
-
-//    model.reset();
 }
 
 void CellShifting::sliceCells(std::vector<circuit::Cell> & cells)

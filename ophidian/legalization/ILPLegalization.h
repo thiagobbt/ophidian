@@ -14,6 +14,8 @@ public:
 
     void legalizePlacement();
 
+    void legalize(const std::vector<circuit::Cell> &cells, const geometry::Box & legalizationArea);
+
 private:
     void addOverlapConstraint(GRBModel &model, std::string cell1Name, std::string cell2Name, GRBVar cell1Var, GRBVar cell2Var, double cell1Coordinate, double cell2Coordinate, double cell1Dimension, double cell2Dimension);
 

@@ -74,8 +74,8 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Row assignment on circuit with one 
 
 TEST_CASE("Assigning rows in circuit with random cells", "[legalization][row_assignment][random]") {
     ophidian::util::Location chipOrigin(0, 0);
-    ophidian::util::Location chipUpperCorner(2000, 2000);
-    unsigned numberOfCells = 100;
+    ophidian::util::Location chipUpperCorner(100, 100);
+    unsigned numberOfCells = 10;
 
     CircuitFixtureWithRandomCells circuit(chipOrigin, chipUpperCorner, numberOfCells);
 

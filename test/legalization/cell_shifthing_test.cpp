@@ -102,8 +102,8 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cell shifting on illegal circuit wi
 
 TEST_CASE("Shifting cells for circuit with random cells", "[legalization][cell_shifting][random]") {
     ophidian::util::Location chipOrigin(0, 0);
-    ophidian::util::Location chipUpperCorner(2000000, 2000000);
-    unsigned numberOfCells = 30000;
+    ophidian::util::Location chipUpperCorner(100, 100);
+    unsigned numberOfCells = 10;
 
     CircuitFixtureWithRandomAlignedCells circuit(chipOrigin, chipUpperCorner, numberOfCells);
 

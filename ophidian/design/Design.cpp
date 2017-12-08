@@ -64,10 +64,63 @@ void Design::writeDefFile(std::__cxx11::string filePath)
             {
                 defFile << "COMPONENTS "<< mNetlist.size(ophidian::circuit::Cell()) << " ;\n";
                 for (auto cellIt = mNetlist.begin(ophidian::circuit::Cell()); cellIt != mNetlist.end(ophidian::circuit::Cell()); ++cellIt)
-//                for (auto cell : mFences.members(mFences.find("er3")))
                 {
                     auto cell = *cellIt;
 
+                    defFile << "   - " << mNetlist.name(cell);
+                    defFile << " " << mStandardCells.name(mLibraryMapping.cellStdCell(cell)) << "\n";
+                    defFile << "      + ";
+                    if (mPlacement.isFixed(cell))
+                    {
+                        defFile << "FIXED ( ";
+                    }
+                    else {
+                        defFile << "PLACED ( ";
+                    }
+                    defFile << units::unit_cast<int>(mPlacement.cellLocation(cell).x()) << " ";
+                    defFile << units::unit_cast<int>(mPlacement.cellLocation(cell).y()) << " ) ";
+                    defFile << mPlacement.cellOrientation(cell) << " ;\n";
+                }
+                defFile << "END COMPONENTS\n";
+                defFile << "\n";
+
+                foundComponents = false;
+            }
+            else {
+                // Found components and not in end, skip
+            }
+        }
+        else if (line.substr(0, 10) == "COMPONENTS")
+        {
+            foundComponents = true;
+        }
+        else {
+            defFile << line << std::endl;
+        }
+    }
+
+    inputDef.close();
+    defFile.close();
+}
+
+void Design::writeDefFile(std::__cxx11::string filePath, const std::vector<ophidian::circuit::Cell> & cells)
+{
+    std::ifstream inputDef(mInputDefPath);
+
+    std::ofstream defFile;
+    defFile.open (filePath);
+
+    bool foundComponents = false;
+    std::string line;
+    while (std::getline(inputDef, line))
+    {
+        if (foundComponents)
+        {
+            if (line.substr(0, 3) == "END")
+            {
+                defFile << "COMPONENTS "<< mNetlist.size(ophidian::circuit::Cell()) << " ;\n";
+                for (auto cell : cells)
+                {
                     defFile << "   - " << mNetlist.name(cell);
                     defFile << " " << mStandardCells.name(mLibraryMapping.cellStdCell(cell)) << "\n";
                     defFile << "      + ";

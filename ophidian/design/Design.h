@@ -144,6 +144,8 @@ public:
     }
 
     void writeDefFile(std::string filePath);
+
+    void writeDefFile(std::string filePath, const std::vector<ophidian::circuit::Cell> & cells);
 private:
 
 	circuit::Netlist mNetlist;

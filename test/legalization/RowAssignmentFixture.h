@@ -4,7 +4,7 @@
 #include <ophidian/legalization/RowAssignment.h>
 #include <ophidian/legalization/MixedRowAssignment.h>
 
-class RowAssignmentFixture : public ophidian::legalization::MixedRowAssignment
+class RowAssignmentFixture : public ophidian::legalization::RowAssignment
 {
 public:
     RowAssignmentFixture(ophidian::design::Design & design);

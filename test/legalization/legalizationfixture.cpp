@@ -207,7 +207,7 @@ CircuitFixtureWithRandomCells::CircuitFixtureWithRandomCells(ophidian::util::Loc
         auto y = yDistribution(generator);
 
         auto cellLocation = ophidian::util::Location(x, y);
-        auto cellStdCell = (stdCellDistribution(generator) < 1.0) ? singleRowStandardCell : multiRowStandardCell;
+        auto cellStdCell = (stdCellDistribution(generator) < 0.8) ? singleRowStandardCell : multiRowStandardCell;
 //        auto cellStdCell = singleRowStandardCell;
         addCell(cellStdCell, cellName, cellLocation, 2, false);
     }

@@ -26,7 +26,14 @@ void runILPLeaglizationForOneCircuit(std::string circuitName) {
     auto area = design.fences().area(fence);
     std::vector<ophidian::circuit::Cell> cells(design.fences().members(fence).begin(), design.fences().members(fence).end());
 
+    std::vector<ophidian::circuit::Cell> halfCells;
+    halfCells.reserve(30);
+    for (auto cellId = 0; cellId < 35; cellId++) {
+        halfCells.push_back(cells[cellId]);
+    }
+
 //    legalizationFixing.legalizePlacement();
+    ilpLegalization.legalize(halfCells, area[1]);
 
 
 //    REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));

@@ -66,29 +66,28 @@ void runCellShiftingForOneCircuit(std::string circuitName) {
         initialLocations[*cellIt] = design.placement().cellLocation(*cellIt);
     }
 
-//    ophidian::legalization::GreedyRowAssignment rowAssignment(design);
 ////    ophidian::legalization::MixedRowAssignment rowAssignment(design);
 //    rowAssignment.assignCellsToRows();
-//    readRowAssignmentFile(circuitName, design);
+    readRowAssignmentFile(circuitName, design);
 
 //    REQUIRE(ophidian::legalization::checkBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
 //    REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
 
-//    struct timeval startTime, endTime;
-//    gettimeofday(&startTime, NULL);
-//    cellShifting.shiftCellsInsideRows();
-//    gettimeofday(&endTime, NULL);
-//    std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
+    struct timeval startTime, endTime;
+    gettimeofday(&startTime, NULL);
+    cellShifting.shiftCellsInsideRows();
+    gettimeofday(&endTime, NULL);
+    std::cout << "runtime " << endTime.tv_sec - startTime.tv_sec << " s" << std::endl;
 
     printDisplacement(design, initialLocations);
 
-    iccad2017Legalization.legalize();
+//    iccad2017Legalization.legalize();
 
 //    design.writeDefFile(circuitName + "_legalized.def");
 
     printDisplacement(design, initialLocations);
 
-    REQUIRE(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
+//    REQUIRE(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()));
 }
 
 TEST_CASE("run cell shifting for all 2017 contest circuits", "[iccad2017][cell_shifting]")
