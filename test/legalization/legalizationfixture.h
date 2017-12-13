@@ -67,6 +67,14 @@ protected:
     ophidian::standard_cell::Cell cellStdCell_;
 };
 
+class ViolatingConstraintGraphCircuitFixture : public CircuitFixture
+{
+public:
+    ViolatingConstraintGraphCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
 
 
 #endif // LEGALIZATIONFIXTURE_H

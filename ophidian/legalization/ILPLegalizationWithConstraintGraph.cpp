@@ -46,10 +46,9 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
         objective += (initialY - y)*(initialY - y);
     }
 
-    mHorizontalConstraintGraph.buildConstraintGraph(cells);
+    mHorizontalConstraintGraph.buildConstraintGraph(cells, mDesign.floorplan().chipOrigin().x(), mDesign.floorplan().chipUpperRightCorner().x());
+    mVerticalConstraintGraph.buildConstraintGraph(cells, mDesign.floorplan().chipOrigin().y(), mDesign.floorplan().chipUpperRightCorner().y());
     mHorizontalConstraintGraph.removeTransitiveEdges();
-
-    mVerticalConstraintGraph.buildConstraintGraph(cells);
     mVerticalConstraintGraph.removeTransitiveEdges();
 
     for (auto cell1 : cells) {

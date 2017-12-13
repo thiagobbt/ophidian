@@ -42,7 +42,7 @@ bool BelowComparator::operator()(util::Location &cell1Location, util::Location &
 
 double BelowComparator::arcCost(geometry::Box &cell1Box)
 {
-    cell1Box.max_corner().y() - cell1Box.min_corner().y();
+    return cell1Box.max_corner().y() - cell1Box.min_corner().y();
 }
 
 }
