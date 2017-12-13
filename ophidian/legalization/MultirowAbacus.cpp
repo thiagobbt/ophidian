@@ -64,6 +64,8 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
     for (auto cellsByHeightIt = cellsByHeight.rbegin(); cellsByHeightIt != cellsByHeight.rend(); ++cellsByHeightIt)
 //    for (auto cellsByHeightIt = cellsByHeight.begin(); cellsByHeightIt != cellsByHeight.end(); ++cellsByHeightIt)
     {
+        if(cellsByHeightIt->empty())
+            continue;
         std::vector<circuit::Cell> cellsForOneHeight = *cellsByHeightIt;
         auto cellGeometry = placementMapping_.geometry(*cellsForOneHeight.begin());
         auto cellHeight = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
