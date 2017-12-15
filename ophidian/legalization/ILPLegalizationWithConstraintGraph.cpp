@@ -14,6 +14,7 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
 
     auto origin = legalizationArea.min_corner();
     auto upperRightCorner = legalizationArea.max_corner();
+
     double rightX = std::floor(upperRightCorner.x() / siteWidth) * siteWidth;
     double topY = std::floor(upperRightCorner.y() / rowHeight) * rowHeight;
 
@@ -46,10 +47,42 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
         objective += (initialY - y)*(initialY - y);
     }
 
-    mHorizontalConstraintGraph.buildConstraintGraph(cells, mDesign.floorplan().chipOrigin().x(), mDesign.floorplan().chipUpperRightCorner().x());
-    mVerticalConstraintGraph.buildConstraintGraph(cells, mDesign.floorplan().chipOrigin().y(), mDesign.floorplan().chipUpperRightCorner().y());
+    std::cout << "creating constraint graphs " << std::endl;
+
+    std::cout << "origin " << origin.x() << ", " << origin.y() << std::endl;
+    std::cout << "upper corner " << upperRightCorner.x() << ", " << upperRightCorner.y() << std::endl;
+
+    mHorizontalConstraintGraph.buildConstraintGraph(cells, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()));
+    mVerticalConstraintGraph.buildConstraintGraph(cells, util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
+
+//    mHorizontalConstraintGraph.exportGraph("ilp_hgraph.gv");
+//    mVerticalConstraintGraph.exportGraph("ilp_vgraph.gv");
+
+    if (!mHorizontalConstraintGraph.isFeasible() && !mVerticalConstraintGraph.isFeasible()) {
+        std::cout << "not feasible to solve!" << std::endl;
+        return;
+    }
+
+    std::cout << "adjusting constraint graphs " << std::endl;
+    if (!mHorizontalConstraintGraph.isFeasible()) {
+        std::cout << "adjusting horizontal graph " << std::endl;
+        adjustConstraintGraph(mHorizontalConstraintGraph, mVerticalConstraintGraph, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()), util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
+    } else if (!mVerticalConstraintGraph.isFeasible()) {
+        adjustConstraintGraph(mVerticalConstraintGraph, mHorizontalConstraintGraph, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()), util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
+    }
+
+    if (!mHorizontalConstraintGraph.isFeasible() || !mVerticalConstraintGraph.isFeasible()) {
+        std::cout << "could not adjust graph!" << std::endl;
+        return;
+    }
+
+    std::cout << "removing transitive edges " << std::endl;
+
     mHorizontalConstraintGraph.removeTransitiveEdges();
     mVerticalConstraintGraph.removeTransitiveEdges();
+
+//    mHorizontalConstraintGraph.exportGraph("horizontal_graph.gv");
+//    mVerticalConstraintGraph.exportGraph("vertical_graph.gv");
 
     for (auto cell1 : cells) {
         for (auto cell2 : cells) {
@@ -75,7 +108,11 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
 
     model.setObjective(objective, GRB_MINIMIZE);
 
+    model.set(GRB_IntParam_BarHomogeneous, GRB_BARHOMOGENEOUS_ON);
+
     model.write("ilp_legalization.lp");
+
+    std::cout << "solving model " << std::endl;
 
     model.optimize();
 
@@ -93,43 +130,5 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
     }
 }
 
-void ILPLegalizationWithConstraintGraph::writeGraphFile(const std::vector<circuit::Cell> & cells)
-{
-    std::ofstream horizontalGraphFile;
-    horizontalGraphFile.open ("horizontal_graph.gv");
-    horizontalGraphFile << "digraph G {" << std::endl;
-
-    std::ofstream verticalGraphFile;
-    verticalGraphFile.open ("vertical_graph.gv");
-    verticalGraphFile << "digraph G {" << std::endl;
-
-    unsigned cell1Index = 0;
-    for (auto cell1 : cells) {
-        unsigned cell2Index = 0;
-        for (auto cell2 : cells) {
-            auto cell1Geometry = mDesign.placementMapping().geometry(cell1)[0];
-            auto cell1Width = cell1Geometry.max_corner().x() - cell1Geometry.min_corner().x();
-            auto cell1Height = cell1Geometry.max_corner().y() - cell1Geometry.min_corner().y();
-
-            auto cell2Geometry = mDesign.placementMapping().geometry(cell2)[0];
-            auto cell2Width = cell2Geometry.max_corner().x() - cell2Geometry.min_corner().x();
-            auto cell2Height = cell2Geometry.max_corner().y() - cell2Geometry.min_corner().y();
-
-            if (mHorizontalConstraintGraph.hasEdge(cell1, cell2)) {
-//                horizontalGraphFile << cell1Index << " -> " << cell2Index << std::endl;
-                horizontalGraphFile << cell1Index << " -> " << cell2Index << " [label=" << cell1Width << "]" << std::endl;
-            }
-            if (mVerticalConstraintGraph.hasEdge(cell1, cell2)) {
-//                verticalGraphFile << cell1Index << " -> " << cell2Index << std::endl;
-                verticalGraphFile << cell1Index << " -> " << cell2Index << " [label=" << cell1Height << "]" << std::endl;
-            }
-            cell2Index++;
-        }
-        cell1Index++;
-    }
-
-    horizontalGraphFile << "}" << std::endl;
-    verticalGraphFile << "}" << std::endl;
-}
 }
 }

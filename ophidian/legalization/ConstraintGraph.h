@@ -1,6 +1,8 @@
 #ifndef CONSTRAINTGRAPH_H
 #define CONSTRAINTGRAPH_H
 
+#include <fstream>
+
 #include <lemon/list_graph.h>
 #include <lemon/preflow.h>
 
@@ -136,6 +138,31 @@ public:
         return mMaximumLocations[node] - mMinimumLocations[node];
     }
 
+    double worstSlack() {
+        double worstSlack = std::numeric_limits<double>::max();
+        for (auto node = lemon::ListDigraph::NodeIt(mGraph); node != lemon::INVALID; ++node) {
+            if (node != mSource && node != mSink) {
+                auto cell = mNode2Cell[node];
+                auto cellSlack = slack(cell);
+                worstSlack = std::min(worstSlack, cellSlack);
+            }
+        }
+        return worstSlack;
+    }
+
+    bool isFeasible() {
+        for (auto node = lemon::ListDigraph::NodeIt(mGraph); node != lemon::INVALID; ++node) {
+            if (node != mSource && node != mSink) {
+                auto cell = mNode2Cell[node];
+                auto cellSlack = slack(cell);
+                if (cellSlack < 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     bool hasEdge(circuit::Cell cell1, circuit::Cell cell2) {
         auto node1 = mCell2Node[cell1];
         auto node2 = mCell2Node[cell2];
@@ -187,7 +214,7 @@ public:
                 capacityMap[arc] = std::numeric_limits<double>::max();
             } else {
                 capacityMap[arc] = -newSlack;
-                bestSlack = std::min(bestSlack, newSlack);
+                bestSlack = std::min(bestSlack, -newSlack);
             }
         }
 
@@ -197,8 +224,13 @@ public:
 
             for (auto arc = lemon::ListDigraph::ArcIt(mGraph); arc != lemon::INVALID; ++arc) {
                 auto arcSource = mGraph.source(arc);
-                auto sourceCell = mNode2Cell[arcSource];
                 auto arcTarget = mGraph.target(arc);
+
+                if (arcSource == mSource || arcTarget == mSink) {
+                    continue;
+                }
+
+                auto sourceCell = mNode2Cell[arcSource];
                 auto targetCell = mNode2Cell[arcTarget];
 
                 if (preflow.minCut(arcSource) != preflow.minCut(arcTarget)) {
@@ -216,6 +248,24 @@ public:
     void removeTransitiveEdges() {
         util::transitiveClosure(mGraph);
         util::transitiveReduction(mGraph);
+    }
+
+    void exportGraph(std::string fileName) {
+        std::ofstream graphFile;
+        graphFile.open (fileName);
+
+        graphFile << "digraph G {" << std::endl;
+
+        for (auto arc = lemon::ListDigraph::ArcIt(mGraph); arc != lemon::INVALID; ++arc) {
+            auto source = mGraph.source(arc);
+            auto target = mGraph.target(arc);
+
+            graphFile << "\"" << mGraph.id(source) << " " << mMinimumLocations[source] << ", " << mMaximumLocations[source] << "\""
+                      << " -> " << "\"" << mGraph.id(target) << " " << mMinimumLocations[target] << ", " << mMaximumLocations[target] << "\""
+                            << " [label=" << mArcCosts[arc] << "];" << std::endl;
+        }
+
+        graphFile << "}" << std::endl;
     }
 
 protected:

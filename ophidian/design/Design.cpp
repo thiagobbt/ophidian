@@ -118,7 +118,7 @@ void Design::writeDefFile(std::__cxx11::string filePath, const std::vector<ophid
         {
             if (line.substr(0, 3) == "END")
             {
-                defFile << "COMPONENTS "<< mNetlist.size(ophidian::circuit::Cell()) << " ;\n";
+                defFile << "COMPONENTS "<< cells.size() << " ;\n";
                 for (auto cell : cells)
                 {
                     defFile << "   - " << mNetlist.name(cell);

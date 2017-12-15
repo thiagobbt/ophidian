@@ -178,7 +178,7 @@ TEST_CASE("ILPCG: Legalizing circuit with random cells", "[legalization][ILPCG][
     ophidian::legalization::ILPLegalizationWithConstraintGraph legalization(circuit.design_);
     legalization.legalize(cells, area);
 
-    legalization.writeGraphFile(cells);
+//    legalization.writeGraphFile(cells);
 
 //    std::cout << "final locations" << std::endl;
 //    for (auto cellIt = circuit.design_.netlist().begin(ophidian::circuit::Cell()); cellIt != circuit.design_.netlist().end(ophidian::circuit::Cell()); ++cellIt) {

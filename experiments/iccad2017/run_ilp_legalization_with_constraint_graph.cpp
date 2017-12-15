@@ -10,7 +10,8 @@
 void runILPLeaglizationWithConstraintGraphForOneCircuit(std::string circuitName) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
                                                                                   "./input_files/benchmarks2017/" + circuitName + "/tech.lef",
-                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def");
+//                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def");
+                                                                                  "./des_perf_b_md1_fence_er3.def");
     ICCAD2017DesignBuilder.build();
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
@@ -20,28 +21,17 @@ void runILPLeaglizationWithConstraintGraphForOneCircuit(std::string circuitName)
     auto fence = design.fences().find("er3");
     auto area = design.fences().area(fence);
     std::vector<ophidian::circuit::Cell> cells(design.fences().members(fence).begin(), design.fences().members(fence).end());
+
     std::vector<ophidian::circuit::Cell> halfCells;
-    halfCells.reserve(30);
-    for (auto cellId = 0; cellId < 35; cellId++) {
+    halfCells.reserve(cells.size() / 2);
+    for (auto cellId = 0; cellId < 50; cellId++) {
         halfCells.push_back(cells[cellId]);
     }
 
-    double cellsArea = 0;
-    for (auto cell : halfCells) {
-        auto cellGeometry = design.placementMapping().geometry(cell)[0];
-        auto cellArea = boost::geometry::area(cellGeometry);
-        cellsArea += cellArea;
-    }
-    auto boxArea = boost::geometry::area(area[1]);
-    std::cout << "cell area " << cellsArea << std::endl;
-    std::cout << "box area " << boxArea << std::endl;
-    std::cout << "density " << cellsArea / boxArea << std::endl;
-
+    std::cout << "legalizing " << std::endl;
     ilpLegalization.legalize(halfCells, area[1]);
 
-    ilpLegalization.writeGraphFile(halfCells);
-
-    design.writeDefFile("out.def", halfCells);
+////    design.writeDefFile("out.def", halfCells);
 }
 
 TEST_CASE("run ILP legalization with constraint graph for all 2017 contest circuits", "[iccad2017][ilp_legalization]")
