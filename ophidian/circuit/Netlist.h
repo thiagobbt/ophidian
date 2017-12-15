@@ -30,6 +30,11 @@ namespace ophidian
     {
         class Fences;
     }
+
+    namespace legalization {
+        class SeparateCellsIntoBoxes;
+    }
+
     namespace circuit
     {
 
@@ -72,6 +77,7 @@ namespace ophidian
                 using NetNotifier = entity_system::EntitySystem<Net>::NotifierType;
 
                 friend class placement::Fences;
+                friend class legalization::SeparateCellsIntoBoxes;
 
                 //! Construct Netlist
                 /*!

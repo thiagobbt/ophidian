@@ -7,6 +7,7 @@
 
 #include <ophidian/legalization/iccad2017Legalization.h>
 #include <ophidian/legalization/ConstraintGraph.h>
+#include <ophidian/legalization/SeparateCellsIntoBoxes.h>
 
 void generateConstraintGraphForOneCircuit(std::string circuitName) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
@@ -40,10 +41,14 @@ void generateConstraintGraphForOneCircuit(std::string circuitName) {
         }
     }
 
-    std::vector<ophidian::circuit::Cell> halfLegalCells;
-    for (auto cellId = 0; cellId < legalCells.size() / 2; cellId++) {
-        halfLegalCells.push_back(legalCells.at(cellId));
-    }
+    ophidian::legalization::SeparateCellsIntoBoxes separateCellsIntoBoxes(design);
+    separateCellsIntoBoxes.separateCells(legalCells, fenceArea);
+
+    auto region = separateCellsIntoBoxes.find("region_1");
+    std::vector<ophidian::circuit::Cell> halfLegalCells(separateCellsIntoBoxes.regionCells(region).begin(), separateCellsIntoBoxes.regionCells(region).end());
+//    for (auto cellId = 0; cellId < legalCells.size() / 2; cellId++) {
+//        halfLegalCells.push_back(legalCells.at(cellId));
+//    }
 
     std::cout << "number of legal cells " << halfLegalCells.size() << std::endl;
 
