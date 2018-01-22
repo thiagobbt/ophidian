@@ -35,10 +35,23 @@ float ICCAD2017SolutionQuality::maxMovementScore(){
     return 1 + (maximumCellMovement()/100.0) * fmm();
 }
 
+double ICCAD2017SolutionQuality::totalDisplacement(){
+    double displacement = 0.0;
+    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
+        displacement+= cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+    return displacement;
+}
+
 int ICCAD2017SolutionQuality::maximumCellMovement(){
     double maximumCellMovement = 0;
-    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
-        maximumCellMovement = std::max(maximumCellMovement, cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]));
+    ophidian::circuit::Cell cellID;
+    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++){
+        if(cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]) >= maximumCellMovement){
+        maximumCellMovement = cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+        cellID = *cellIt;
+        }
+    }
+        std::cout<<"Cell Name:"<<mDesign.netlist().name(cellID)<<std::endl;
     return maximumCellMovement / mRowHeight;
 }
 

@@ -8,18 +8,31 @@
 #include <ophidian/legalization/iccad2017SolutionQuality.h>
 #include <string>
 
+#include <chrono>
+
 void runMultirowAbacusICCAD2015(std::string lef, std::string def, std::string verilog, std::string output_def){
     ophidian::designBuilder::ICCAD2015ContestDesignBuilder ICCAD2015DesignBuilder(lef, def, verilog);
     ICCAD2015DesignBuilder.build();
     ophidian::design::Design & design = ICCAD2015DesignBuilder.design();
 
     ophidian::legalization::iccad2017Legalization iccad2017(design);
+
+    ophidian::legalization::ICCAD2017SolutionQuality quality(design);
+
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+//    iccad2017.ancientLegalization();
     iccad2017.legalize();
+    auto t2 = std::chrono::high_resolution_clock::now();
+    std::cout<<"Seconds: "<<std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count()<<std::endl;
 
     if(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()))
         std::cout<<"Circuit is legalized."<<std::endl;
     else
         std::cout<<"Circuit is ilegal."<<std::endl;
+
+    std::cout<<"Total Displacement: "<<quality.totalDisplacement()<<std::endl;
+    std::cout<<"Maximum Cell Movement(lines): "<<quality.maximumCellMovement()<<std::endl;
 
     design.writeDefFile(output_def);
 }
@@ -57,16 +70,27 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
 
 
     ophidian::legalization::iccad2017Legalization iccad2017(design);
-//    iccad2017.legalize();
-    iccad2017.ancientLegalization();
+
+    ophidian::legalization::ICCAD2017SolutionQuality quality(design);
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+//    iccad2017.ancientLegalization();
+    iccad2017.legalize();
+    auto t2 = std::chrono::high_resolution_clock::now();
+    std::cout<<"Seconds: "<<std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count()<<std::endl;
 
     if(ophidian::legalization::legalizationCheck(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences()))
         std::cout<<"Circuit is legalized."<<std::endl;
     else
         std::cout<<"Circuit is ilegal."<<std::endl;
+
+    std::cout<<"Total Displacement: "<<quality.totalDisplacement()<<std::endl;
+    std::cout<<"Maximum Cell Movement(lines): "<<quality.maximumCellMovement()<<std::endl;
+
     design.writeDefFile(output_def);
 }
 
+//ICCAD 2015
 //int main(int argc, char** argv){
 //    if (argc != 9)
 //    {
@@ -81,6 +105,8 @@ void runMultirowAbacusForOneCircuit(std::string tech_lef, std::string cell_lef, 
 //    }
 //}
 
+
+//ICCAD 2017
 int main(int argc, char** argv){
     if (argc != 13)
     {
