@@ -15,6 +15,17 @@ Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & fl
     subrowCells_(subrows_.makeProperty<std::vector<AbacusCell> >(Subrow())),
     cells2Subrow_(abacusCells_),
     abacusPlaceRow_(subrows_, cellInitialLocations_, cellLegalLocations_, cellWidths_, cellWeights_){
+
+}
+
+void Abacus::legalizePlacement()
+{
+    geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
+    util::MultiBox legalizationArea({chipArea});
+    subrows_.createSubrows(legalizationArea);
+
+    std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
+    sortedCells.reserve(netlist_.size(circuit::Cell()));
     for (auto cell_it = netlist_.begin(circuit::Cell()); cell_it != netlist_.end(circuit::Cell()); ++cell_it)
     {
         if (!placement_.isFixed(*cell_it))
@@ -27,20 +38,9 @@ Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & fl
             cellHeights_[abacus_cell] = ophidian::util::micrometer_t(cellGeometry[0].max_corner().y() - cellGeometry[0].min_corner().y());
             cellWeights_[abacus_cell] = std::max((int)netlist_.pins(*cell_it).size(), 1);
             cellName_[abacus_cell] = netlist_.name(*cell_it);
+            sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(*cell_it)));
         }
     }
-}
-
-void Abacus::legalizePlacement()
-{
-    geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
-    util::MultiBox legalizationArea({chipArea});
-    subrows_.createSubrows(legalizationArea);
-
-    std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
-    sortedCells.reserve(netlist_.size(circuit::Cell()));
-    for (auto abacus_cell : abacusCells_)
-        sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(abacusCell2NetlistCell_[abacus_cell])));
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());
 
     legalize(sortedCells);
@@ -54,7 +54,7 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
     unsigned cellIndex = 0;
 
     for (auto cellPair : sortedCells)
-    {        
+    {
         cellIndex++;
 
         auto abacusCell = cellPair.first;
