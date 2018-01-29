@@ -17,6 +17,8 @@ public:
 
     double totalDisplacement();
 
+    double avgDisplacement();
+
     int maximumCellMovement();
 
 private:
@@ -34,6 +36,7 @@ private:
     double hpwl(const ophidian::circuit::Net & net);
 
     ophidian::entity_system::Property<ophidian::circuit::Cell, util::Location> mInitialLocations;
+    ophidian::entity_system::Property<ophidian::circuit::Cell, bool> mInitialFixed;
     ophidian::design::Design & mDesign;
     double mRowHeight;
 };
