@@ -54,7 +54,7 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
     unsigned cellIndex = 0;
 
     for (auto cellPair : sortedCells)
-    {        
+    {
         cellIndex++;
 
         auto abacusCell = cellPair.first;

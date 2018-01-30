@@ -112,7 +112,7 @@ void iccad2017Legalization::ancientLegalization()
 
     //make sure to insert all cells inside chip boundaries
 
-    //alling all cells to nearest site in order to avoid dead rows/cells
+    //alling all cells to nearest site in order to avoid dead rows/collumns
     allignCellsToNearestSite();
 
     //initialize and split kdtree
@@ -124,34 +124,69 @@ void iccad2017Legalization::ancientLegalization()
 //    kdtree.density();
 
     //legalize ancients and fix then
-    std::vector<ophidian::circuit::Cell> ancients;
-    for(auto cellIt : kdtree.ancients())
-        ancients.push_back(*cellIt);
+    std::vector<ophidian::circuit::Cell> ancientsAndFixeds;
+    for(auto cellIt : kdtree.ancients()){
+        ancientsAndFixeds.push_back(*cellIt);
+//        std::cout<<mDesign.netlist().name(*cellIt)<<" ("<<mDesign.placement().cellLocation(*cellIt).x()<<", "<<mDesign.placement().cellLocation(*cellIt).y()<<")"<<" is fixed: "<<mDesign.placement().isFixed(*cellIt)<<std::endl;
+    }
 
     for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
     {
         if (mDesign.placement().isFixed(*cellIt))
-            ancients.push_back(*cellIt);
+            ancientsAndFixeds.push_back(*cellIt);
     }
 
     MultirowAbacus multirowAbacus1(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-    multirowAbacus1.legalizePlacement(ancients, util::MultiBox({geometry::Box(mDesign.floorplan().chipOrigin().toPoint(), mDesign.floorplan().chipUpperRightCorner().toPoint())}));
+    double minX = std::numeric_limits<double>::max(), minY = std::numeric_limits<double>::max(), maxX = std::numeric_limits<double>::min(), maxY = std::numeric_limits<double>::min();
+    for (auto row : mDesign.floorplan().rowsRange()) {
+        auto rowOrigin = mDesign.floorplan().origin(row).toPoint();
+        auto rowUpperCorner = geometry::Point(rowOrigin.x() + mDesign.floorplan().rowUpperRightCorner(row).toPoint().x(), rowOrigin.y() + mDesign.floorplan().rowUpperRightCorner(row).toPoint().y());
+        minX = std::min(minX, std::min(rowOrigin.x(), rowUpperCorner.x()));
+        minY = std::min(minY, std::min(rowOrigin.y(), rowUpperCorner.y()));
+        maxX = std::max(maxX, std::max(rowOrigin.x(), rowUpperCorner.x()));
+        maxY = std::max(maxY, std::max(rowOrigin.y(), rowUpperCorner.y()));
+    }
+    geometry::Point origin(minX, minY);
+    geometry::Point upperCorner(maxX, maxY);
+//    std::cout<<"Legalization area: ("<<origin.x()<<", "<<origin.y()<<") ("<<upperCorner.x()<<", "<<upperCorner.y()<<")"<<std::endl;
+    multirowAbacus1.legalizePlacement(ancientsAndFixeds, util::MultiBox({geometry::Box(origin, upperCorner)}));
 
+    for(auto cellIt : kdtree.ancients()){
+        mDesign.placement().fixLocation(*cellIt, true);
+//        std::cout<<mDesign.netlist().name(*cellIt)<<" ("<<mDesign.placement().cellLocation(*cellIt).x()<<", "<<mDesign.placement().cellLocation(*cellIt).y()<<")"<<" is fixed: "<<mDesign.placement().isFixed(*cellIt)<<std::endl;
+    }
 
-
-    for(auto subTree : kdtree.subTrees())
+    //PARALEL
+    auto tree = kdtree.subTrees();
+#pragma omp parallel for
+    for(auto subTree_it = tree.begin(); subTree_it < tree.end(); subTree_it++)
     {
-        //get ancients and fixed cells
         std::vector<ophidian::circuit::Cell> cellsToLegalize;
-        for(auto ancient : ancients)
+        for(auto ancient : ancientsAndFixeds)
             cellsToLegalize.push_back(ancient);
-        for(auto cell : subTree.first)
+        for(auto cell : subTree_it->first)
             cellsToLegalize.push_back(*cell);
 
         //legalize sub tree
         MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({subTree.second}));
+        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({subTree_it->second}));
     }
+
+    //SEQUENTIAL
+//    for(auto subTree : kdtree.subTrees())
+//    {
+//        std::vector<ophidian::circuit::Cell> cellsToLegalize;
+//        for(auto ancient : ancientsAndFixeds)
+//            cellsToLegalize.push_back(ancient);
+//        for(auto cell : subTree.first)
+//            cellsToLegalize.push_back(*cell);
+
+
+
+//        //legalize sub tree
+//        MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
+//        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({subTree.second}));
+//    }
 
     mFenceRegionIsolation.restoreAllFenceCells();
 

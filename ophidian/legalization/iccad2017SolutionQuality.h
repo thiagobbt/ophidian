@@ -15,6 +15,12 @@ public:
         return avgMovementScore() * maxMovementScore() * (1 +/* hpwlScore()*/ + softConstraintScore()) * (1 + runtimeScore());
     }
 
+    double totalDisplacement();
+
+    double avgDisplacement();
+
+    int maximumCellMovement();
+
 private:
     float avgMovementScore();
     float maxMovementScore();
@@ -26,11 +32,11 @@ private:
         return std::abs(l1.toPoint().y() - l2.toPoint().y()) + std::abs(l1.toPoint().x() - l2.toPoint().x());
     }
 
-    int maximumCellMovement();
     float fmm();
     double hpwl(const ophidian::circuit::Net & net);
 
     ophidian::entity_system::Property<ophidian::circuit::Cell, util::Location> mInitialLocations;
+    ophidian::entity_system::Property<ophidian::circuit::Cell, bool> mInitialFixed;
     ophidian::design::Design & mDesign;
     double mRowHeight;
 };

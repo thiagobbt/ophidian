@@ -5,9 +5,12 @@ namespace ophidian
 namespace legalization
 {
 
-ICCAD2017SolutionQuality::ICCAD2017SolutionQuality(ophidian::design::Design &design):mDesign(design), mInitialLocations(design.netlist().makeProperty<util::Location>(ophidian::circuit::Cell())){
+ICCAD2017SolutionQuality::ICCAD2017SolutionQuality(ophidian::design::Design &design):mDesign(design), mInitialLocations(design.netlist().makeProperty<util::Location>(ophidian::circuit::Cell())), mInitialFixed(design.netlist().makeProperty<bool>(ophidian::circuit::Cell())){
     for(auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); cellIt++)
+    {
+        mInitialFixed[*cellIt] = design.placement().isFixed(*cellIt);
         mInitialLocations[*cellIt] = design.placement().cellLocation(*cellIt);
+    }
     mRowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
 }
 
@@ -35,10 +38,35 @@ float ICCAD2017SolutionQuality::maxMovementScore(){
     return 1 + (maximumCellMovement()/100.0) * fmm();
 }
 
+double ICCAD2017SolutionQuality::totalDisplacement(){
+    double displacement = 0.0;
+    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
+        displacement+= cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+    return displacement;
+}
+
+double ICCAD2017SolutionQuality::avgDisplacement(){
+    double displacement = 0.0;
+    unsigned int amount = 0;
+    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++){
+        if(mInitialFixed[*cellIt] == false){
+            displacement+= cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+            amount++;
+        }
+    }
+    return (displacement/mRowHeight)/amount;
+}
+
 int ICCAD2017SolutionQuality::maximumCellMovement(){
     double maximumCellMovement = 0;
-    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
-        maximumCellMovement = std::max(maximumCellMovement, cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]));
+    ophidian::circuit::Cell cellID;
+    for(auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++){
+        if(cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]) >= maximumCellMovement){
+        maximumCellMovement = cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+        cellID = *cellIt;
+        }
+    }
+        std::cout<<"Cell Name:"<<mDesign.netlist().name(cellID)<<std::endl;
     return maximumCellMovement / mRowHeight;
 }
 

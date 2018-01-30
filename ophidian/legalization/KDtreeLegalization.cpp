@@ -10,7 +10,19 @@ KDtreeLegalization::KDtreeLegalization(design::Design &design) : mDesign(design)
 void KDtreeLegalization::build(){
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
         mKDTree.add(mDesign.placement().cellLocation(*cellIt).toPoint(), std::make_shared<circuit::Cell>(*cellIt));
-    mKDTree.build(geometry::Box(mDesign.floorplan().chipOrigin().toPoint(), mDesign.floorplan().chipUpperRightCorner().toPoint()));
+
+    double minX = std::numeric_limits<double>::max(), minY = std::numeric_limits<double>::max(), maxX = std::numeric_limits<double>::min(), maxY = std::numeric_limits<double>::min();
+    for (auto row : mDesign.floorplan().rowsRange()) {
+        auto rowOrigin = mDesign.floorplan().origin(row).toPoint();
+        auto rowUpperCorner = geometry::Point(rowOrigin.x() + mDesign.floorplan().rowUpperRightCorner(row).toPoint().x(), rowOrigin.y() + mDesign.floorplan().rowUpperRightCorner(row).toPoint().y());
+        minX = std::min(minX, std::min(rowOrigin.x(), rowUpperCorner.x()));
+        minY = std::min(minY, std::min(rowOrigin.y(), rowUpperCorner.y()));
+        maxX = std::max(maxX, std::max(rowOrigin.x(), rowUpperCorner.x()));
+        maxY = std::max(maxY, std::max(rowOrigin.y(), rowUpperCorner.y()));
+    }
+    geometry::Point origin(minX, minY);
+    geometry::Point upperCorner(maxX, maxY);
+    mKDTree.build(geometry::Box(origin, upperCorner));
 }
 
 void KDtreeLegalization::splitTree(unsigned int k){
