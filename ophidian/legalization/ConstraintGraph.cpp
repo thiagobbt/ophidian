@@ -19,6 +19,11 @@ bool LeftComparator::operator()(util::Location &cell1Location, util::Location &c
     return (xDistance > yDistance);
 }
 
+bool LeftComparator::operator()(util::Location &cell1Location, util::Location &cell2Location)
+{
+    return cell1Location.x() < cell2Location.x();
+}
+
 double LeftComparator::arcCost(geometry::Box &cell1Box)
 {
     return cell1Box.max_corner().x() - cell1Box.min_corner().x();
@@ -38,6 +43,11 @@ bool BelowComparator::operator()(util::Location &cell1Location, util::Location &
     double yDistance = cell2Location.toPoint().y() - (cell1Location.toPoint().y() + cell1Height);
 
     return (yDistance >= xDistance);
+}
+
+bool BelowComparator::operator()(util::Location &cell1Location, util::Location &cell2Location)
+{
+    return cell1Location.y() < cell2Location.y();
 }
 
 double BelowComparator::arcCost(geometry::Box &cell1Box)

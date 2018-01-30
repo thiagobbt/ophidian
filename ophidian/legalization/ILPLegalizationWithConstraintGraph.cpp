@@ -55,21 +55,13 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
     mHorizontalConstraintGraph.buildConstraintGraph(cells, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()));
     mVerticalConstraintGraph.buildConstraintGraph(cells, util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
 
-//    mHorizontalConstraintGraph.exportGraph("ilp_hgraph.gv");
-//    mVerticalConstraintGraph.exportGraph("ilp_vgraph.gv");
-
     if (!mHorizontalConstraintGraph.isFeasible() && !mVerticalConstraintGraph.isFeasible()) {
         std::cout << "not feasible to solve!" << std::endl;
         return;
     }
 
     std::cout << "adjusting constraint graphs " << std::endl;
-    if (!mHorizontalConstraintGraph.isFeasible()) {
-        std::cout << "adjusting horizontal graph " << std::endl;
-        adjustConstraintGraph(mHorizontalConstraintGraph, mVerticalConstraintGraph, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()), util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
-    } else if (!mVerticalConstraintGraph.isFeasible()) {
-        adjustConstraintGraph(mVerticalConstraintGraph, mHorizontalConstraintGraph, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()), util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
-    }
+    adjustConstraintGraph(mHorizontalConstraintGraph, mVerticalConstraintGraph, util::micrometer_t(origin.x()), util::micrometer_t(upperRightCorner.x()), util::micrometer_t(origin.y()), util::micrometer_t(upperRightCorner.y()));
 
     if (!mHorizontalConstraintGraph.isFeasible() || !mVerticalConstraintGraph.isFeasible()) {
         std::cout << "could not adjust graph!" << std::endl;
@@ -81,8 +73,14 @@ void ILPLegalizationWithConstraintGraph::legalize(const std::vector<circuit::Cel
     mHorizontalConstraintGraph.removeTransitiveEdges();
     mVerticalConstraintGraph.removeTransitiveEdges();
 
+//    mHorizontalConstraintGraph.exportGraph("horizontal_graph_without_adjusting.gv");
+//    mVerticalConstraintGraph.exportGraph("vertical_graph_without_adjusting.gv");
+
 //    mHorizontalConstraintGraph.exportGraph("horizontal_graph.gv");
 //    mVerticalConstraintGraph.exportGraph("vertical_graph.gv");
+
+//    mHorizontalConstraintGraph.exportGraphToSvg("horizontal_graph_cells.svg", legalizationArea);
+//    mVerticalConstraintGraph.exportGraphToSvg("vertical_graph_cells.svg", legalizationArea);
 
     for (auto cell1 : cells) {
         for (auto cell2 : cells) {

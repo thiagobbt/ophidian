@@ -6,6 +6,7 @@
 #include <sys/time.h>
 
 #include <ophidian/legalization/ILPLegalizationWithConstraintGraph.h>
+#include <ophidian/legalization/SeparateCellsIntoBoxes.h>
 
 void runILPLeaglizationWithConstraintGraphForOneCircuit(std::string circuitName) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
@@ -22,16 +23,39 @@ void runILPLeaglizationWithConstraintGraphForOneCircuit(std::string circuitName)
     auto area = design.fences().area(fence);
     std::vector<ophidian::circuit::Cell> cells(design.fences().members(fence).begin(), design.fences().members(fence).end());
 
+    ophidian::legalization::SeparateCellsIntoBoxes separateCellsIntoBoxes(design);
+    separateCellsIntoBoxes.separateCells(cells, area);
+
+    auto region = separateCellsIntoBoxes.find("region_1");
+    auto regionArea = separateCellsIntoBoxes.area(region);
+    std::vector<ophidian::circuit::Cell> cellsInsideRegion(separateCellsIntoBoxes.regionCells(region).begin(), separateCellsIntoBoxes.regionCells(region).end());
+//    for (auto cellId = 0; cellId < legalCells.size() / 2; cellId++) {
+//        halfLegalCells.push_back(legalCells.at(cellId));
+//    }
+
+//    std::cout << "number of legal cells " << cellsInsideRegion.size() << std::endl;
+//    auto cellArea = 0.0;
+//    for (auto cell : cellsInsideRegion) {
+//        auto cellBox = design.placementMapping().geometry(cell)[0];
+//        cellArea += boost::geometry::area(cellBox);
+//    }
+//    auto freeArea = boost::geometry::area(regionArea);
+//    auto density = cellArea / freeArea;
+
+//    std::cout << "density " << density << std::endl;
+
     std::vector<ophidian::circuit::Cell> halfCells;
     halfCells.reserve(cells.size() / 2);
-    for (auto cellId = 0; cellId < 50; cellId++) {
+    for (auto cellId = 0; cellId < 55; cellId++) {
         halfCells.push_back(cells[cellId]);
     }
 
     std::cout << "legalizing " << std::endl;
-    ilpLegalization.legalize(halfCells, area[1]);
+//    auto regionArea = area[1];
+    ilpLegalization.legalize(halfCells, regionArea);
+//    ilpLegalization.legalize(cellsInsideRegion, regionArea);
 
-////    design.writeDefFile("out.def", halfCells);
+//    design.writeDefFile("out.def", halfCells);
 }
 
 TEST_CASE("run ILP legalization with constraint graph for all 2017 contest circuits", "[iccad2017][ilp_legalization]")

@@ -54,7 +54,9 @@ public:
         return mName2Region[name];
     }
 
-private:
+private:    
+    double distanceBetweenCellAndRegion(circuit::Cell cell, Region region);
+
     bool addToContainedRegion(circuit::Cell cell, double densityThreshold);
 
     bool addToClosestRegion(circuit::Cell cell, double densityThreshold);
@@ -70,7 +72,7 @@ private:
     entity_system::Property<Region, geometry::Box> mAreas;
     entity_system::Property<Region, double> mFreeAreas;
     entity_system::Property<Region, double> mOccupiedAreas;
-    entity_system::Association<Region, circuit::Cell> mRegionCells;
+    entity_system::Aggregation<Region, circuit::Cell> mRegionCells;
 
     RegionRtree mRegionsRtree;
 

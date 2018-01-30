@@ -199,6 +199,16 @@ public:
         return MultiBox(translatedBoxes);
     }
 
+    geometry::MultiPolygon toMultiPolygon() {
+        geometry::MultiPolygon multiPolygon;
+        for (auto box : boxes_) {
+            geometry::MultiPolygon result;
+            boost::geometry::union_(box, multiPolygon, result);
+            multiPolygon = result;
+        }
+        return multiPolygon;
+    }
+
 private:
     std::vector<geometry::Box> boxes_;
 };

@@ -15,7 +15,7 @@ void SeparateCellsIntoBoxes::separateCells(const std::vector<circuit::Cell> &cel
         mAreas[region] = box;
         mFreeAreas[region] = boost::geometry::area(box);
 
-        auto regionName = "region_" + boost::lexical_cast<int>(boxIndex);
+        auto regionName = "region_" + boost::lexical_cast<std::string>(boxIndex++);
         mName2Region[regionName] = region;
 
         mRegionsRtree.insert(RegionRtreeNode(box, region));
@@ -32,6 +32,7 @@ void SeparateCellsIntoBoxes::separateCells(const std::vector<circuit::Cell> &cel
         }
     }
 
+    int cellIndex = 0;
     for (auto cell : cells) {
         if (!mDesign.placement().isFixed(cell)) {
             if (!addToContainedRegion(cell, densityThreshold)) {
@@ -40,7 +41,34 @@ void SeparateCellsIntoBoxes::separateCells(const std::vector<circuit::Cell> &cel
                 }
             }
         }
+        cellIndex++;
     }
+}
+
+double SeparateCellsIntoBoxes::distanceBetweenCellAndRegion(circuit::Cell cell, Region region)
+{
+    auto cellLocation = mDesign.placement().cellLocation(cell).toPoint();
+    auto cellBox = mDesign.placementMapping().geometry(cell)[0];
+    auto cellWidth = cellBox.max_corner().x() - cellBox.min_corner().x();
+    auto cellHeight = cellBox.max_corner().y() - cellBox.min_corner().y();
+
+    auto regionBox = mAreas[region];
+
+    double distanceX = 0;
+    if (cellLocation.x() < regionBox.min_corner().x()) {
+        distanceX = regionBox.min_corner().x() - cellLocation.x();
+    } else if (cellLocation.x() + cellWidth > regionBox.max_corner().x()) {
+        distanceX = cellLocation.x() + cellWidth - regionBox.max_corner().x();
+    }
+
+    double distanceY = 0;
+    if (cellLocation.y() < regionBox.min_corner().y()) {
+        distanceY = regionBox.min_corner().y() - cellLocation.y();
+    } else if (cellLocation.y() + cellHeight > regionBox.max_corner().y()) {
+        distanceY = cellLocation.y() + cellHeight - regionBox.max_corner().y();
+    }
+
+    return distanceX + distanceY;
 }
 
 bool SeparateCellsIntoBoxes::addToContainedRegion(circuit::Cell cell, double densityThreshold)
@@ -63,14 +91,13 @@ bool SeparateCellsIntoBoxes::addToContainedRegion(circuit::Cell cell, double den
 
 bool SeparateCellsIntoBoxes::addToClosestRegion(circuit::Cell cell, double densityThreshold)
 {
-    geometry::ManhattanDistance manhattanDistance;
-
     auto cellLocation = mDesign.placement().cellLocation(cell).toPoint();
     std::vector<std::pair<Region, double>> sortedRegions;
     sortedRegions.reserve(mRegions.size());
     for (auto region : mRegions) {
         auto regionLocation = mAreas[region].min_corner();
-        auto distance = std::abs(regionLocation.x() - cellLocation.x()) + std::abs(regionLocation.y() - cellLocation.y());
+//        auto distance = std::abs(regionLocation.x() - cellLocation.x()) + std::abs(regionLocation.y() - cellLocation.y());
+        auto distance = distanceBetweenCellAndRegion(cell, region);
         sortedRegions.push_back(std::make_pair(region, distance));
     }
 

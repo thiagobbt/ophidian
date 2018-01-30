@@ -17,15 +17,19 @@ public:
 
 private:
     template <class ComparatorType1, class ComparatorType2>
-    void adjustConstraintGraph(ConstraintGraph<ComparatorType1> & graph1, ConstraintGraph<ComparatorType2> & graph2, util::micrometer_t min, util::micrometer_t max, util::micrometer_t orthogonalMin, util::micrometer_t orthogonalMax) {
+    void adjustConstraintGraph(ConstraintGraph<ComparatorType1> & horizontalGraph, ConstraintGraph<ComparatorType2> & verticalGraph, util::micrometer_t horizontalMin, util::micrometer_t horizontalMax, util::micrometer_t verticalMin, util::micrometer_t verticalMax) {
         unsigned iterationIndex = 0;
-        std::cout << "graph 1 worst slack " << graph1.worstSlack() << std::endl;
-        std::cout << "graph 2 worst slack " << graph2.worstSlack() << std::endl;
-        while (!graph1.isFeasible() && iterationIndex < 100) {
-            graph1.adjustGraph(graph2, min, max, orthogonalMin, orthogonalMax);
+        std::cout << "horizontal graph worst slack " << horizontalGraph.worstSlack() << std::endl;
+        std::cout << "vertical graph worst slack " << verticalGraph.worstSlack() << std::endl;
+        while ((!horizontalGraph.isFeasible() || !verticalGraph.isFeasible()) && iterationIndex < 100) {
+            if (!horizontalGraph.isFeasible()) {
+                horizontalGraph.adjustGraph(verticalGraph, horizontalMin, horizontalMax, verticalMin, verticalMax);
+            } else {
+                verticalGraph.adjustGraph(horizontalGraph, verticalMin, verticalMax, horizontalMin, horizontalMax);
+            }
 
-            std::cout << "graph 1 worst slack " << graph1.worstSlack() << std::endl;
-            std::cout << "graph 2 worst slack " << graph2.worstSlack() << std::endl;
+            std::cout << "horizontal graph worst slack " << horizontalGraph.worstSlack() << std::endl;
+            std::cout << "vertical graph worst slack " << verticalGraph.worstSlack() << std::endl;
 
             iterationIndex++;
         }

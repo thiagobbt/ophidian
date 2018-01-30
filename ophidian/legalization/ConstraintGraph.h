@@ -17,12 +17,16 @@ class LeftComparator {
 public:
     bool operator()(util::Location & cell1Location, util::Location & cell2Location, geometry::Box & cell1Box, geometry::Box & cell2Box);
 
+    bool operator()(util::Location & cell1Location, util::Location & cell2Location);
+
     double arcCost(geometry::Box & cell1Box);
 };
 
 class BelowComparator {
 public:
     bool operator()(util::Location & cell1Location, util::Location & cell2Location, geometry::Box & cell1Box, geometry::Box & cell2Box);
+
+    bool operator()(util::Location & cell1Location, util::Location & cell2Location);
 
     double arcCost(geometry::Box & cell1Box);
 };
@@ -176,7 +180,8 @@ public:
 
         ComparatorType comparator;
         auto cell1Box = mDesign.placementMapping().geometry(cell1)[0];
-        mArcCosts[arc] = comparator.arcCost(cell1Box);
+        auto cost = comparator.arcCost(cell1Box);
+        mArcCosts[arc] = cost;
     }
 
     const lemon::ListDigraph & graph() {
@@ -185,6 +190,7 @@ public:
 
     template <typename OrthogonalComparatorType>
     void adjustGraph(ConstraintGraph<OrthogonalComparatorType> & orthogonalGraph, util::micrometer_t min, util::micrometer_t max, util::micrometer_t orthogonalMin, util::micrometer_t orthogonalMax) {
+        OrthogonalComparatorType orthogonalComparator;
         lemon::ListDigraph::ArcMap<double> capacityMap(mGraph);
 
         double bestSlack = std::numeric_limits<double>::max();
@@ -199,7 +205,7 @@ public:
 
             auto sourceCell = mNode2Cell[arcSource];
             auto sourceBox = mDesign.placementMapping().geometry(sourceCell)[0];
-            auto sourceWidth = sourceBox.max_corner().x() - sourceBox.min_corner().x();
+            auto sourceSize = orthogonalComparator.arcCost(sourceBox);
 
             auto targetCell = mNode2Cell[arcTarget];
 
@@ -208,7 +214,7 @@ public:
             auto sourceMaximumOrthogonalLocation = orthogonalGraph.maximumLocation(sourceCell);
             auto targetMaximumOrthogonalLocation = orthogonalGraph.maximumLocation(targetCell);
 
-            double newSourceMaximumLocation = std::min(sourceMaximumOrthogonalLocation, targetMaximumOrthogonalLocation - sourceWidth);
+            double newSourceMaximumLocation = std::min(sourceMaximumOrthogonalLocation, targetMaximumOrthogonalLocation - sourceSize);
             double newSlack = newSourceMaximumLocation - sourceMinimumOrthogonalLocation;
             if (newSlack < 0) {
                 capacityMap[arc] = std::numeric_limits<double>::max();
@@ -233,9 +239,20 @@ public:
                 auto sourceCell = mNode2Cell[arcSource];
                 auto targetCell = mNode2Cell[arcTarget];
 
+
                 if (preflow.minCut(arcSource) != preflow.minCut(arcTarget)) {
+                    auto sourceCellLocation = mDesign.placement().cellLocation(sourceCell);
+                    auto sourceCellBox = mDesign.placementMapping().geometry(sourceCell)[0];
+                    auto targetCellLocation = mDesign.placement().cellLocation(targetCell);
+                    auto targetCellBox = mDesign.placementMapping().geometry(targetCell)[0];
+
+//                    std::cout << "changing edge from node " << mGraph.id(arcSource) << " to " << mGraph.id(arcTarget) << std::endl;
                     mGraph.erase(arc);
-                    orthogonalGraph.addEdge(sourceCell, targetCell);
+                    if (orthogonalComparator(sourceCellLocation, targetCellLocation)) {
+                        orthogonalGraph.addEdge(sourceCell, targetCell);
+                    } else {
+                        orthogonalGraph.addEdge(targetCell, sourceCell);
+                    }
                 }
             }
 
@@ -266,6 +283,37 @@ public:
         }
 
         graphFile << "}" << std::endl;
+    }
+
+    void exportGraphToSvg(std::string fileName, geometry::Box area) {
+        std::ofstream svgFile;
+        svgFile.open (fileName);
+
+        boost::geometry::svg_mapper<ophidian::geometry::Point> mapper(svgFile, 400, 400);
+
+        mapper.add(area);
+        mapper.map(area, "fill-opacity:0.5;fill:none;stroke:rgb(56,48,47);stroke-width:1", 5);
+
+        for (auto node = lemon::ListDigraph::NodeIt(mGraph); node != lemon::INVALID; ++node) {
+            if (node == mSource || node == mSink) {
+                continue;
+            }
+
+            auto cell = mNode2Cell[node];
+
+            auto cellLocation = mDesign.placement().cellLocation(cell).toPoint();
+            auto cellBox = mDesign.placementMapping().geometry(cell)[0];
+            auto cellWidth = cellBox.max_corner().x() - cellBox.min_corner().x();
+            auto cellHeight = cellBox.max_corner().y() - cellBox.min_corner().y();
+
+            mapper.add(cellBox);
+            mapper.map(cellBox, "fill-opacity:0.5;fill:rgb(0,0,150);stroke:rgb(0,0,200);stroke-width:2", 5);
+
+            geometry::Point textLocation(cellLocation.x(), cellLocation.y() + cellHeight / 2);
+            mapper.text(textLocation, boost::lexical_cast<std::string>(mGraph.id(node)), "font-size:3px;fill-opacity:1.0;fill:rgb(56,48,47);stroke:none;stroke-width:1");
+        }
+
+        svgFile.close();
     }
 
 protected:
