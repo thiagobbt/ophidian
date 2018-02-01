@@ -93,7 +93,7 @@ void iccad2017Legalization::allignCellsToNearestSite(){
 
 
             placement::RowAlignment rowAligment = (((int)(nearSiteY / siteHeight) % 2) == 0) ? placement::RowAlignment::EVEN : placement::RowAlignment::ODD;
-            if(cellAlignment == rowAligment)
+            if(cellAlignment == rowAligment || cellAlignment == placement::RowAlignment::NA)
                 mDesign.placement().placeCell(*cellIt, util::Location(nearSiteX, nearSiteY));
             else if(initialCellLocation.toPoint().y() >= nearSiteY+0.5*siteHeight)
                 mDesign.placement().placeCell(*cellIt, util::Location(nearSiteX, nearSiteY+siteHeight));
