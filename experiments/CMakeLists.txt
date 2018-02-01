@@ -5,8 +5,8 @@ set(SOURCE
 #add_library(Catch INTERFACE)
 #target_include_directories(Catch INTERFACE .)
 
-INCLUDE_DIRECTORIES( ${THIRD_PARTY_PATH} ${THIRD_PARTY_PATH}/gurobi702/linux64/include)
-LINK_DIRECTORIES( ${THIRD_PARTY_PATH}/DEF/lib/ ${THIRD_PARTY_PATH}/LEF/lib/ ${THIRD_PARTY_PATH}/gurobi702/linux64/lib)
+INCLUDE_DIRECTORIES( ${THIRD_PARTY_PATH} /opt/gurobi702/linux64/include)
+LINK_DIRECTORIES( ${THIRD_PARTY_PATH}/DEF/lib/ ${THIRD_PARTY_PATH}/LEF/lib/ /opt/gurobi702/linux64/lib)
 
 add_subdirectory(iccad2017)
 

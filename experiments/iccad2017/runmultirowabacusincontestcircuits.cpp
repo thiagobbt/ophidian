@@ -17,11 +17,14 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder ICCAD2017DesignBuilder("./input_files/benchmarks2017/" + circuitName + "/cells_modified.lef",
                                                                                   "./input_files/benchmarks2017/" + circuitName + "/tech.lef",
-                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def");
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placed.def",
+                                                                                  "./input_files/benchmarks2017/" + circuitName + "/placement.constraints");
     ICCAD2017DesignBuilder.build();
 
     ophidian::design::Design & design = ICCAD2017DesignBuilder.design();
 
+    std::ofstream displacementFile;
+    displacementFile.open("./" + circuitName + "_displacement.csv");
 
     unsigned movableCells = 0;
     unsigned fixedCells = 0;
@@ -75,6 +78,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
             auto cellDisplacement = std::abs(units::unit_cast<double>(initialLocations[*cellIt].x() - currentLocation.x())) +
                                     std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
             totalDisplacement = totalDisplacement + ophidian::util::micrometer_t(cellDisplacement);
+            displacementFile << ophidian::util::micrometer_t(cellDisplacement) << std::endl;
             numberOfMovableCells++;
 
             maxDisplacement = std::max(maxDisplacement, cellDisplacement);
@@ -89,6 +93,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
             }
         }
     }
+
+    displacementFile.close();
 
     std::cout << "max displacement " << maxDisplacement << std::endl;
 
