@@ -22,7 +22,7 @@ under the License.
 namespace ophidian {
 namespace parser {
 
-std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const throw(InexistentFile)
+std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const
 {
     auto def = std::make_unique<Def>();
     defrInit();
@@ -138,7 +138,7 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const thr
     if(ifp){
         auto res = defrRead(ifp, filename.c_str(), def.get(), true);
     } else {
-        throw InexistentFile();
+        throw InexistentFile(filename);
     }
 
     fclose(ifp);
