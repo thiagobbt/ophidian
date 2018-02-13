@@ -30,30 +30,23 @@ int main(int argc, char** argv){
 
 
     ophidian::legalization::KDtreeLegalization kdtree(design);
-    kdtree.build();
+
+    ophidian::util::MultiBox rows;
+    for(auto rowIt = design.floorplan().rowsRange().begin(); rowIt != design.floorplan().rowsRange().end(); rowIt++){
+        auto rowOrigin = design.floorplan().origin(*rowIt);
+        auto rowSize = design.floorplan().rowUpperRightCorner(*rowIt);
+        auto rowUpperRightCorner = ophidian::geometry::Point(rowOrigin.toPoint().x() + rowSize.toPoint().x(), rowOrigin.toPoint().y() + rowSize.toPoint().y());
+        rows.push_back(ophidian::geometry::Box(rowOrigin.toPoint(), rowUpperRightCorner));
+    }
+    ophidian::geometry::Box placeableArea;
+    boost::geometry::envelope(rows.toMultiPolygon(), placeableArea);
+    kdtree.build(placeableArea);
 
     std::vector<sf::RectangleShape> boxes;
     boxes.reserve(design.netlist().size(ophidian::circuit::Cell()));
 
-    unsigned int i = 4;
-    kdtree.splitTree(i);
-
-    //add partitions rectangles to draw
-    for(auto subTree : kdtree.subTrees()){
-        auto partitionBox = subTree.second;
-        sf::RectangleShape shape(sf::Vector2f(partitionBox.max_corner().x() - partitionBox.min_corner().x(),
-                                              partitionBox.max_corner().y() - partitionBox.min_corner().y()));
-        shape.setFillColor(sf::Color(std::rand() % 255, std::rand() % 255, std::rand() % 255));
-
-        auto height = partitionBox.max_corner().y() - partitionBox.min_corner().y();
-
-        auto partitionLocation = partitionBox.min_corner();
-        shape.setPosition(partitionLocation.x()*scaleFactor.x(), windowSize.y()-(partitionLocation.y() + height)*scaleFactor.y());
-
-        shape.setScale(scaleFactor.x(), scaleFactor.y());
-
-        boxes.push_back(shape);
-    }
+//    unsigned int i = 4;
+//    kdtree.splitTree(i);
 
     //add cells box to draw
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); cellIt++) {
@@ -89,7 +82,6 @@ int main(int argc, char** argv){
 
         window.display();
     }
-
     return 0;
 }
 

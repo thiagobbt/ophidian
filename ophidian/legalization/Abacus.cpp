@@ -46,7 +46,7 @@ void Abacus::legalizePlacement()
     legalize(sortedCells);
 }
 
-void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells)
+bool Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells)
 {
     util::micrometer_t siteWidth = floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).x();
     util::micrometer_t chipTop = floorplan_.chipUpperRightCorner().y();
@@ -115,7 +115,8 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             subrows_.capacity(bestSubrow, subrows_.capacity(bestSubrow) - cellWidths_[abacusCell]);
 
             cells2Subrow_[abacusCell] = bestSubrow;
-        }
+        }else
+            return false;
     }
 
 //    double averageCellsPerSubrow = 0;
@@ -142,6 +143,7 @@ void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
             placement_.placeCell(netlistCell, cellLocation);
         }
     }
+    return true;
 }
 
 } // namespace legalization

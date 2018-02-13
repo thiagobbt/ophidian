@@ -18,7 +18,7 @@ void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea){
 }
 
 void KDtreeLegalization::legalize(){
-    splitTree(4);
+    splitTree(3);
 
     //legalize ancients and fix then
     std::vector<ophidian::circuit::Cell> ancientsAndFixeds;

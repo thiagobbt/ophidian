@@ -9,7 +9,7 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea) {
+bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea) {
     subrows_.createSubrows(legalizationArea, rowsPerCell, alignment);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
@@ -28,16 +28,18 @@ void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
         sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(cell)));
     }
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());
-    legalize(sortedCells);
+    if(legalize(sortedCells) == false)
+        return false;
     for (auto cell : cellsForOneHeight)
     {
         placement_.fixLocation(cell, true);
     }
 
     abacusCells_.clear();
+    return true;
 }
 
-void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
+bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
 {
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(netlist_.makeProperty<bool>(ophidian::circuit::Cell()));
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();
@@ -73,7 +75,8 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
         if(std::fmod((cellHeight/siteHeight), 2.0))
         {
             //Odd-sized cells -> place in all rows
-            legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea);
+            if(legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea) == false)
+                return false;
         }
         else {
             //Even-sized cells -> place in specific rows
@@ -92,8 +95,10 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
                     cellsOdd.push_back(cell);
                 }
             }
-            legalizeSubrows(cellsEven, rowsPerCell, placement::RowAlignment::EVEN, legalizationArea);
-            legalizeSubrows(cellsOdd, rowsPerCell, placement::RowAlignment::ODD, legalizationArea);
+            if(legalizeSubrows(cellsEven, rowsPerCell, placement::RowAlignment::EVEN, legalizationArea) == false)
+                return false;
+            if(legalizeSubrows(cellsOdd, rowsPerCell, placement::RowAlignment::ODD, legalizationArea) == false)
+                return false;
         }
         rowsPerCell--;
 //        rowsPerCell++;
@@ -103,6 +108,7 @@ void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
     {
         placement_.fixLocation(cell, initialFixed[cell]);
     }
+    return true;
 }
 } // namespace legalization
 } // namespace ophidian
