@@ -15,10 +15,10 @@ const std::vector<std::shared_ptr<Data>> LegalizationKDtree::ancientNodes(unsign
     return ancients;
 }
 
-const std::vector<std::pair<std::vector<std::shared_ptr<Data>>, LegalizationKDtree::Range>> LegalizationKDtree::subTrees(unsigned int k) const{
-    std::vector<std::pair<std::vector<std::shared_ptr<Data>>, Range>> subtrees;
-    subTrees(subtrees, mRoot, k);
-    return subtrees;
+const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::partitions(unsigned int k) const{
+    std::vector<Partition> result;
+    partitions(result, mRoot, k);
+    return result;
 }
 
 void LegalizationKDtree::ancientNodes(std::vector<std::shared_ptr<Data>> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
@@ -32,18 +32,21 @@ void LegalizationKDtree::ancientNodes(std::vector<std::shared_ptr<Data>> & resul
     }
 }
 
-void LegalizationKDtree::subTrees(std::vector<std::pair<std::vector<std::shared_ptr<Data>>, Range>> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
+void LegalizationKDtree::partitions(std::vector<Partition> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
     if(k > 0){
         --k;
         if(currentNode->left.get() != NULL)
-            subTrees(result, currentNode->left, k);
+            partitions(result, currentNode->left, k);
         if(currentNode->right.get() != NULL)
-            subTrees(result, currentNode->right, k);
+            partitions(result, currentNode->right, k);
     }else{
-        std::vector<std::shared_ptr<Data>> subtree;
-        subtree.push_back(currentNode->data);
-        report_subtree(subtree, currentNode);
-        result.push_back(std::make_pair(subtree, currentNode->range));
+        std::vector<std::shared_ptr<Data>> elements;
+        elements.push_back(currentNode->data);
+        report_subtree(elements, currentNode);
+        Partition partition;
+        partition.elements = elements;
+        partition.range = currentNode->range;
+        result.push_back(partition);
     }
 }
 

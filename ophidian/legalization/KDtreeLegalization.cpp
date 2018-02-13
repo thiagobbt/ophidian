@@ -17,7 +17,7 @@ void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea){
     mKDTree.build(legalizationArea);
 
     mAncients = mKDTree.ancientNodes(3);
-    mSubTrees = mKDTree.subTrees(3);
+    mPartitions = mKDTree.partitions(3);
 }
 
 void KDtreeLegalization::legalize(){
@@ -38,50 +38,50 @@ void KDtreeLegalization::legalize(){
 
     //PARALEL
 #pragma omp parallel for
-    for(auto subTree_it = mSubTrees.begin(); subTree_it < mSubTrees.end(); subTree_it++)
+    for(auto partition_it = mPartitions.begin(); partition_it < mPartitions.end(); partition_it++)
     {
         std::vector<ophidian::circuit::Cell> cellsToLegalize;
         for(auto ancient : ancientsAndFixeds)
             cellsToLegalize.push_back(ancient);
-        for(auto cell : subTree_it->first)
+        for(auto cell : partition_it->elements)
             cellsToLegalize.push_back(*cell);
 
-        //legalize sub tree
+        //legalize partition
         MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({subTree_it->second}));
+        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition_it->range}));
     }
 
     //SEQUENTIAL
-//    for(auto subTree : mSubTrees)
+//    for(auto partition : mPartitions)
 //    {
 //        std::vector<ophidian::circuit::Cell> cellsToLegalize;
 //        for(auto ancient : ancientsAndFixeds)
 //            cellsToLegalize.push_back(ancient);
-//        for(auto cell : subTree.first)
+//        for(auto cell : partition.elements)
 //            cellsToLegalize.push_back(*cell);
 
 
 
-//        //legalize sub tree
+//        //legalize partition
 //        MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-//        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({subTree.second}));
+//        multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition.range}));
 //    }
 }
 
 void KDtreeLegalization::density() const{
-    for(auto partition : mSubTrees){
+    for(auto partition : mPartitions){
         double total_cell_area = 0.0;
         unsigned int cells =0;
         for(auto ancient : mAncients){
             auto ancient_location = mDesign.placement().cellLocation(*ancient);
-            if(boost::geometry::within(ancient_location.toPoint(), partition.second)){
+            if(boost::geometry::within(ancient_location.toPoint(), partition.range)){
                 total_cell_area+= boost::geometry::area(mDesign.placementMapping().geometry(*ancient)[0]);
                 cells++;
             }
         }
-        for(auto partition_cell : partition.first)
+        for(auto partition_cell : partition.elements)
             total_cell_area+= boost::geometry::area(mDesign.placementMapping().geometry(*partition_cell)[0]);
-        std::cout<<"Number of cells: "<<(cells+partition.first.size())<<" Density: "<<total_cell_area/boost::geometry::area(partition.second)<<std::endl;
+        std::cout<<"Number of cells: "<<(cells+partition.elements.size())<<" Density: "<<total_cell_area/boost::geometry::area(partition.range)<<std::endl;
     }
 }
 

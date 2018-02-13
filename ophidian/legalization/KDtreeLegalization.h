@@ -26,7 +26,7 @@ private:
     LegalizationKDtree mKDTree;
     util::MultiBox mPlaceableArea;
     std::vector<std::shared_ptr<ophidian::circuit::Cell>> mAncients;
-    std::vector<std::pair<std::vector<std::shared_ptr<ophidian::circuit::Cell>>, geometry::Box>> mSubTrees;
+    std::vector<LegalizationKDtree::Partition> mPartitions;
 };
 }
 }
