@@ -29,17 +29,18 @@ namespace util {
 
 template <typename Data>
 class KDtree{
+public:
     using Point = ophidian::geometry::Point;
     using Range = ophidian::geometry::Box;
     struct Node {
-        std::shared_ptr<Node> left, right;
+        std::shared_ptr<Node> left, right, parent;
         int axis;
         const Point split;
         const std::shared_ptr<Data> data;
         Range range;
         Node(const Point g, const std::shared_ptr<Data> & d) : axis(0), split(g), data(d){}
     };
-public:
+
     void reserve(const std::size_t size){
         mNodes.reserve(size);
     }
@@ -63,20 +64,8 @@ public:
         return result;
     }
 
-    const std::vector<std::shared_ptr<Data>> ancientNodes(unsigned int k) const {
-        std::vector<std::shared_ptr<Data>> ancients;
-        ancientNodes(ancients, mRoot, k);
-        return ancients;
-    }
-
-    const std::vector<std::pair<std::vector<std::shared_ptr<Data>>, Range>> subTrees(unsigned int k) const{
-        std::vector<std::pair<std::vector<std::shared_ptr<Data>>, Range>> subtrees;
-        subTrees(subtrees, mRoot, k);
-        return subtrees;
-    }
-
     KDtree() {}
-private:
+protected:
     std::vector<std::shared_ptr<Node>> mNodes;
     std::shared_ptr<Node> mRoot;
 
@@ -106,7 +95,11 @@ private:
         std::vector<std::shared_ptr<Node>> left(nodes.begin(), nodes.begin() + median);
         std::vector<std::shared_ptr<Node>> right(nodes.begin() + median + 1, nodes.end());
         node->left = build(left, depth + 1, leftRange);
+        if(node->left.get() != NULL)
+            node->left->parent = node;
         node->right = build(right, depth + 1, rightRange);
+        if(node->right.get() != NULL)
+            node->right->parent = node;
         return node;
     }
 
@@ -134,32 +127,6 @@ private:
                 if(currentNode->right.get() != NULL)
                     range_search(result, currentNode->right, searchRange);
             }
-        }
-    }
-
-    void ancientNodes(std::vector<std::shared_ptr<Data>> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
-        if(k > 0){
-            --k;
-            result.push_back(currentNode->data);
-            if(currentNode->left.get() != NULL)
-                ancientNodes(result, currentNode->left, k);
-            if(currentNode->right.get() != NULL)
-                ancientNodes(result, currentNode->right, k);
-        }
-    }
-
-    void subTrees(std::vector<std::pair<std::vector<std::shared_ptr<Data>>, Range>> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
-        if(k > 0){
-            --k;
-            if(currentNode->left.get() != NULL)
-                subTrees(result, currentNode->left, k);
-            if(currentNode->right.get() != NULL)
-                subTrees(result, currentNode->right, k);
-        }else{
-            std::vector<std::shared_ptr<Data>> subtree;
-            subtree.push_back(currentNode->data);
-            report_subtree(subtree, currentNode);
-            result.push_back(std::make_pair(subtree, currentNode->range));
         }
     }
 

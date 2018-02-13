@@ -15,11 +15,12 @@ void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea){
 
     mPlaceableArea = util::MultiBox({legalizationArea});
     mKDTree.build(legalizationArea);
+
+    mAncients = mKDTree.ancientNodes(3);
+    mSubTrees = mKDTree.subTrees(3);
 }
 
 void KDtreeLegalization::legalize(){
-    splitTree(3);
-
     //legalize ancients and fix then
     std::vector<ophidian::circuit::Cell> ancientsAndFixeds;
     for(auto cellIt : mAncients)
@@ -82,11 +83,6 @@ void KDtreeLegalization::density() const{
             total_cell_area+= boost::geometry::area(mDesign.placementMapping().geometry(*partition_cell)[0]);
         std::cout<<"Number of cells: "<<(cells+partition.first.size())<<" Density: "<<total_cell_area/boost::geometry::area(partition.second)<<std::endl;
     }
-}
-
-void KDtreeLegalization::splitTree(unsigned int k){
-    mAncients = mKDTree.ancientNodes(k);
-    mSubTrees = mKDTree.subTrees(k);
 }
 
 void KDtreeLegalization::allignCellsToNearestSite(){

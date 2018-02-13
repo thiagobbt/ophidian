@@ -5,8 +5,7 @@
 #include <ophidian/legalization/Subrows.h>
 #include <ophidian/geometry/Models.h>
 #include <ophidian/legalization/MultirowAbacus.h>
-
-#include <ophidian/util/KDtree.h>
+#include <ophidian/legalization/LegalizationKDtree.h>
 
 namespace ophidian {
 namespace legalization {
@@ -21,17 +20,15 @@ public:
     void density() const;
 
 private:
-    void splitTree(unsigned int k);
     void allignCellsToNearestSite();
 
     design::Design & mDesign;
-    util::KDtree<ophidian::circuit::Cell> mKDTree;
+    LegalizationKDtree mKDTree;
     util::MultiBox mPlaceableArea;
     std::vector<std::shared_ptr<ophidian::circuit::Cell>> mAncients;
     std::vector<std::pair<std::vector<std::shared_ptr<ophidian::circuit::Cell>>, geometry::Box>> mSubTrees;
 };
 }
 }
-
 
 #endif // KDTREELEGALIZATION_H

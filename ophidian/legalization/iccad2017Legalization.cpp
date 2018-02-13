@@ -89,9 +89,9 @@ void iccad2017Legalization::kdtreeLegalization()
 
     mFenceRegionIsolation.isolateAllFenceCells();
 
-    KDtreeLegalization kdtree(mDesign);
-    kdtree.build(mPlaceableArea);
-    kdtree.legalize();
+    KDtreeLegalization kdtreeLegalization(mDesign);
+    kdtreeLegalization.build(mPlaceableArea);
+    kdtreeLegalization.legalize();
 
     restoreFloorplan();
 
