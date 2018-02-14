@@ -21,6 +21,28 @@ const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::partitions(
     return result;
 }
 
+const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::parentPartitions(std::vector<std::shared_ptr<Node>> nodes) const{
+    std::vector<Partition> result;
+    std::vector<std::shared_ptr<Node>> visitedParents;
+
+    for(auto node : nodes)
+    {
+        bool visited = false;
+        for(auto visitedNode : visitedParents)
+            if(boost::geometry::equals(visitedNode->range, node->range)){
+                visited = true;
+                break;
+            }
+        if(visited == false)
+        {
+            visitedParents.push_back(node);
+            Partition partition = createPartition(node);
+            result.push_back(partition);
+        }
+    }
+    return result;
+}
+
 void LegalizationKDtree::ancientNodes(std::vector<std::shared_ptr<Data>> & result, const std::shared_ptr<Node> currentNode, unsigned int k) const{
     if(k > 0){
         --k;
@@ -40,14 +62,20 @@ void LegalizationKDtree::partitions(std::vector<Partition> & result, const std::
         if(currentNode->right.get() != NULL)
             partitions(result, currentNode->right, k);
     }else{
-        std::vector<std::shared_ptr<Data>> elements;
-        elements.push_back(currentNode->data);
-        report_subtree(elements, currentNode);
-        Partition partition;
-        partition.elements = elements;
-        partition.range = currentNode->range;
+        Partition partition = createPartition(currentNode);
         result.push_back(partition);
     }
+}
+
+const LegalizationKDtree::Partition LegalizationKDtree::createPartition(const std::shared_ptr<Node> node) const{
+    std::vector<std::shared_ptr<Data>> elements;
+    elements.push_back(node->data);
+    report_subtree(elements, node);
+    Partition partition;
+    partition.elements = elements;
+    partition.range = node->range;
+    partition.root = node;
+    return partition;
 }
 
 } // namespace legalization
