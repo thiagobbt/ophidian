@@ -36,40 +36,39 @@ void KDtreeLegalization::legalize(){
     for(auto cellIt : mAncients)
         mDesign.placement().fixLocation(*cellIt, true);
 
-    bool legalized;
-    while(!legalized)
+    bool legalized = false;
+    while(legalized == false)
     {
-    //PARALEL
-//    #pragma omp parallel for
-//        for(auto partition_it = mPartitions.begin(); partition_it < mPartitions.end(); partition_it++)
-//        {
-//            std::vector<ophidian::circuit::Cell> cellsToLegalize;
-//            for(auto ancient : ancientsAndFixeds)
-//                cellsToLegalize.push_back(ancient);
-//            for(auto cell : partition_it->elements)
-//                cellsToLegalize.push_back(*cell);
-
-//            //legalize partition
-//            MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-//            partition_it->legalized = multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition_it->range}));
-
-//        }
-
-
-    //SEQUENTIAL
-        for(auto & partition : mPartitions)
+        //PARALEL
+        #pragma omp parallel for
+        for(auto partition_it = mPartitions.begin(); partition_it < mPartitions.end(); partition_it++)
         {
             std::vector<ophidian::circuit::Cell> cellsToLegalize;
             for(auto ancient : ancientsAndFixeds)
                 cellsToLegalize.push_back(ancient);
-            for(auto cell : partition.elements)
+            for(auto cell : partition_it->elements)
                 cellsToLegalize.push_back(*cell);
 
             //legalize partition
             MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-            partition.legalized = multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition.range}));
+            partition_it->legalized = multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition_it->range}));
         }
 
+        //SEQUENTIAL
+//        for(auto & partition : mPartitions)
+//        {
+//            std::vector<ophidian::circuit::Cell> cellsToLegalize;
+//            for(auto ancient : ancientsAndFixeds)
+//                cellsToLegalize.push_back(ancient);
+//            for(auto cell : partition.elements)
+//                cellsToLegalize.push_back(*cell);
+
+//            //legalize partition
+//            MultirowAbacus multirowAbacus(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
+//            partition.legalized = multirowAbacus.legalizePlacement(cellsToLegalize, util::MultiBox({partition.range}));
+//        }
+
+        //get unlegalized partitions
         legalized = true;
         std::vector<std::shared_ptr<LegalizationKDtree::Node>> unlegalizedPartitions;
         for(auto & partition : mPartitions)
@@ -78,12 +77,19 @@ void KDtreeLegalization::legalize(){
                 unlegalizedPartitions.push_back(partition.root->parent);
             }
 
+        //get unlegalized parent's partition
         if(legalized == false)
         {
-            mPartitions.clear();
-            mPartitions = mKDTree.parentPartitions(unlegalizedPartitions);
+            //check if node is root of KDtree.
+            if(unlegalizedPartitions.at(0)->parent.get() == NULL)
+            {
+                legalized = true;
+                std::cout<<"WARNING: Circuit is ILEGAL, the legalization could not be possible even for the whole circuit partition."<<std::endl;
+            }else{
+                mPartitions.clear();
+                mPartitions = mKDTree.parentPartitions(unlegalizedPartitions);
+            }
         }
-        //TODO: add worst case when unlegalizedPartitions.size() == 1 and partition.node == mKDtree.root print a warning and exit while.
     }
 }
 
