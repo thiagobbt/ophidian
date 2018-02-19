@@ -13,6 +13,13 @@
 #include <ophidian/design/Design.h>
 #include <ophidian/geometry/Models.h>
 
+#define USEDEBUG
+#ifdef USEDEBUG
+#define debug(x) std::cout << x
+#else
+#define debug(x)
+#endif
+
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 namespace op = ophidian;
@@ -54,38 +61,44 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y())
     );
 
+    // Get r-tree node for the cell
     std::vector<rnode> possibleCells;
     tmpTree.query(bgi::covered_by(originalBox), std::back_inserter(possibleCells));
-    std::cout << "Found " << possibleCells.size() << " possible nodes for cell" << std::endl;
+    debug("Found " << possibleCells.size() << " possible nodes for cell" << std::endl);
 
     auto cell_node_it = std::find_if(possibleCells.begin(), possibleCells.end(), [&cell](const rnode &n) {
         return std::get<1>(n) == cell;
     });
 
     if (cell_node_it == possibleCells.end()) {
-        std::cout << "Error: Original cell was not found." << std::endl;
+        debug("Error: Original cell was not found." << std::endl);
         return false;
     }
 
     rnode cell_node = *cell_node_it;
 
-
-    // TODO: Check if cell fits in target rows
+    units::length::micrometer_t chipMinX = design.floorplan().chipOrigin().x();
+    units::length::micrometer_t chipMaxX = design.floorplan().chipUpperRightCorner().x();
 
     tmpTree.remove(cell_node);
 
+    // TODO: Check if cell fits in target rows
+
+    // Fill a vector with all nodes that overlap the target box
     std::vector<rnode> overlaps_target;
     tmpTree.query(bgi::intersects(targetBox) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, targetBox); }), std::back_inserter(overlaps_target));
-    std::cout << "Overlaps: " << overlaps_target.size() << std::endl;
+    debug("Overlaps: " << overlaps_target.size() << std::endl);
 
+    // Vector to store all the movements to be realized or discarded if the placement fails
     std::vector<rnode> movements;
     rnode new_cell_node = std::make_pair(targetBox, cell);
     movements.push_back(new_cell_node);
 
     tmpTree.insert(new_cell_node);
-    std::cout << "Placed cell (" << design.netlist().name(cell) << ") at box {(" << targetBox.min_corner().x() << ", " << targetBox.min_corner().y() << "), ("
-        << targetBox.max_corner().x() << ", " << targetBox.max_corner().y() << ")}" << std::endl;
+    debug("Placed cell (" << design.netlist().name(cell) << ") at box {(" << targetBox.min_corner().x() << ", " << targetBox.min_corner().y() << "), ("
+        << targetBox.max_corner().x() << ", " << targetBox.max_corner().y() << ")}" << std::endl);
 
+    // Vector with pairs of overlapping cells
     std::vector<std::pair<rnode, rnode>> overlaps;
 
     for (auto & n : overlaps_target) {
@@ -102,24 +115,24 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         auto node_i = std::get<0>(overlap);
         auto node_j = std::get<1>(overlap);
 
-        bool invertCondition = false;
+        // if (design.placement().isFixed(std::get<1>(node_j))) {
+        //     debug("Cell j can't be moved, swapping i and j" << std::endl);
 
-        if (design.placement().isFixed(std::get<1>(node_j))) {
-            std::cout << "Cell j is fixed, swapping i and j" << std::endl;
-            auto tmp = node_i;
-            node_i = node_j;
-            node_j = tmp;
-            touchFixedCell = true;
-            invertCondition = true;
-        } else {
-            touchFixedCell = false;
-        }
+        //     auto tmp = node_i;
+        //     node_i = node_j;
+        //     node_j = tmp;
+
+        //     touchFixedCell = true;
+        //     invertCondition = true;
+        // } else {
+        //     touchFixedCell = false;
+        // }
 
         auto i_name = design.netlist().name(std::get<1>(node_i));
         auto j_name = design.netlist().name(std::get<1>(node_j));
 
-        std::cout << std::endl;
-        std::cout << "Treating {" << i_name << ", " << j_name << "} overlap" << std::endl;
+        debug(std::endl);
+        debug("Treating {" << i_name << ", " << j_name << "} overlap" << std::endl);
 
         rnode new_j;
 
@@ -130,25 +143,23 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         auto min_corner_j = std::get<0>(node_j).min_corner();
         auto max_corner_j = std::get<0>(node_j).max_corner();
         auto width_j = max_corner_j.x() - min_corner_j.x();
-        auto width_j_um = units::length::micrometer_t(width_j);
 
         tmpTree.remove(node_j);
         box target_j;
 
-        units::length::micrometer_t chipMinX = design.floorplan().chipOrigin().x();
-        units::length::micrometer_t chipMaxX = design.floorplan().chipUpperRightCorner().x();
-
-        bool moveLeft = (min_corner_j.x() + width_j/2) <= (min_corner_i.x() + width_i/2);
-        if (invertCondition) moveLeft = !moveLeft;
+        // bool moveLeft = (min_corner_j.x() + width_j/2) <= (min_corner_i.x() + width_i/2);
+        bool moveLeft = (min_corner_j.x() + width_j/2) <= (cell_location_point.x() + cell_geometry.max_corner().x());
 
         if (moveLeft) {
-            std::cout << "left " << width_j << std::endl;
+            debug("left " << width_j << std::endl);
             if ((min_corner_i.x() - width_j) < chipMinX.to<double>()) {
-                target_j = box(
-                    point(chipMinX.to<double>(), min_corner_j.y()),
-                    point(chipMinX.to<double>() + width_j, max_corner_j.y())
-                );
-                touchCircuitEdge = true;
+                // target_j = box(
+                //     point(chipMinX.to<double>(), min_corner_j.y()),
+                //     point(chipMinX.to<double>() + width_j, max_corner_j.y())
+                // );
+                // touchCircuitEdge = true;
+                debug("Placement failed" << std::endl);
+                return false;
             } else {
                 target_j = box(
                     point(min_corner_i.x() - width_j, min_corner_j.y()),
@@ -157,13 +168,15 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
                 touchCircuitEdge = false;
             }
         } else {
-            std::cout << "right " << width_j<< std::endl;
+            debug("right " << width_j<< std::endl);
             if ((max_corner_i.x() + width_j) > chipMaxX.to<double>()) {
-                target_j = box(
-                    point(chipMaxX.to<double>() - width_j, min_corner_j.y()),
-                    point(chipMaxX.to<double>(), max_corner_j.y())
-                );
-                touchCircuitEdge = true;
+                // target_j = box(
+                //     point(chipMaxX.to<double>() - width_j, min_corner_j.y()),
+                //     point(chipMaxX.to<double>(), max_corner_j.y())
+                // );
+                // touchCircuitEdge = true;
+                debug("Placement failed" << std::endl);
+                return false;
             } else {
                 target_j = box(
                     point(max_corner_i.x(), min_corner_j.y()),
@@ -178,17 +191,17 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
 
         std::vector<rnode> overlaps_new_j;
         tmpTree.query(bgi::intersects(target_j) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, target_j); }), std::back_inserter(overlaps_new_j));
-        std::cout << "Found " << overlaps_new_j.size() << " new overlaps: " << std::endl;
+        debug("Found " << overlaps_new_j.size() << " new overlaps: " << std::endl);
         for (auto & n : overlaps_new_j) {
             if (std::get<1>(new_j) == std::get<1>(n)) continue;
             overlaps.push_back(make_pair(new_j, n));
-            std::cout << "    " << "{" << j_name << ", " << design.netlist().name(std::get<1>(n)) << "}" << std::endl;
+            debug("    " << "{" << j_name << ", " << design.netlist().name(std::get<1>(n)) << "}" << std::endl);
         }
 
         tmpTree.insert(new_j);
     }
 
-    std::cout << "Finished treating overlaps" << std::endl;
+    debug("Finished treating overlaps" << std::endl);
 
     for (auto & n : movements) {
         double cellX = std::get<0>(n).min_corner().x();
@@ -197,17 +210,17 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         design.placement().placeCell(std::get<1>(n), cellLocation);
     }
 
-    // std::cout << std::endl << "Tree after placement: " << std::endl;
+    // debug(std::endl << "Tree after placement: " << std::endl);
     // std::vector<rnode> a;
     // tmpTree.query(bgi::nearest(point(0,0), 5), std::back_inserter(a));
     // for (auto & n : a) {
     //     std::string name = netlist.name(std::get<1>(n));
     //     auto min_corner = std::get<0>(n).min_corner();
     //     auto max_corner = std::get<0>(n).max_corner();
-    //     std::cout << name << ": {(" << min_corner.x() << ", " << min_corner.y() << "), ("
-    //         << max_corner.x() << ", " << max_corner.y() << ")}" << std::endl;
+    //     debug(name << ": {(" << min_corner.x() << ", " << min_corner.y() << "), ("
+    //         << max_corner.x() << ", " << max_corner.y() << ")}" << std::endl);
     // }
-    // std::cout << std::endl << std::endl;
+    // debug(std::endl << std::endl);
 
     rtree = tmpTree;
 
@@ -251,13 +264,37 @@ int main(int argc, char** argv) {
 
     design.setInputDefPath(def_path);
 
-    auto u1 = netlist.find(opc::Cell(), "u1");
-    auto u2 = netlist.find(opc::Cell(), "u2");
-    auto u3 = netlist.find(opc::Cell(), "u3");
-    auto u4 = netlist.find(opc::Cell(), "u4");
+    // auto a_area = box(point(0, 76600), point(6000, 89800));
+    // std::vector<rnode> a_area_nodes;
+    // rtree.query(bgi::intersects(a_area) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, a_area); }), std::back_inserter(a_area_nodes));
+    // std::cout << "Found " << a_area_nodes.size() << " nodes" << std::endl;
+
+    // // int max_row = 89600;
+    // // int row_num = 0;
+    // int counter = 0;
+    // int fail_counter = 0;
+    // std::string dummy;
+    // for (auto & node : a_area_nodes) {
+    //     // int target_row = max_row - (row_num * 200);
+    //     // row_num = (row_num + 1) % 71;
+
+    //     // moveCell(design, std::get<1>(node), point(3000, target_row));
+    //     if (!moveCell(design, std::get<1>(node), point(36460, 0))) fail_counter++;
+    //     counter++;
+    //     if (fail_counter > 0) break;
+    //     if (counter % 10 == 0) {
+    //         std::cout << "Moved " << counter << " cells (" << fail_counter << " failed)" << std::endl;
+    //         std::string name = "test" + std::to_string(counter) + ".def";
+    //         design.writeDefFile(name);
+    //         // std::cin >> dummy;
+    //     }
+    //     if (counter == 20) break;
+    // }
+
+    // design.writeDefFile("test2.def");
+    // std::cout << "Saved placement to " << "test2.def" << std::endl;
 
     std::string cellName = "";
-
     while (true) {
         std::cout << "Waiting for command: " << std::endl;
         std::cin >> cellName;
