@@ -13,7 +13,7 @@
 #include <ophidian/design/Design.h>
 #include <ophidian/geometry/Models.h>
 
-#define USEDEBUG
+// #define USEDEBUG
 #ifdef USEDEBUG
 #define debug(x) std::cout << x
 #else
@@ -148,10 +148,10 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         box target_j;
 
         // bool moveLeft = (min_corner_j.x() + width_j/2) <= (min_corner_i.x() + width_i/2);
-        bool moveLeft = (min_corner_j.x() + width_j/2) <= (cell_location_point.x() + cell_geometry.max_corner().x());
+        bool moveLeft = (min_corner_j.x() + width_j/2) <= (targetBox.min_corner().x() + cell_geometry.max_corner().x()/2);
 
         if (moveLeft) {
-            debug("left " << width_j << std::endl);
+            debug("left to " << min_corner_i.x() - width_j << std::endl);
             if ((min_corner_i.x() - width_j) < chipMinX.to<double>()) {
                 // target_j = box(
                 //     point(chipMinX.to<double>(), min_corner_j.y()),
@@ -168,7 +168,7 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
                 touchCircuitEdge = false;
             }
         } else {
-            debug("right " << width_j<< std::endl);
+            debug("right to " << max_corner_i.x() << std::endl);
             if ((max_corner_i.x() + width_j) > chipMaxX.to<double>()) {
                 // target_j = box(
                 //     point(chipMaxX.to<double>() - width_j, min_corner_j.y()),
@@ -189,13 +189,31 @@ bool moveCell(opd::Design& design, opc::Cell cell, point targetLocation) {
         new_j = std::make_pair(target_j, std::get<1>(node_j));
         movements.push_back(new_j);
 
+        // for (auto it = overlaps.begin(); it < overlaps.end(); it++) {
+        //     auto pair = *it;
+        //     if (std::get<2>(pair) == node_j) {
+        //         overlaps.erase(pair);
+        //     }
+        // }
+
+        debug("    Removing old overlaps with j (overlaps size: " << overlaps.size() << ")" << std::endl);
+
+        int match_count = 0;
+        overlaps.erase(std::remove_if(overlaps.begin(), overlaps.end(), [&](auto & pair) {
+            bool condition = std::get<1>(std::get<1>(pair)) == std::get<1>(node_j);
+            match_count++;
+            return condition;
+        }), overlaps.end());
+        debug("    Found " << match_count << " overlaps, new overlaps size: " << overlaps.size() << std::endl);
+
         std::vector<rnode> overlaps_new_j;
         tmpTree.query(bgi::intersects(target_j) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, target_j); }), std::back_inserter(overlaps_new_j));
         debug("Found " << overlaps_new_j.size() << " new overlaps: " << std::endl);
         for (auto & n : overlaps_new_j) {
             if (std::get<1>(new_j) == std::get<1>(n)) continue;
             overlaps.push_back(make_pair(new_j, n));
-            debug("    " << "{" << j_name << ", " << design.netlist().name(std::get<1>(n)) << "}" << std::endl);
+            debug("    " << "{" << j_name << "(" << target_j.min_corner().x() << ", " << target_j.max_corner().x() << "), "
+                         << design.netlist().name(std::get<1>(n)) << "(" << std::get<0>(n).min_corner().x() << ", " << std::get<0>(n).max_corner().x() << ")}" << std::endl);
         }
 
         tmpTree.insert(new_j);
@@ -264,35 +282,39 @@ int main(int argc, char** argv) {
 
     design.setInputDefPath(def_path);
 
-    // auto a_area = box(point(0, 76600), point(6000, 89800));
-    // std::vector<rnode> a_area_nodes;
-    // rtree.query(bgi::intersects(a_area) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, a_area); }), std::back_inserter(a_area_nodes));
-    // std::cout << "Found " << a_area_nodes.size() << " nodes" << std::endl;
 
-    // // int max_row = 89600;
-    // // int row_num = 0;
-    // int counter = 0;
-    // int fail_counter = 0;
-    // std::string dummy;
-    // for (auto & node : a_area_nodes) {
-    //     // int target_row = max_row - (row_num * 200);
-    //     // row_num = (row_num + 1) % 71;
+    // --------------- TEST FOR VGA_LCD ---------------
 
-    //     // moveCell(design, std::get<1>(node), point(3000, target_row));
-    //     if (!moveCell(design, std::get<1>(node), point(36460, 0))) fail_counter++;
-    //     counter++;
-    //     if (fail_counter > 0) break;
-    //     if (counter % 10 == 0) {
-    //         std::cout << "Moved " << counter << " cells (" << fail_counter << " failed)" << std::endl;
-    //         std::string name = "test" + std::to_string(counter) + ".def";
-    //         design.writeDefFile(name);
-    //         // std::cin >> dummy;
-    //     }
-    //     if (counter == 20) break;
-    // }
+    auto a_area = box(point(0, 76600), point(6000, 89800));
+    std::vector<rnode> a_area_nodes;
+    rtree.query(bgi::intersects(a_area) && bgi::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, a_area); }), std::back_inserter(a_area_nodes));
+    std::cout << "Found " << a_area_nodes.size() << " nodes" << std::endl;
 
-    // design.writeDefFile("test2.def");
-    // std::cout << "Saved placement to " << "test2.def" << std::endl;
+    int max_row = 2000;
+    int row_num = 0;
+    int counter = 0;
+    int fail_counter = 0;
+    std::string dummy;
+    for (auto & node : a_area_nodes) {
+        int target_row = row_num * 200;
+
+        // moveCell(design, std::get<1>(node), point(3000, target_row));
+        if (!moveCell(design, std::get<1>(node), point(36460, target_row))) fail_counter++;
+        counter++;
+        // if (fail_counter > 0) break;
+        if (counter % 10 == 0) {
+            std::cout << "Moved " << counter << " cells (" << fail_counter << " failed)" << std::endl;
+            std::string name = "test_vga" + std::to_string(counter) + ".def";
+            design.writeDefFile(name);
+            // std::cin >> dummy;
+        }
+        row_num = (row_num + 1) % 11;
+    }
+
+    design.writeDefFile("test2.def");
+    std::cout << "Saved placement to " << "test2.def" << std::endl;
+
+    // ------------------------------------------------
 
     std::string cellName = "";
     while (true) {
