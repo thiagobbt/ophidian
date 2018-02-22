@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #include <ophidian/design/DesignBuilder.h>
 #include <ophidian/geometry/Models.h>
@@ -27,9 +28,8 @@ int main(int argc, char** argv) {
 
     std::string cellName = "";
     while (true) {
-        std::cout << "Waiting for command: " << std::endl;
+        std::cout << "Waiting for command: ";
         std::cin >> cellName;
-        std::cout << std::endl;
 
         if (cellName == "s") {
             std::cout << "Saving placement" << std::endl;
@@ -54,5 +54,9 @@ int main(int argc, char** argv) {
                 std::cout << "Movement failed" << std::endl;
             }
         }
+
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        std::cout << std::endl;
     }
 }
