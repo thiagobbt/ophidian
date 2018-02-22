@@ -15,7 +15,7 @@ class KDtreeLegalization
 {
 public:
     KDtreeLegalization(design::Design & design);
-    void build(ophidian::geometry::Box legalizationArea);
+    void build(ophidian::geometry::Box legalizationArea, unsigned int i);
     void legalize();
     void density() const;
 

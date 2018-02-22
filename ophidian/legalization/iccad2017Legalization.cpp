@@ -80,7 +80,7 @@ void iccad2017Legalization::legalize()
     flipCells();
 }
 
-void iccad2017Legalization::kdtreeLegalization()
+void iccad2017Legalization::kdtreeLegalization(unsigned int i)
 {
     //generate the placeable area
     isolateFloorplan();
@@ -90,7 +90,7 @@ void iccad2017Legalization::kdtreeLegalization()
     mFenceRegionIsolation.isolateAllFenceCells();
 
     KDtreeLegalization kdtreeLegalization(mDesign);
-    kdtreeLegalization.build(mPlaceableArea);
+    kdtreeLegalization.build(mPlaceableArea, i);
     kdtreeLegalization.legalize();
 
     restoreFloorplan();

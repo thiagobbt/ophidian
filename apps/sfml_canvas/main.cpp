@@ -40,7 +40,7 @@ int main(int argc, char** argv){
     }
     ophidian::geometry::Box placeableArea;
     boost::geometry::envelope(rows.toMultiPolygon(), placeableArea);
-    kdtree.build(placeableArea);
+    kdtree.build(placeableArea, 4);
 
     std::vector<sf::RectangleShape> boxes;
     boxes.reserve(design.netlist().size(ophidian::circuit::Cell()));

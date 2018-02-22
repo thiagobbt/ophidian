@@ -7,7 +7,7 @@ KDtreeLegalization::KDtreeLegalization(design::Design &design) : mDesign(design)
 
 }
 
-void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea){
+void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea, unsigned int i){
     allignCellsToNearestSite();//TODO: make sure to insert all cells inside chip boundaries
 
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
@@ -16,8 +16,8 @@ void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea){
     mPlaceableArea = util::MultiBox({legalizationArea});
     mKDTree.build(legalizationArea);
 
-    mAncients = mKDTree.ancientNodes(4);
-    mPartitions = mKDTree.partitions(4);
+    mAncients = mKDTree.ancientNodes(i);
+    mPartitions = mKDTree.partitions(i);
 }
 
 void KDtreeLegalization::legalize(){

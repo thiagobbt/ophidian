@@ -17,7 +17,7 @@ public:
     iccad2017Legalization(ophidian::design::Design & design);
 
     void legalize();
-    void kdtreeLegalization();
+    void kdtreeLegalization(unsigned int i);
 private:
     void flipCells();
     void legalizeFences();
