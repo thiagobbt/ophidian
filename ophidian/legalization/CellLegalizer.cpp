@@ -2,20 +2,33 @@
 
 #include <boost/geometry/index/rtree.hpp>
 
-typedef std::pair<Box, ophidian::circuit::Cell> rnode;
-
 namespace ophidian {
 namespace legalization {
 
 CellLegalizer::CellLegalizer(design::Design & design) : mDesign(design)
 {
+    constructBaseTree();
 }
 
 CellLegalizer::~CellLegalizer()
 {
 }
 
-bool isNodeTouchingBox(rnode const& node, Box const& b) {
+void CellLegalizer::constructBaseTree() {
+    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); cell_it++) {
+        auto cell = *cell_it;
+        auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
+
+        auto cell_geometry = mDesign.library().geometry(std_cell)[0];
+
+        auto cell_location_point = mDesign.placement().cellLocation(cell).toPoint();
+
+        Box b(cell_location_point, Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
+        mBaseTree.insert(std::make_pair(b, cell));
+    }
+}
+
+bool isNodeTouchingBox(RNode const& node, Box const& b) {
     auto node_box = std::get<0>(node);
     if (node_box.max_corner().x() <= b.min_corner().x() ||
         b.max_corner().x() <= node_box.min_corner().x() ||
@@ -28,39 +41,26 @@ bool isNodeTouchingBox(rnode const& node, Box const& b) {
 
 bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const Box & legalizationRegion)
 {
-	boost::geometry::index::rtree< rnode, boost::geometry::index::rstar<16> > tree;
-
-	for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); cell_it++) {
-        auto cell = *cell_it;
-        auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
-
-        auto cell_geometry = mDesign.library().geometry(std_cell)[0];
-
-        auto cell_location_point = mDesign.placement().cellLocation(cell).toPoint();
-
-        Box b(cell_location_point, point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
-        tree.insert(std::make_pair(b, cell));
-    }
-
+    RTree tmpTree(mBaseTree);
     auto std_cell = mDesign.libraryMapping().cellStdCell(targetCell);
     auto cell_geometry = mDesign.library().geometry(std_cell)[0];
     auto cell_location_point = mDesign.placement().cellLocation(targetCell).toPoint();
 
     Box targetBox(
         targetPosition,
-        point(targetPosition.x() + cell_geometry.max_corner().x(), targetPosition.y() + cell_geometry.max_corner().y())
+        Point(targetPosition.x() + cell_geometry.max_corner().x(), targetPosition.y() + cell_geometry.max_corner().y())
     );
 
     Box originalBox(
-        point(cell_location_point.x(), cell_location_point.y()),
-        point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y())
+        Point(cell_location_point.x(), cell_location_point.y()),
+        Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y())
     );
 
     // Get r-tree node for the cell
-    std::vector<rnode> possibleCells;
-    tree.query(boost::geometry::index::covered_by(originalBox), std::back_inserter(possibleCells));
+    std::vector<RNode> possibleCells;
+    tmpTree.query(boost::geometry::index::covered_by(originalBox), std::back_inserter(possibleCells));
 
-    auto cell_node_it = std::find_if(possibleCells.begin(), possibleCells.end(), [&targetCell](const rnode &n) {
+    auto cell_node_it = std::find_if(possibleCells.begin(), possibleCells.end(), [&targetCell](const RNode &n) {
         return (std::get<1>(n) == targetCell);
     });
 
@@ -69,23 +69,27 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         return false;
     }
 
-    tree.remove(*cell_node_it);
+    tmpTree.remove(*cell_node_it);
 
     // Fill a vector with all nodes that overlap the target box
-    std::vector<rnode> overlaps_target;
-    tree.query(boost::geometry::index::intersects(targetBox) && boost::geometry::index::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, targetBox); }), std::back_inserter(overlaps_target));
+    std::vector<RNode> overlaps_target;
+    tmpTree.query(boost::geometry::index::intersects(targetBox) && boost::geometry::index::satisfies([&](RNode const& n) { return isNodeTouchingBox(n, targetBox); }), std::back_inserter(overlaps_target));
 
     // Vector to store all the movements to be realized or discarded if the placement fails
-    std::vector<rnode> movements;
-    rnode new_cell_node = std::make_pair(targetBox, targetCell);
+    std::vector<RNode> movements;
+    RNode new_cell_node = std::make_pair(targetBox, targetCell);
     movements.push_back(new_cell_node);
 
-    tree.insert(new_cell_node);
+    tmpTree.insert(new_cell_node);
 
     // Vector with pairs of overlapping cells
-    std::vector<std::pair<rnode, rnode>> overlaps;
+    std::vector<std::pair<RNode, RNode>> overlaps;
 
     for (auto & n : overlaps_target) {
+        if (mDesign.placement().isFixed(std::get<1>(n))) {
+            // Overlap with fixed cell
+            return false;
+        }
         overlaps.push_back(make_pair(new_cell_node, n));
     }
 
@@ -96,7 +100,7 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         auto node_i = std::get<0>(overlap);
         auto node_j = std::get<1>(overlap);
 
-        rnode new_j;
+        RNode new_j;
 
         auto min_corner_i = std::get<0>(node_i).min_corner();
         auto max_corner_i = std::get<0>(node_i).max_corner();
@@ -106,7 +110,7 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         auto max_corner_j = std::get<0>(node_j).max_corner();
         auto width_j = max_corner_j.x() - min_corner_j.x();
 
-        tree.remove(node_j);
+        tmpTree.remove(node_j);
         Box target_j;
 
         bool moveLeft = (min_corner_j.x() + width_j/2) <= (targetBox.min_corner().x() + cell_geometry.max_corner().x()/2);
@@ -116,8 +120,8 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
                 return false;
             } else {
                 target_j = Box(
-                    point(min_corner_i.x() - width_j, min_corner_j.y()),
-                    point(min_corner_i.x(), max_corner_j.y())
+                    Point(min_corner_i.x() - width_j, min_corner_j.y()),
+                    Point(min_corner_i.x(), max_corner_j.y())
                 );
             }
         } else {
@@ -125,8 +129,8 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
                 return false;
             } else {
                 target_j = Box(
-                    point(max_corner_i.x(), min_corner_j.y()),
-                    point(max_corner_i.x() + width_j, max_corner_j.y())
+                    Point(max_corner_i.x(), min_corner_j.y()),
+                    Point(max_corner_i.x() + width_j, max_corner_j.y())
                 );
             }
         }
@@ -138,15 +142,22 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
             return std::get<1>(std::get<1>(pair)) == std::get<1>(node_j);
         }), overlaps.end());
 
-        std::vector<rnode> overlaps_new_j;
-        tree.query(boost::geometry::index::intersects(target_j) && boost::geometry::index::satisfies([&](rnode const& n) { return isNodeTouchingBox(n, target_j); }), std::back_inserter(overlaps_new_j));
+        std::vector<RNode> overlaps_new_j;
+        tmpTree.query(boost::geometry::index::intersects(target_j) && boost::geometry::index::satisfies([&](RNode const& n) { return isNodeTouchingBox(n, target_j); }), std::back_inserter(overlaps_new_j));
         for (auto & n : overlaps_new_j) {
             if (std::get<1>(new_j) == std::get<1>(n)) continue;
+            if (mDesign.placement().isFixed(std::get<1>(n))) {
+                // Overlap with fixed cell
+                return false;
+            }
             overlaps.push_back(make_pair(new_j, n));
         }
 
-        tree.insert(new_j);
+        tmpTree.insert(new_j);
+
     }
+
+    mBaseTree = tmpTree;
 
     // Success, realize cell movements in placement
 
