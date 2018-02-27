@@ -25,14 +25,10 @@ class CellLegalizer {
 	CellLegalizer(design::Design & design);
 	~CellLegalizer();
 
-	void constructBaseTree();
-
-	// bool legalizeCell(circuit::Cell & targetCell, geometry::Point & targetPosition, std::vector<circuit::Cell> & legalizedCells, Box & legalizationRegion);
-	bool legalizeCell(const circuit::Cell & targetCell, const Point & targetPosition, const Box & legalizationRegion);
+	bool legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion);
 
  private:
 	design::Design & mDesign;
-	RTree mBaseTree;
 };
 
 } // namespace legalization

@@ -7,25 +7,10 @@ namespace legalization {
 
 CellLegalizer::CellLegalizer(design::Design & design) : mDesign(design)
 {
-    constructBaseTree();
 }
 
 CellLegalizer::~CellLegalizer()
 {
-}
-
-void CellLegalizer::constructBaseTree() {
-    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); cell_it++) {
-        auto cell = *cell_it;
-        auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
-
-        auto cell_geometry = mDesign.library().geometry(std_cell)[0];
-
-        auto cell_location_point = mDesign.placement().cellLocation(cell).toPoint();
-
-        Box b(cell_location_point, Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
-        mBaseTree.insert(std::make_pair(b, cell));
-    }
 }
 
 bool isNodeTouchingBox(RNode const& node, Box const& b) {
@@ -39,9 +24,21 @@ bool isNodeTouchingBox(RNode const& node, Box const& b) {
     return true;
 }
 
-bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const Box & legalizationRegion)
+bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion)
 {
-    RTree tmpTree(mBaseTree);
+    RTree tmpTree;
+
+    for (auto & cell : legalizedCells) {
+        auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
+
+        auto cell_geometry = mDesign.library().geometry(std_cell)[0];
+
+        auto cell_location_point = mDesign.placement().cellLocation(cell).toPoint();
+
+        Box b(cell_location_point, Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
+        tmpTree.insert(std::make_pair(b, cell));
+    }
+
     auto std_cell = mDesign.libraryMapping().cellStdCell(targetCell);
     auto cell_geometry = mDesign.library().geometry(std_cell)[0];
     auto cell_location_point = mDesign.placement().cellLocation(targetCell).toPoint();
@@ -55,21 +52,6 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         Point(cell_location_point.x(), cell_location_point.y()),
         Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y())
     );
-
-    // Get r-tree node for the cell
-    std::vector<RNode> possibleCells;
-    tmpTree.query(boost::geometry::index::covered_by(originalBox), std::back_inserter(possibleCells));
-
-    auto cell_node_it = std::find_if(possibleCells.begin(), possibleCells.end(), [&targetCell](const RNode &n) {
-        return (std::get<1>(n) == targetCell);
-    });
-
-    if (cell_node_it == possibleCells.end()) {
-        // Cell was not found
-        return false;
-    }
-
-    tmpTree.remove(*cell_node_it);
 
     // Fill a vector with all nodes that overlap the target box
     std::vector<RNode> overlaps_target;
@@ -156,8 +138,6 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         tmpTree.insert(new_j);
 
     }
-
-    mBaseTree = tmpTree;
 
     // Success, realize cell movements in placement
 
