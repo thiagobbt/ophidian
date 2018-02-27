@@ -42,6 +42,7 @@ class DesignBuilder
 {
 public:
 	virtual void build() = 0;
+	virtual design::Design & design() = 0;
 };
 
 

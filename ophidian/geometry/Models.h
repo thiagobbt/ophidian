@@ -1,19 +1,19 @@
 /*
  * Copyright 2017 Ophidian
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-  http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations
-under the License.
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
  */
 
 #ifndef OPHIDIAN_GEOMETRY_MODELS_H
@@ -27,8 +27,10 @@ under the License.
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/geometries/multi_polygon.hpp>
 
-namespace ophidian {
-namespace geometry {
+namespace ophidian
+{
+namespace geometry
+{
 
 using Point = boost::geometry::model::d2::point_xy<double>;
 using Segment = boost::geometry::model::segment<Point>;
@@ -36,6 +38,9 @@ using Linestring = boost::geometry::model::linestring<Point>;
 using Box = boost::geometry::model::box<Point>;
 using Polygon = boost::geometry::model::polygon<Point>;
 using MultiPolygon = boost::geometry::model::multi_polygon<Polygon>;
+
+template<class Geometry>
+Geometry translate(const Geometry & geometry, Point & translationPoint);
 
 //! Create new geometry
 /*!
@@ -46,7 +51,8 @@ using MultiPolygon = boost::geometry::model::multi_polygon<Polygon>;
 template<class Geometry>
 Geometry make(const std::vector<Point> & points) {
     Geometry geometry;
-    for (auto point : points) {
+    for (auto point : points)
+    {
         boost::geometry::append(geometry, point);
     }
     return geometry;
@@ -61,13 +67,14 @@ Geometry make(const std::vector<Point> & points) {
 template<class MultiGeometry, class PartGeometry>
 MultiGeometry makeMulti(const std::vector<PartGeometry> & parts) {
     MultiGeometry multiGeometry;
-    for (auto part : parts) {
+    for (auto part : parts)
+    {
         multiGeometry.push_back(part);
     }
     return multiGeometry;
 }
 
-}
-}
+} //namespace geometry
+} //namespace ophidian
 
 #endif // OPHIDIAN_GEOMETRY_MODELS_H
