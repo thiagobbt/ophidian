@@ -8,12 +8,14 @@ KDtreeLegalization::KDtreeLegalization(design::Design &design) : mDesign(design)
 }
 
 void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea, unsigned int i){
+    mPlaceableArea = util::MultiBox({legalizationArea});
+    removeMacroblocksOverlaps();//move cells outside macroblocks
     allignCellsToNearestSite();//TODO: make sure to insert all cells inside chip boundaries
 
     for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt)
         mKDTree.add(mDesign.placement().cellLocation(*cellIt).toPoint(), std::make_shared<circuit::Cell>(*cellIt));
 
-    mPlaceableArea = util::MultiBox({legalizationArea});
+
     mKDTree.build(legalizationArea);
 
     mAncients = mKDTree.ancientNodes(i);
@@ -132,6 +134,54 @@ void KDtreeLegalization::allignCellsToNearestSite(){
                 mDesign.placement().placeCell(*cellIt, util::Location(nearSiteX, nearSiteY+siteHeight));
             else
                 mDesign.placement().placeCell(*cellIt, util::Location(nearSiteX, nearSiteY-siteHeight));
+        }
+    }
+}
+
+void KDtreeLegalization::removeMacroblocksOverlaps(){
+    ophidian::legalization::Subrows subrows(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
+    subrows.createSubrows(mPlaceableArea);
+    rtree macroblocks_boxes_rtree;
+    //create macroblocks rtree
+    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); ++cell_it)
+    {
+        if(mDesign.placement().isFixed(*cell_it))
+        {
+            auto cellGeometry = mDesign.placementMapping().geometry(*cell_it);
+            for(auto cell_box : cellGeometry)
+            {
+                macroblocks_boxes_rtree.insert(std::make_pair(cell_box, *cell_it));
+            }
+        }
+    }
+
+    //check if cell overlap a macroblock
+//#pragma omp parallel for
+    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it < mDesign.netlist().end(circuit::Cell()); ++cell_it)
+    {
+        if(!mDesign.placement().isFixed(*cell_it))
+        {
+            auto cellGeometry = mDesign.placementMapping().geometry(*cell_it);
+            for(auto cell_box : cellGeometry)
+            {
+                std::vector<rtree_node> intersecting_nodes;
+                macroblocks_boxes_rtree.query( boost::geometry::index::contains(cell_box), std::back_inserter(intersecting_nodes));
+                macroblocks_boxes_rtree.query( boost::geometry::index::overlaps(cell_box), std::back_inserter(intersecting_nodes));
+                if (!intersecting_nodes.empty())
+                {
+                    std::vector<ophidian::legalization::Subrow> closestSubrow;
+                    auto cellLocation = mDesign.placement().cellLocation(*cell_it);
+                    subrows.findClosestSubrows(1, cellLocation, closestSubrow);
+                    auto origin = subrows.origin(closestSubrow.at(0));
+                    auto upperRightCorner = subrows.upperCorner(closestSubrow.at(0));
+                    if(cellLocation.toPoint().x() <= origin.toPoint().x())
+                        mDesign.placement().placeCell(*cell_it, ophidian::util::Location(origin.toPoint().x(), origin.toPoint().y()));
+                    else if(cell_box.max_corner().x() >= upperRightCorner.toPoint().x())
+                        mDesign.placement().placeCell(*cell_it, ophidian::util::Location(upperRightCorner.toPoint().x() - (cell_box.max_corner().x() - cell_box.min_corner().x()), origin.toPoint().y()));
+                    else
+                        mDesign.placement().placeCell(*cell_it, ophidian::util::Location(cellLocation.toPoint().x(), origin.toPoint().y()));
+                }
+            }
         }
     }
 }

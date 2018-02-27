@@ -10,6 +10,9 @@
 namespace ophidian {
 namespace legalization {
 
+using box = geometry::Box;
+using rtree_node = std::pair<box, circuit::Cell>;
+using rtree = boost::geometry::index::rtree<rtree_node, boost::geometry::index::rstar<16> >;
 
 class KDtreeLegalization
 {
@@ -21,6 +24,7 @@ public:
 
 private:
     void allignCellsToNearestSite();
+    void removeMacroblocksOverlaps();
 
     design::Design & mDesign;
     LegalizationKDtree mKDTree;
