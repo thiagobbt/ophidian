@@ -50,6 +50,7 @@ Design::~Design()
 void Design::writeDefFile(std::__cxx11::string filePath)
 {
     std::ifstream inputDef(mInputDefPath);
+    std::cout << "Input def: " << mInputDefPath << std::endl;
 
     std::ofstream defFile;
     defFile.open (filePath);

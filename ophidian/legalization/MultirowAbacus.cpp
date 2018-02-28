@@ -9,7 +9,7 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea) {
+void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea, double maxDisplacement) {
     subrows_.createSubrows(legalizationArea, rowsPerCell, alignment);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
@@ -28,8 +28,7 @@ bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
         sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(cell)));
     }
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());
-    if(legalize(sortedCells) == false)
-        return false;
+    legalize(sortedCells, maxDisplacement);
     for (auto cell : cellsForOneHeight)
     {
         placement_.fixLocation(cell, true);
@@ -39,7 +38,7 @@ bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
     return true;
 }
 
-bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea)
+void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea, double maxDisplacement)
 {
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(netlist_.makeProperty<bool>(ophidian::circuit::Cell()));
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();
@@ -75,8 +74,7 @@ bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
         if(std::fmod((cellHeight/siteHeight), 2.0))
         {
             //Odd-sized cells -> place in all rows
-            if(legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea) == false)
-                return false;
+            legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea, maxDisplacement);
         }
         else {
             //Even-sized cells -> place in specific rows

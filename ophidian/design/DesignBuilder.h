@@ -53,13 +53,15 @@ public:
 	/*!
 	   \brief Constructs a designBuilder
 	 */
-	ICCAD2017ContestDesignBuilder(const std::string & cellLefFile, const std::string & techLefFile, const std::string & placedDefFile);
+	ICCAD2017ContestDesignBuilder(const std::string & cellLefFile, const std::string & techLefFile, const std::string & placedDefFile, const std::string & constraintsFile = "");
 
 	//! DesignBuilder Destructor
 	/*!
 	   \brief Destroys the designBuilder, including its properties.
 	 */
 	~ICCAD2017ContestDesignBuilder();
+
+	void readConstraints();
 
 	//! build a system with ICCAD2017 files
 	/*!
@@ -86,6 +88,7 @@ private:
 	std::string mCellLefFile;
 	std::string mTechLefFile;
 	std::string mPlacedDefFile;
+	std::string mConstraintsFile;
 
 };
 

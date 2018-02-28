@@ -27,7 +27,7 @@ public:
     virtual void legalizePlacement();
 
 protected:
-    bool legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells);
+    void legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells, double maxDisplacement = 0);
 
     const circuit::Netlist & netlist_;
     const floorplan::Floorplan & floorplan_;

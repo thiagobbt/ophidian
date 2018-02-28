@@ -143,6 +143,16 @@ public:
         return mCircuitName;
     }
 
+    void setMaximumMovement(const double maximumMovement)
+    {
+        mMaximumMovement = maximumMovement;
+    }
+
+    double maximumMovement()
+    {
+    	return mMaximumMovement;
+    }
+
     void writeDefFile(std::string filePath);
 
     void writeDefFile(std::string filePath, const std::vector<ophidian::circuit::Cell> & cells);
@@ -159,6 +169,8 @@ private:
 
     std::string mInputDefPath;
     std::string mCircuitName;
+
+    double mMaximumMovement;
 };
 
 } //namespace design

@@ -24,14 +24,15 @@ namespace ophidian
 namespace designBuilder
 {
 
-ICCAD2017ContestDesignBuilder::ICCAD2017ContestDesignBuilder(const std::string & cellLefFile, const std::string & techLefFile, const std::string & placedDefFile) :
+ICCAD2017ContestDesignBuilder::ICCAD2017ContestDesignBuilder(const std::string & cellLefFile, const std::string & techLefFile, const std::string & placedDefFile, const std::string & constraintsFile) :
 
 	mDesign(),
 	mLef(),
 	mDef(),
 	mCellLefFile(cellLefFile),
 	mTechLefFile(techLefFile),
-	mPlacedDefFile(placedDefFile)
+	mPlacedDefFile(placedDefFile),
+	mConstraintsFile(constraintsFile)
 {
 
 }
@@ -39,6 +40,28 @@ ICCAD2017ContestDesignBuilder::ICCAD2017ContestDesignBuilder(const std::string &
 ICCAD2017ContestDesignBuilder::~ICCAD2017ContestDesignBuilder()
 {
 
+}
+
+void ICCAD2017ContestDesignBuilder::readConstraints()
+{
+	if (mConstraintsFile == "") return;
+	std::ifstream constraints(mConstraintsFile);
+	std::string line;
+
+	while (std::getline(constraints, line)) {
+		std::string constraintName;
+		double value;
+		std::string unit;
+
+		std::istringstream iss(line);
+		std::getline(iss, constraintName, '=');
+
+		iss >> value >> unit;
+
+		if (constraintName == "maximum_movement") {
+			mDesign.setMaximumMovement(value);
+		}
+	}
 }
 
 void ICCAD2017ContestDesignBuilder::build()
@@ -60,6 +83,7 @@ void ICCAD2017ContestDesignBuilder::build()
     placement::def2fence(*mDef, mDesign.fences(), mDesign.netlist(), mDesign.placement(), mDesign.floorplan());
 
     mDesign.setInputDefPath(mPlacedDefFile);
+    readConstraints();
 }
 
 

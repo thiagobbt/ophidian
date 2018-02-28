@@ -70,7 +70,10 @@ void iccad2017Legalization::legalize()
             cells.push_back(*cellIt);
         }
     }
-    mMultirowAbacus.legalizePlacement(cells, util::MultiBox({mPlaceableArea}));
+    geometry::Box chipArea(mDesign.floorplan().chipOrigin().toPoint(), mDesign.floorplan().chipUpperRightCorner().toPoint());
+    util::MultiBox legalizationArea({chipArea});
+    float rowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
+    mMultirowAbacus.legalizePlacement(cells, legalizationArea, mDesign.maximumMovement() * rowHeight);
 
     restoreFloorplan();
 

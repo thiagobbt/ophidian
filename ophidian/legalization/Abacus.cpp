@@ -46,7 +46,7 @@ void Abacus::legalizePlacement()
     legalize(sortedCells);
 }
 
-bool Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells)
+void Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > &sortedCells, double maxDisplacement)
 {
     util::micrometer_t siteWidth = floorplan_.siteUpperRightCorner(*floorplan_.sitesRange().begin()).x();
     util::micrometer_t chipTop = floorplan_.chipUpperRightCorner().y();
@@ -92,7 +92,7 @@ bool Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
                     double cost = std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].x()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].x())) +
                                   std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].y()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].y()));
                     subrowCells_[subrow].pop_back();
-                    if (cost < bestCost)
+                    if (cost < bestCost and (maxDisplacement == 0 or cost < maxDisplacement))
                     {
                         bestCost = cost;
                         bestSubrow = subrow;
