@@ -9,7 +9,7 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea, double maxDisplacement) {
+bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea, double maxDisplacement) {
     subrows_.createSubrows(legalizationArea, rowsPerCell, alignment);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
@@ -38,7 +38,7 @@ void MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
     return true;
 }
 
-void MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea, double maxDisplacement)
+bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::MultiBox legalizationArea, double maxDisplacement)
 {
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> initialFixed(netlist_.makeProperty<bool>(ophidian::circuit::Cell()));
     auto rowHeight = floorplan_.rowUpperRightCorner(*floorplan_.rowsRange().begin()).y();

@@ -9,6 +9,7 @@
 #include <string>
 
 #include <chrono>
+#include <random>
 
 void runMultirowAbacusICCAD2015(std::string strategy, unsigned int i, std::string lef, std::string def, std::string verilog, std::string output_def){
     ophidian::designBuilder::ICCAD2015ContestDesignBuilder ICCAD2015DesignBuilder(lef, def, verilog);
