@@ -5,6 +5,7 @@
 #include <ophidian/legalization/MultirowAbacus.h>
 #include <ophidian/legalization/LegalizationCheck.h>
 #include <ophidian/legalization/iccad2017Legalization.h>
+#include <ophidian/legalization/CellLegalizer.h>
 #include <ophidian/design/DesignBuilder.h>
 #include <sys/time.h>
 #include "MultirowAbacusFixture.h"
@@ -109,64 +110,64 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 //    csvFile.close();
 }
 
-TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][multirow_abacus]")
-{
-    std::cout << "running for all circuits " << std::endl;
+// TEST_CASE("run multirow abacus for all 2017 contest circuits", "[iccad2017][multirow_abacus]")
+// {
+//     std::cout << "running for all circuits " << std::endl;
 
-    std::vector<std::string> circuitNames = {
-        "des_perf_b_md2",
-        "edit_dist_1_md1",
-        "edit_dist_a_md2",
-        "fft_2_md2",
-        "fft_a_md2",
-        "fft_a_md3",
-        "pci_bridge32_a_md1",
-//        "des_perf_b_md1",
-    };
+//     std::vector<std::string> circuitNames = {
+//         "des_perf_b_md2",
+//         "edit_dist_1_md1",
+//         "edit_dist_a_md2",
+//         "fft_2_md2",
+//         "fft_a_md2",
+//         "fft_a_md3",
+//         "pci_bridge32_a_md1",
+// //        "des_perf_b_md1",
+//     };
 
-    for (auto circuitName : circuitNames)
-    {
-        std::cout << "running circuit: " << circuitName << std::endl;
-        runMultirowAbacusForOneCircuit(circuitName);
-    }
-}
+//     for (auto circuitName : circuitNames)
+//     {
+//         std::cout << "running circuit: " << circuitName << std::endl;
+//         runMultirowAbacusForOneCircuit(circuitName);
+//     }
+// }
 
 TEST_CASE("run multirow abacus for des_perf_b_md1", "[iccad2017][multirow_abacus]")
 {
     runMultirowAbacusForOneCircuit("des_perf_b_md1");
 }
 
-TEST_CASE("run multirow abacus for des_perf_b_md2", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("des_perf_b_md2");
-}
+// TEST_CASE("run multirow abacus for des_perf_b_md2", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("des_perf_b_md2");
+// }
 
-TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("edit_dist_1_md1");
-}
+// TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("edit_dist_1_md1");
+// }
 
-TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("edit_dist_a_md2");
-}
+// TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("edit_dist_a_md2");
+// }
 
-TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("fft_2_md2");
-}
+// TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("fft_2_md2");
+// }
 
-TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("fft_a_md2");
-}
+// TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("fft_a_md2");
+// }
 
-TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("fft_a_md3");
-}
+// TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("fft_a_md3");
+// }
 
-TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]")
-{
-    runMultirowAbacusForOneCircuit("pci_bridge32_a_md1");
-}
+// TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]")
+// {
+//     runMultirowAbacusForOneCircuit("pci_bridge32_a_md1");
+// }
