@@ -7,6 +7,7 @@
 #include <ophidian/circuit/Netlist.h>
 #include <ophidian/design/Design.h>
 #include <ophidian/geometry/Models.h>
+#include <ophidian/legalization/FenceRegionIsolation.h>
 
 #include <vector>
 
@@ -27,8 +28,13 @@ class CellLegalizer {
 
 	bool legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion);
 
+	void buildTree(const std::vector<circuit::Cell> legalizedCells);
+	bool legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const Box & legalizationRegion);
+
  private:
 	design::Design & mDesign;
+	RTree mTree;
+	FenceRegionIsolation mFenceRegionIsolation;
 };
 
 } // namespace legalization
