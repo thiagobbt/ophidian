@@ -15,12 +15,16 @@ colors = brewer.pal(n=12, name="Set3")
 
 plotFile = paste(circuitName, "pdf", sep=".")
 
-pdf(plotFile)
+# pdf(plotFile)
 
-hist(data, col=colors, xaxt="n", xlim=c(0, 8000), xlab="Displacement", breaks=breaks)
-axis(1, at=seq(from=0, to=8000, by=500), las=2)
+# hist(data, col=colors, xaxt="n", xlim=c(40000, 0), xlab="Displacement", ylim=c(0, 500), breaks=breaks)
+# axis(1, at=seq(from=40000, to=0, by=-500), las=2)
 
 # dev.off()
 
-message(paste("File saved to", plotFile))
+# message(paste("File saved to", plotFile))
+message(paste(path))
+message("max: ", max(data))
+message("mean: ", mean(data))
+message("sum: ", sum(data))
 
