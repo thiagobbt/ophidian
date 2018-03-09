@@ -1,5 +1,6 @@
 #include <catch.hpp>
 #include <iostream>
+#include <cmath>
 #include "iccad2017_wrapper.h"
 #include "iccad2015_wrapper.h"
 #include <ophidian/legalization/MultirowAbacus.h>
@@ -26,7 +27,6 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     unsigned movableCells = 0;
     unsigned fixedCells = 0;
-
 
     ophidian::entity_system::Property<ophidian::circuit::Cell, ophidian::util::Location> initialLocations(design.netlist().makeProperty<ophidian::util::Location>(ophidian::circuit::Cell()));
     ophidian::entity_system::Property<ophidian::circuit::Cell, std::string> initialOrientations(design.netlist().makeProperty<std::string>(ophidian::circuit::Cell()));
@@ -61,6 +61,8 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     std::map<std::string, int> displacementMap;
     std::vector<ophidian::circuit::Cell> cellsByDisplacement(design.netlist().begin(ophidian::circuit::Cell()), design.netlist().end(ophidian::circuit::Cell()));
 
+    int totalDisplacementAfterLegalization = 0;
+
     std::ofstream displacementFile1;
     displacementFile1.open("./" + circuitName + "_displacement_after_legalization.csv");
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
@@ -70,6 +72,7 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
             auto currentLocation = design.placement().cellLocation(*cellIt);
             auto cellDisplacement = std::abs(units::unit_cast<double>(initialLocations[*cellIt].x() - currentLocation.x())) +
                                     std::abs(units::unit_cast<double>(initialLocations[*cellIt].y() - currentLocation.y()));
+            totalDisplacementAfterLegalization += cellDisplacement;
             displacementMap[design.netlist().name(*cellIt)] = cellDisplacement;
             displacementFile1 << ophidian::util::micrometer_t(cellDisplacement) << std::endl;
         } else {
@@ -78,13 +81,23 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
     }
     displacementFile1.close();
 
+    int numCells = design.netlist().size(ophidian::circuit::Cell());
+    int meanDisplacement = totalDisplacementAfterLegalization / numCells;
+    int sumOfSquaredDifferences = 0;
+
+    for (auto displacement : displacementMap) {
+        sumOfSquaredDifferences += pow(std::get<1>(displacement) - meanDisplacement, 2);
+    }
+
+    int halfStdDevDisplacement = sqrt(sumOfSquaredDifferences / (numCells-1))/2;
+
     auto displacementComp = [&](const ophidian::circuit::Cell& a, const ophidian::circuit::Cell& b) {
         return displacementMap[design.netlist().name(a)] > displacementMap[design.netlist().name(b)];
     };
 
     std::sort(cellsByDisplacement.begin(), cellsByDisplacement.end(), displacementComp);
 
-    std::cout << "First displacement: " << displacementMap[design.netlist().name(cellsByDisplacement[0])] << std::endl;
+    std::cout << "Max displacement: " << displacementMap[design.netlist().name(cellsByDisplacement[0])] << std::endl;
 
     // REQUIRE(ophidian::legalization::legalizationCheck(iccad.mFloorplan, iccad.mPlacement, iccad.mPlacementMapping, iccad.mNetlist));
     REQUIRE(ophidian::legalization::checkAlignment(design.floorplan(), design.placement(), design.placementMapping(), design.netlist()));
@@ -97,67 +110,30 @@ void runMultirowAbacusForOneCircuit(std::string circuitName) {
 
     ophidian::legalization::CellLegalizer cellLegalizer(design);
 
-    // std::vector<ophidian::circuit::Cell> legalized_cells;
 
-    // std::vector<ophidian::circuit::Cell> unaligned;
-    // ophidian::legalization::getUnaligned(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), unaligned);
-    // std::cout << "Unaligned cells: " << unaligned.size() << std::endl;
+    // int numOfCellsToRelegalize = design.netlist().size(ophidian::circuit::Cell()) / 100;
 
-    // std::vector<ophidian::circuit::Cell> outside_boundaries;
-    // ophidian::legalization::getOutsideBoundaries(design.floorplan(), design.placement(), design.placementMapping(), design.netlist(), design.fences(), outside_boundaries);
-    // std::cout << "cells out of boundaries: " << outside_boundaries.size() << std::endl;
+    // std::cout << "numOfCellsToRelegalize: " << numOfCellsToRelegalize << std::endl;
 
-    // std::vector<ophidian::circuit::Cell> overlapping;
-    // ophidian::legalization::getOverlapping(design.placementMapping(), design.netlist(), overlapping);
-    // std::cout << "overlapping cells: " << overlapping.size() << std::endl;
-
-    // for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
-    // {
-    //     if (design.placement().isFixed(*cellIt))
-    //     {
-    //         legalized_cells.push_back(*cellIt);
-    //     }
-    //     else {
-    //         if (std::find(overlapping.begin(), overlapping.end(), *cellIt) == overlapping.end()) {
-    //             legalized_cells.push_back(*cellIt);
-    //         }
-    //     }
-    // }
-
-    // int fail_count = 0;
-    // int count = 0;
-
-    // for (auto & cell : overlapping) {
-    //     bool result = cellLegalizer.legalizeCell(cell, design.placement().cellLocation(cell).toPoint(), legalized_cells, boost::geometry::model::box<ophidian::geometry::Point>(design.floorplan().chipOrigin().toPoint(), design.floorplan().chipUpperRightCorner().toPoint()));
-    //     legalized_cells.push_back(cell);
-    //     count++;
-    //     if (!result) fail_count++;
-    //     if (count > 0 && count % 10 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
-    // }
-
-    // overlapping.clear();
-    // ophidian::legalization::getOverlapping(design.placementMapping(), design.netlist(), overlapping);
-    // std::cout << "overlapping cells: " << overlapping.size() << std::endl;
-
-    int numOfCellsToRelegalize = design.netlist().size(ophidian::circuit::Cell()) / 100;
-
-    std::cout << "numOfCellsToRelegalize: " << numOfCellsToRelegalize << std::endl;
-
-    auto lastCellToRelegalize = cellsByDisplacement.begin();
-    std::advance(lastCellToRelegalize, numOfCellsToRelegalize);
+    // auto lastCellToRelegalize = cellsByDisplacement.begin();
+    // std::advance(lastCellToRelegalize, numOfCellsToRelegalize);
 
     std::vector<ophidian::circuit::Cell> legalized_cells(cellsByDisplacement);
     cellLegalizer.buildTree(legalized_cells);
 
+    int maxDisplacementAllowed = meanDisplacement + (halfStdDevDisplacement * 2);
+
     int fail_count = 0;
     int count = 0;
-    for (auto cellIt = cellsByDisplacement.begin(); cellIt < lastCellToRelegalize; cellIt++) {
+    // for (auto cellIt = cellsByDisplacement.begin(); cellIt < lastCellToRelegalize; cellIt++) {
+    for (auto cellIt = cellsByDisplacement.begin(); cellIt < cellsByDisplacement.end(); cellIt++) {
+        if (displacementMap[design.netlist().name(*cellIt)] <= maxDisplacementAllowed) break;
         legalized_cells.erase(legalized_cells.begin());
         bool result = cellLegalizer.legalizeCell(*cellIt, initialLocations[*cellIt].toPoint(), boost::geometry::model::box<ophidian::geometry::Point>(design.floorplan().chipOrigin().toPoint(), design.floorplan().chipUpperRightCorner().toPoint()));
         legalized_cells.push_back(*cellIt);
         count++;
         if (!result) fail_count++;
-        if (count > 0 && count % 10 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
+        if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
     }
 
     ophidian::util::micrometer_t totalDisplacement(0);
@@ -243,32 +219,32 @@ TEST_CASE("run multirow abacus for des_perf_b_md2", "[iccad2017][multirow_abacus
     runMultirowAbacusForOneCircuit("des_perf_b_md2");
 }
 
-// TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("edit_dist_1_md1");
-// }
+TEST_CASE("run multirow abacus for edit_dist_1_md1", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("edit_dist_1_md1");
+}
 
-// TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("edit_dist_a_md2");
-// }
+TEST_CASE("run multirow abacus for edit_dist_a_md2", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("edit_dist_a_md2");
+}
 
-// TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("fft_2_md2");
-// }
+TEST_CASE("run multirow abacus for fft_2_md2", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("fft_2_md2");
+}
 
-// TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("fft_a_md2");
-// }
+TEST_CASE("run multirow abacus for fft_a_md2", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("fft_a_md2");
+}
 
-// TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("fft_a_md3");
-// }
+TEST_CASE("run multirow abacus for fft_a_md3", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("fft_a_md3");
+}
 
-// TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]")
-// {
-//     runMultirowAbacusForOneCircuit("pci_bridge32_a_md1");
-// }
+TEST_CASE("run multirow abacus for pci_bridge32_a_md1", "[iccad2017][multirow_abacus]")
+{
+    runMultirowAbacusForOneCircuit("pci_bridge32_a_md1");
+}
