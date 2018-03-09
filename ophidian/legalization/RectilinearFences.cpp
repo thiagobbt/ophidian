@@ -51,6 +51,16 @@ void RectilinearFences::addBlockToFence(placement::Fence fence)
         mDesign.fences().connect(fence, circuitCell);
     }
 }
-}
+
+void RectilinearFences::eraseBlocks()
+{
+    for (auto fence : mDesign.fences().range()) {
+        for (auto blockCell : mFenceBlocks[fence]) {
+            mDesign.netlist().erase(blockCell);
+        }
+        mFenceBlocks[fence].clear();
+    }
 }
 
+}
+}

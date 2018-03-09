@@ -14,6 +14,8 @@ public:
 
     void addBlockToFence(placement::Fence fence);
 
+    void eraseBlocks();
+
 private:
     design::Design & mDesign;
 
