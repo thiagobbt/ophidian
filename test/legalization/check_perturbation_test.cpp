@@ -7,11 +7,11 @@
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a row with singlerow cell", "[legalization][check_perturbation]") {
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 
@@ -33,11 +33,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a row with mu
 
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 
@@ -62,11 +62,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a circuit wit
 
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 
@@ -91,11 +91,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a circuit wit
 
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 
@@ -123,11 +123,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a circuit wit
 
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 
@@ -158,11 +158,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Check perturbation in a circuit wit
 
     ophidian::legalization::Subrows subrows(design_.netlist(), design_.floorplan(), design_.placement(), design_.placementMapping());
 
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+
     ophidian::geometry::Box chipArea(design_.floorplan().chipOrigin().toPoint(), design_.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
-    subrows.createSubrows(legalizationArea);
-
-    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    subrows.createSubrows(cells, legalizationArea);
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design_, subrows, cells);
 

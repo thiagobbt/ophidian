@@ -3,8 +3,10 @@
 namespace ophidian {
 namespace legalization {
 
-KDtreeLegalization::KDtreeLegalization(design::Design &design) : mDesign(design){
-
+KDtreeLegalization::KDtreeLegalization(design::Design &design) : mDesign(design), mCellsInitialLocations(design.netlist().makeProperty<util::Location>(circuit::Cell())){
+    for(auto cellIt = mDesign.netlist().begin(circuit::Cell()); cellIt != mDesign.netlist().end(circuit::Cell()); ++cellIt) {
+        mCellsInitialLocations[*cellIt] = mDesign.placement().cellLocation(*cellIt);
+    }
 }
 
 void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea, unsigned int i){
@@ -20,6 +22,9 @@ void KDtreeLegalization::build(ophidian::geometry::Box legalizationArea, unsigne
 
     mAncients = mKDTree.ancientNodes(i);
     mPartitions = mKDTree.partitions(i);
+
+    for (auto cell_it = mDesign.netlist().begin(ophidian::circuit::Cell()); cell_it != mDesign.netlist().end(ophidian::circuit::Cell()); cell_it++)
+        mDesign.placement().placeCell(*cell_it, mCellsInitialLocations[*cell_it]);
 }
 
 void KDtreeLegalization::legalize(){
@@ -72,24 +77,28 @@ void KDtreeLegalization::legalize(){
 
         //get unlegalized partitions
         legalized = true;
-        std::vector<std::shared_ptr<LegalizationKDtree::Node>> unlegalizedPartitions;
+        std::vector<std::shared_ptr<LegalizationKDtree::Partition>> unlegalizedPartitions;
         for(auto & partition : mPartitions)
             if(partition.legalized == false){
                 legalized = false;
-                unlegalizedPartitions.push_back(partition.root->parent);
+                unlegalizedPartitions.push_back(std::make_shared<LegalizationKDtree::Partition>(partition));
             }
 
         //get unlegalized parent's partition
         if(legalized == false)
         {
             //check if node is root of KDtree.
-            if(unlegalizedPartitions.at(0)->parent.get() == NULL)
+            if(unlegalizedPartitions.at(0)->root->parent.get() == NULL)
             {
                 legalized = true;
                 std::cout<<"WARNING: Circuit is ILEGAL, the legalization could not be possible even for the whole circuit partition."<<std::endl;
             }else{
                 mPartitions.clear();
                 mPartitions = mKDTree.parentPartitions(unlegalizedPartitions);
+                for(auto & partition : mPartitions)
+                    for(auto cell : partition.elements)
+                        if(!mDesign.placement().isFixed(*cell))
+                            mDesign.placement().placeCell(*cell, mCellsInitialLocations[*cell]);
             }
         }
     }
@@ -139,8 +148,10 @@ void KDtreeLegalization::allignCellsToNearestSite(){
 }
 
 void KDtreeLegalization::removeMacroblocksOverlaps(){
+    std::vector<circuit::Cell> cells(mDesign.netlist().begin(circuit::Cell()), mDesign.netlist().end(circuit::Cell()));
+
     ophidian::legalization::Subrows subrows(mDesign.netlist(), mDesign.floorplan(), mDesign.placement(), mDesign.placementMapping());
-    subrows.createSubrows(mPlaceableArea);
+    subrows.createSubrows(cells, mPlaceableArea);
     rtree macroblocks_boxes_rtree;
     //create macroblocks rtree
     for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); ++cell_it)
@@ -156,8 +167,7 @@ void KDtreeLegalization::removeMacroblocksOverlaps(){
     }
 
     //check if cell overlap a macroblock
-//#pragma omp parallel for
-    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it < mDesign.netlist().end(circuit::Cell()); ++cell_it)
+    for (auto cell_it = mDesign.netlist().begin(circuit::Cell()); cell_it != mDesign.netlist().end(circuit::Cell()); ++cell_it)
     {
         if(!mDesign.placement().isFixed(*cell_it))
         {

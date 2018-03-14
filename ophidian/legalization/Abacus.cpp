@@ -20,9 +20,11 @@ Abacus::Abacus(const circuit::Netlist & netlist, const floorplan::Floorplan & fl
 
 void Abacus::legalizePlacement()
 {
+    std::vector<circuit::Cell> cells(netlist_.begin(circuit::Cell()), netlist_.end(circuit::Cell()));
+
     geometry::Box chipArea(floorplan_.chipOrigin().toPoint(), floorplan_.chipUpperRightCorner().toPoint());
     util::MultiBox legalizationArea({chipArea});
-    subrows_.createSubrows(legalizationArea);
+    subrows_.createSubrows(cells, legalizationArea);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
     sortedCells.reserve(netlist_.size(circuit::Cell()));
@@ -64,6 +66,11 @@ bool Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
 
         auto cellName = cellName_[abacusCell];
 
+        if (cellName == "FE_OFC1605_n_4740") {
+            std::cout << "stop" << std::endl;
+        }
+
+
         while (bestCost == std::numeric_limits<double>::max())
         {
 //            if (rowsToSearch == subrows_.rowCount()) {
@@ -86,11 +93,12 @@ bool Abacus::legalize(const std::vector<std::pair<AbacusCell, util::Location> > 
                 if ((subrows_.capacity(subrow) >= cellWidths_[abacusCell]) && ((subrows_.origin(subrow).y() + cellHeights_[abacusCell]) <= chipTop))
                 {
                     subrowCells_[subrow].push_back(abacusCell);
-                    abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth);
+                    auto cost = units::unit_cast<double>(abacusPlaceRow_(subrow, subrowCells_[subrow], siteWidth));
                     auto cellLegalLocation = cellLegalLocations_[abacusCell];
                     auto cellInitialLocation = cellInitialLocations_[abacusCell];
-                    double cost = std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].x()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].x())) +
-                                  std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].y()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].y()));
+                    cost += std::abs(cellLegalLocation.toPoint().y() - cellInitialLocation.toPoint().y());
+//                    double cost = std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].x()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].x())) +
+//                                  std::abs(units::unit_cast<double>(cellLegalLocations_[abacusCell].y()) - units::unit_cast<double>(cellInitialLocations_[abacusCell].y()));
                     subrowCells_[subrow].pop_back();
                     // if (cost < bestCost and (maxDisplacement == 0 or cost < maxDisplacement))
                     if (cost < bestCost)

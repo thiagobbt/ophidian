@@ -3,8 +3,10 @@
 
 #include <set>
 
+#include <ophidian/design/Design.h>
 #include <ophidian/floorplan/Floorplan.h>
 #include <ophidian/placement/PlacementMapping.h>
+#include <ophidian/util/Debug.h>
 
 namespace ophidian
 {
@@ -32,17 +34,23 @@ class Subrows
 public:
     using SubrowsIterator = entity_system::EntitySystem<Subrow>::const_iterator;
 
+    Subrows(design::Design & design);
+
     Subrows(const circuit::Netlist & netlist, const floorplan::Floorplan & floorplan, placement::Placement & placement, const placement::PlacementMapping & placementMapping);
 
-    void createSubrows(util::MultiBox area, unsigned rowsPerCell = 1, placement::RowAlignment alignment = placement::RowAlignment::NA);
+    void createSubrows(const std::vector<circuit::Cell> & cells, util::MultiBox area, unsigned rowsPerCell = 1, placement::RowAlignment alignment = placement::RowAlignment::NA, bool align = true);
 
     ophidian::util::Range<SubrowsIterator> range(Subrow) const;
 
     void findClosestSubrows(unsigned numberOfSubrows, util::Location point, std::vector<Subrow> & subrows) const;
 
+    Subrow findContainedSubrow(util::Location location) const;
+
     Subrow findContainedSubrow(geometry::Box cellBox) const;
 
     void findContainedSubrows(geometry::Box cellBox, std::vector<Subrow> & subrows) const;
+
+    bool isInsideSubrows(geometry::Box cellBox);
 
     ophidian::util::micrometer_t capacity(Subrow subrow) const;
 

@@ -9,8 +9,8 @@ MultirowAbacus::MultirowAbacus(const circuit::Netlist & netlist, const floorplan
 
 }
 
-bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea, double maxDisplacement) {
-    subrows_.createSubrows(legalizationArea, rowsPerCell, alignment);
+bool MultirowAbacus::legalizeSubrows(const std::vector<circuit::Cell> & totalCells, std::vector<circuit::Cell> & cellsForOneHeight, unsigned rowsPerCell, placement::RowAlignment alignment, util::MultiBox legalizationArea, double maxDisplacement) {
+    subrows_.createSubrows(totalCells, legalizationArea, rowsPerCell, alignment);
 
     std::vector<std::pair<AbacusCell, util::Location> > sortedCells;
     sortedCells.reserve(cellsForOneHeight.size());
@@ -26,6 +26,9 @@ bool MultirowAbacus::legalizeSubrows(std::vector<circuit::Cell> & cellsForOneHei
 //        cellWeights_[abacus_cell] = netlist_.pins(cell).size();
         cellName_[abacus_cell] = netlist_.name(cell);
         sortedCells.push_back(std::make_pair(abacus_cell, placement_.cellLocation(cell)));
+//        double cost = placement_.cellLocation(cell).toPoint().x() * units::unit_cast<double>(cellWidths_[abacus_cell]);
+//        util::Location costLocation(cost, 0);
+//        sortedCells.push_back(std::make_pair(abacus_cell, costLocation));
     }
     std::sort(sortedCells.begin(), sortedCells.end(), CellPairComparator());
     legalize(sortedCells, maxDisplacement);
@@ -74,7 +77,7 @@ bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
         if(std::fmod((cellHeight/siteHeight), 2.0))
         {
             //Odd-sized cells -> place in all rows
-            legalizeSubrows(cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea, maxDisplacement);
+            legalizeSubrows(cells, cellsForOneHeight, rowsPerCell, placement::RowAlignment::NA, legalizationArea, maxDisplacement);
         }
         else {
             //Even-sized cells -> place in specific rows
@@ -93,9 +96,9 @@ bool MultirowAbacus::legalizePlacement(std::vector<circuit::Cell> cells, util::M
                     cellsOdd.push_back(cell);
                 }
             }
-            if(legalizeSubrows(cellsEven, rowsPerCell, placement::RowAlignment::EVEN, legalizationArea) == false)
+            if(legalizeSubrows(cells, cellsEven, rowsPerCell, placement::RowAlignment::EVEN, legalizationArea) == false)
                 return false;
-            if(legalizeSubrows(cellsOdd, rowsPerCell, placement::RowAlignment::ODD, legalizationArea) == false)
+            if(legalizeSubrows(cells, cellsOdd, rowsPerCell, placement::RowAlignment::ODD, legalizationArea) == false)
                 return false;
         }
         rowsPerCell--;

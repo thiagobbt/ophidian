@@ -46,7 +46,7 @@ void CellShifting::shiftCellsInsideRows(util::MultiBox area, std::vector<circuit
 {
     mCellSlices.clear();
 
-    mSubrows.createSubrows(area);
+    mSubrows.createSubrows(cells, area);
 
     sliceCells(cells);
 

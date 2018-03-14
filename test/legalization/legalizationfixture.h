@@ -75,6 +75,22 @@ protected:
     ophidian::standard_cell::Cell cellStdCell_;
 };
 
+class ZeroSlackCircuitFixture : public CircuitFixture
+{
+public:
+    ZeroSlackCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
+class MisalignedCircuitFixture : public CircuitFixture
+{
+public:
+    MisalignedCircuitFixture();
+protected:
+    ophidian::standard_cell::Cell cellStdCell_;
+};
+
 
 
 #endif // LEGALIZATIONFIXTURE_H

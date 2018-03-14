@@ -12,7 +12,7 @@ RtreeLegalization::RtreeLegalization(design::Design &design)
 
 void RtreeLegalization::legalizePlacement(std::vector<circuit::Cell> &cells, util::MultiBox &legalizationArea)
 {
-    mSubrows.createSubrows(legalizationArea);
+    mSubrows.createSubrows(cells, legalizationArea);
 
     for (auto subrow : mSubrows.range(Subrow())) {
         auto subrowOrigin = mSubrows.origin(subrow);
@@ -159,7 +159,7 @@ bool RtreeLegalization::legalizeCell(circuit::Cell cell, util::Location targetLo
 
 void RtreeLegalization::buildRtree(std::vector<circuit::Cell> &cells, util::MultiBox legalizationArea)
 {
-    mSubrows.createSubrows(legalizationArea);
+    mSubrows.createSubrows(cells, legalizationArea);
 
     mCellsRtree.clear();
 

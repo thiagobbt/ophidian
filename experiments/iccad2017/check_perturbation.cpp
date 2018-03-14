@@ -17,8 +17,8 @@ void runCheckPerturbationForOneCircuit(std::string circuitName) {
     ophidian::legalization::Subrows subrows(design.netlist(), design.floorplan(), design.placement(), design.placementMapping());
 
     for (auto fence : design.fences().range()) {
-        subrows.createSubrows(design.fences().area(fence));
         std::vector<ophidian::circuit::Cell> cells (design.fences().members(fence).begin(), design.fences().members(fence).end());
+        subrows.createSubrows(cells, design.fences().area(fence));
         ophidian::legalization::CheckPerturbation checkPerturbation(design, subrows, cells);
         int maxPerturbation = 0;
         for (auto subrow : subrows.range(ophidian::legalization::Subrow())) {
@@ -34,9 +34,10 @@ void runCheckPerturbationForOneCircuit(std::string circuitName) {
     ophidian::geometry::Box chipArea(design.floorplan().chipOrigin().toPoint(), design.floorplan().chipUpperRightCorner().toPoint());
     ophidian::util::MultiBox legalizationArea({chipArea});
 
-    subrows.createSubrows(legalizationArea);
-
     std::vector<ophidian::circuit::Cell> cells(design.netlist().begin(ophidian::circuit::Cell()), design.netlist().end(ophidian::circuit::Cell()));
+
+    subrows.createSubrows(cells, legalizationArea);
+
 
     ophidian::legalization::CheckPerturbation checkPerturbation(design, subrows, cells);
 

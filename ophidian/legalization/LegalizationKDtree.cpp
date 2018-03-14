@@ -21,22 +21,22 @@ const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::partitions(
     return result;
 }
 
-const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::parentPartitions(std::vector<std::shared_ptr<Node>> nodes) const{
+const std::vector<LegalizationKDtree::Partition> LegalizationKDtree::parentPartitions(const std::vector<std::shared_ptr<Partition>> & partitions) const{
     std::vector<Partition> result;
     std::vector<std::shared_ptr<Node>> visitedParents;
-
-    for(auto node : nodes)
+    for(auto & partition : partitions)
     {
+        auto partitionParent = partition->root->parent;
         bool visited = false;
         for(auto visitedNode : visitedParents)
-            if(boost::geometry::equals(visitedNode->range, node->range)){
+            if(boost::geometry::equals(visitedNode->range, partitionParent->range)){
                 visited = true;
                 break;
             }
         if(visited == false)
         {
-            visitedParents.push_back(node);
-            Partition partition = createPartition(node);
+            visitedParents.push_back(partitionParent);
+            Partition partition = createPartition(partitionParent);
             result.push_back(partition);
         }
     }

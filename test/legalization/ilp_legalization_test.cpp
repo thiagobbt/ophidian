@@ -30,7 +30,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Circuit already legal", "[legalizat
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cells misaligned with sites", "[legalization][ILP]") {
-    auto cell5Location = ophidian::util::Location(4, 30);
+    auto cell5Location = ophidian::util::Location(2, 30);
     addCell(cellStdCell_, "cell5", cell5Location, 2, false);
 
     std::vector<ophidian::util::Location> expectedLocations = {
@@ -101,7 +101,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap between two cells", "[legal
     std::vector<ophidian::util::Location> cellLocations;
     for (auto cellIt = design_.netlist().begin(ophidian::circuit::Cell()); cellIt != design_.netlist().end(ophidian::circuit::Cell()); ++cellIt) {
         cellLocations.push_back(design_.placement().cellLocation(*cellIt));
-//        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
+        std::cout << cellLocations.back().x() << ", " << cellLocations.back().y() << std::endl;
     }
 
     REQUIRE(cellLocations.size() == expectedLocations.size());
@@ -145,7 +145,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Overlap with multirow cell", "[lega
 TEST_CASE("Legalizing circuit with random cells", "[legalization][ILP][random]") {
     ophidian::util::Location chipOrigin(0, 0);
     ophidian::util::Location chipUpperCorner(50000, 50000);
-    unsigned numberOfCells = 100;
+    unsigned numberOfCells = 50;
 
     CircuitFixtureWithRandomCells circuit(chipOrigin, chipUpperCorner, numberOfCells);
 

@@ -31,6 +31,7 @@ private:
     util::MultiBox mPlaceableArea;
     std::vector<std::shared_ptr<ophidian::circuit::Cell>> mAncients;
     std::vector<LegalizationKDtree::Partition> mPartitions;
+    entity_system::Property<circuit::Cell, util::Location> mCellsInitialLocations;
 };
 }
 }

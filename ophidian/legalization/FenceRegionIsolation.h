@@ -14,12 +14,18 @@ public:
 
     void isolateFenceCells(placement::Fence fence);
 
+    void addFenceBlocks(placement::Fence fence);
+
     void restoreAllFenceCells();
 
     void restoreFenceCells(placement::Fence fence);
 
-private:
+    void eraseFenceBlocks(placement::Fence fence);
+
+    void fixCellsInFences(bool fix);
+
     void fixCellsInFence(placement::Fence fence, bool fix);
+private:
 
     design::Design & mDesign;
 

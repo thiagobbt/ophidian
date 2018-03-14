@@ -8,7 +8,7 @@ AbacusPlaceRow::AbacusPlaceRow(Subrows &subrows, entity_system::Property<AbacusC
 
 }
 
-void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & subrowCells, util::micrometer_t siteWidth) {
+util::micrometer_t AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & subrowCells, util::micrometer_t siteWidth) {
     clusters_.clear();
     for (auto abacusCellIt = subrowCells.begin(); abacusCellIt != subrowCells.end(); ++abacusCellIt) {        
         auto clusterIt = clusters_.end();
@@ -31,6 +31,7 @@ void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & 
         }
     }
 
+    util::micrometer_t displacement(0);
     auto abacusCellIt = subrowCells.begin();
     for (auto cluster : clusters_) {
         ophidian::util::micrometer_t x = clusterOrigins_[cluster];
@@ -38,8 +39,15 @@ void AbacusPlaceRow::operator ()(Subrow subrow, const std::vector<AbacusCell> & 
             cellLegalLocations_[*abacusCellIt].x(x);
             cellLegalLocations_[*abacusCellIt].y(subrows_.origin(subrow).y());
             x = x + cellWidths_[*abacusCellIt];
+
+//            auto cellDisplacement = util::micrometer_t(std::abs(cellLegalLocations_[*abacusCellIt].toPoint().x() - cellInitialLocations_[*abacusCellIt].toPoint().x()) +
+//                    std::abs(cellLegalLocations_[*abacusCellIt].toPoint().y() - cellInitialLocations_[*abacusCellIt].toPoint().y()));
+            auto cellDisplacement = util::micrometer_t(std::abs(cellLegalLocations_[*abacusCellIt].toPoint().x() - cellInitialLocations_[*abacusCellIt].toPoint().x()));
+            displacement = displacement + cellDisplacement;
         }
     }
+
+    return displacement;
 }
 
 void AbacusPlaceRow::addCell(std::vector<AbacusCell>::const_iterator abacusCellIt, Cluster cluster)

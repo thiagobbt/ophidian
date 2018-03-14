@@ -22,6 +22,7 @@ target_link_libraries(rtree_test
 	ophidian_placement
 	ophidian_standard_cell ophidian_timing ophidian_legalization emon
 	ophidian_entitysystem
+        ophidian_util
 )
 
 include_directories(${CMAKE_SOURCE_DIR})

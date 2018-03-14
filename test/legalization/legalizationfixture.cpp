@@ -149,11 +149,11 @@ LargerLegalCircuitFixture::LargerLegalCircuitFixture()
 {
     design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
     design_.floorplan().chipUpperRightCorner(ophidian::util::Location(50, 40));
-    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
-    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
-    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 5, site);
-    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 5, site);
-    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 5, site);
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(5.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 10, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 10, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 10, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 10, site);
 
     cellStdCell_ = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
     std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
@@ -306,5 +306,63 @@ ViolatingConstraintGraphCircuitFixture::ViolatingConstraintGraphCircuitFixture()
     addCell(cellStdCell_, "cell3", cell3Location, 2, false);
 
     auto cell4Location = ophidian::util::Location(15, 0);
+    addCell(cellStdCell_, "cell4", cell4Location, 2, false);
+}
+
+MisalignedCircuitFixture::MisalignedCircuitFixture()
+{
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(50, 40));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 5, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 5, site);
+
+    cellStdCell_ = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1");
+    std::vector<ophidian::geometry::Box> stdCellBoxes = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 10))};
+    ophidian::util::MultiBox stdCellGeometry(stdCellBoxes);
+    design_.library().geometry(cellStdCell_, stdCellGeometry);
+
+    auto cell1Location = ophidian::util::Location(12.0, 22.0);
+    addCell(cellStdCell_, "cell1", cell1Location, 2, false);
+
+    auto cell2Location = ophidian::util::Location(18.0, 2.0);
+    addCell(cellStdCell_, "cell2", cell2Location, 3, false);
+
+    auto cell3Location = ophidian::util::Location(32.0, 28.0);
+    addCell(cellStdCell_, "cell3", cell3Location, 2, false);
+
+    auto cell4Location = ophidian::util::Location(38.0, 8.0);
+    addCell(cellStdCell_, "cell4", cell4Location, 2, false);
+}
+
+ZeroSlackCircuitFixture::ZeroSlackCircuitFixture()
+{
+    design_.floorplan().chipOrigin(ophidian::util::Location(0, 0));
+    design_.floorplan().chipUpperRightCorner(ophidian::util::Location(40, 50));
+    auto site = design_.floorplan().add(ophidian::floorplan::Site(), "site", ophidian::util::Location(10.0, 10.0));
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 0.0), 4, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 10.0), 4, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 20.0), 4, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 30.0), 4, site);
+    design_.floorplan().add(ophidian::floorplan::Row(), ophidian::util::Location(0.0, 40.0), 4, site);
+
+    cellStdCell_ = design_.standardCells().add(ophidian::standard_cell::Cell(), "INV_Z1_MR");
+    std::vector<ophidian::geometry::Box> stdCellBoxesMR = {ophidian::geometry::Box(ophidian::geometry::Point(0, 0), ophidian::geometry::Point(10, 20))};
+    ophidian::util::MultiBox stdCellGeometryMR(stdCellBoxesMR);
+    design_.library().geometry(cellStdCell_, stdCellGeometryMR);
+    design_.library().cellAlignment(cellStdCell_, ophidian::placement::RowAlignment::NA);
+
+    auto cell1Location = ophidian::util::Location(0, 30.0);
+    addCell(cellStdCell_, "cell1", cell1Location, 2, false);
+
+    auto cell2Location = ophidian::util::Location(10.0, 20.0);
+    addCell(cellStdCell_, "cell2", cell2Location, 3, false);
+
+    auto cell3Location = ophidian::util::Location(20.0, 10.0);
+    addCell(cellStdCell_, "cell3", cell3Location, 2, false);
+
+    auto cell4Location = ophidian::util::Location(30.0, 0.0);
     addCell(cellStdCell_, "cell4", cell4Location, 2, false);
 }

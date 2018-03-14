@@ -12,7 +12,7 @@ SET(BUILD_SHARED_LIBRARIES OFF)
 SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
 add_executable( cada001 ${SOURCE} ${HEADERS} )
-target_link_libraries(cada001 ophidian_design ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem)
+target_link_libraries(cada001 ophidian_design ophidian_circuit ophidian_geometry ophidian_parser ophidian_interconnection ophidian_floorplan ophidian_placement ophidian_standard_cell ophidian_timing ophidian_legalization emon ophidian_entitysystem ophidian_util)
 
 include_directories(${CMAKE_SOURCE_DIR})
 

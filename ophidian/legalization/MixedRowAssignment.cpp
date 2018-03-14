@@ -44,7 +44,7 @@ void MixedRowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circ
 {
     mCellSlices.clear();
 
-    mSubrows.createSubrows(area);
+    mSubrows.createSubrows(cells, area);
 
     sliceCells(cells);
 

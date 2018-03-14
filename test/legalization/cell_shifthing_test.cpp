@@ -77,11 +77,11 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "Cell shifting on illegal circuit wi
     auto cell5Location = ophidian::util::Location(12, 0);
     addCell(cellStdCellMultirow, "cell5", cell5Location, 2, false);
     std::vector<ophidian::util::Location> expectedLocations = {
-        ophidian::util::Location(0, 20),
-        ophidian::util::Location(20, 0),
+        ophidian::util::Location(5, 20),
+        ophidian::util::Location(25, 0),
         ophidian::util::Location(30, 30),
         ophidian::util::Location(40, 10),
-        ophidian::util::Location(10, 0),
+        ophidian::util::Location(15, 0),
     };
 
     ophidian::legalization::CellShifting cellShifting(design_);

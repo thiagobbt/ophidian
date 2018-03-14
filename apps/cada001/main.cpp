@@ -43,7 +43,7 @@ void runMultirowAbacusICCAD2015(std::string strategy, unsigned int i, std::strin
     std::cout<<"Average Displacement: "<<quality.avgDisplacement()<<std::endl;
     std::cout<<"Maximum Cell Movement(lines): "<<quality.maximumCellMovement()<<std::endl;
 
-//    design.writeDefFile(output_def);
+    design.writeDefFile(output_def);
 }
 
 void runMultirowAbacusICCAD2017(std::string strategy, unsigned int i, std::string tech_lef, std::string cell_lef, std::string input_def, unsigned int cpu, std::string placement_constraints, std::string output_def){
@@ -77,7 +77,7 @@ void runMultirowAbacusICCAD2017(std::string strategy, unsigned int i, std::strin
     std::cout<<"Average Displacement: "<<quality.avgDisplacement()<<std::endl;
     std::cout<<"Maximum Cell Movement(lines): "<<quality.maximumCellMovement()<<std::endl;
 
-//    design.writeDefFile(output_def);
+    design.writeDefFile(output_def);
 }
 
 void randomPlacementWrite(std::string lef, std::string def, std::string verilog, std::string output_def){

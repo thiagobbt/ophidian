@@ -237,3 +237,54 @@ TEST_CASE("Constraint graph of circuit with random cells", "[legalization][const
 //        std::cout << "location " << cellLocation.x() << ", " << cellLocation.y() << " height " << cellHeight << std::endl;
 //    }
 }
+
+TEST_CASE_METHOD(ViolatingConstraintGraphCircuitFixture, "Adjusting multiple times", "[legalization][constraint_graph]") {
+    ophidian::legalization::ConstraintGraph<ophidian::legalization::LeftComparator> horizontalConstraintGraph(design_);
+    ophidian::legalization::ConstraintGraph<ophidian::legalization::BelowComparator> verticalConstraintGraph(design_);
+
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    horizontalConstraintGraph.buildConstraintGraph(cells, design_.floorplan().chipOrigin().x(), design_.floorplan().chipUpperRightCorner().x());
+    verticalConstraintGraph.buildConstraintGraph(cells, design_.floorplan().chipOrigin().y(), design_.floorplan().chipUpperRightCorner().y());
+
+    auto cell1 = design_.netlist().find(ophidian::circuit::Cell(), "cell1");
+    auto cell2 = design_.netlist().find(ophidian::circuit::Cell(), "cell2");
+    auto cell3 = design_.netlist().find(ophidian::circuit::Cell(), "cell3");
+    auto cell4 = design_.netlist().find(ophidian::circuit::Cell(), "cell4");
+
+    horizontalConstraintGraph.exportGraph("test_hgraph_before_adjust.gv");
+    verticalConstraintGraph.exportGraph("test_vgraph_before_adjust.gv");
+
+    std::cout << "horizontal graph worst slack " << horizontalConstraintGraph.worstSlack() << std::endl;
+    std::cout << "vertical graph worst slack " << verticalConstraintGraph.worstSlack() << std::endl;
+
+    horizontalConstraintGraph.adjustGraph(verticalConstraintGraph, design_.floorplan().chipOrigin().x(), design_.floorplan().chipUpperRightCorner().x(), design_.floorplan().chipOrigin().y(), design_.floorplan().chipUpperRightCorner().y());
+
+    horizontalConstraintGraph.exportGraph("test_hgraph_after_adjust.gv");
+    verticalConstraintGraph.exportGraph("test_vgraph_after_adjust.gv");
+
+    std::cout << "horizontal graph worst slack " << horizontalConstraintGraph.worstSlack() << std::endl;
+    std::cout << "vertical graph worst slack " << verticalConstraintGraph.worstSlack() << std::endl;
+
+    horizontalConstraintGraph.adjustGraph(verticalConstraintGraph, design_.floorplan().chipOrigin().x(), design_.floorplan().chipUpperRightCorner().x(), design_.floorplan().chipOrigin().y(), design_.floorplan().chipUpperRightCorner().y());
+
+    std::cout << "horizontal graph worst slack " << horizontalConstraintGraph.worstSlack() << std::endl;
+    std::cout << "vertical graph worst slack " << verticalConstraintGraph.worstSlack() << std::endl;
+}
+
+TEST_CASE_METHOD(ZeroSlackCircuitFixture, "Horizontal constraint graph with zero slack", "[legalization][constraint_graph]") {
+    ophidian::legalization::ConstraintGraph<ophidian::legalization::LeftComparator> horizontalConstraintGraph(design_);
+
+    std::vector<ophidian::circuit::Cell> cells(design_.netlist().begin(ophidian::circuit::Cell()), design_.netlist().end(ophidian::circuit::Cell()));
+    horizontalConstraintGraph.buildConstraintGraph(cells, design_.floorplan().chipOrigin().x(), design_.floorplan().chipUpperRightCorner().x());
+    horizontalConstraintGraph.removeTransitiveEdges();
+
+    auto cell1 = design_.netlist().find(ophidian::circuit::Cell(), "cell1");
+    auto cell2 = design_.netlist().find(ophidian::circuit::Cell(), "cell2");
+    auto cell3 = design_.netlist().find(ophidian::circuit::Cell(), "cell3");
+    auto cell4 = design_.netlist().find(ophidian::circuit::Cell(), "cell4");
+
+    REQUIRE(horizontalConstraintGraph.slack(cell1) == 0);
+    REQUIRE(horizontalConstraintGraph.slack(cell2) == 0);
+    REQUIRE(horizontalConstraintGraph.slack(cell3) == 0);
+    REQUIRE(horizontalConstraintGraph.slack(cell4) == 0);
+}

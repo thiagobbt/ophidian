@@ -38,7 +38,7 @@ void GreedyRowAssignment::assignCellsToRows()
 
 void GreedyRowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::Cell> &cells)
 {
-    mSubrows.createSubrows(area);
+    mSubrows.createSubrows(cells, area);
 
     entity_system::Property<Subrow, util::micrometer_t> subrowsCapacities(mSubrows.makeProperty<util::micrometer_t>(Subrow()));
     for (auto subrow : mSubrows.range(Subrow())) {

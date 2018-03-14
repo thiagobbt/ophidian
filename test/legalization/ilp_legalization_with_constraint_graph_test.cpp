@@ -33,7 +33,7 @@ TEST_CASE_METHOD(LargerLegalCircuitFixture, "ILPCG: Circuit already legal", "[le
 }
 
 TEST_CASE_METHOD(LargerLegalCircuitFixture, "ILPCG: Cells misaligned with sites", "[legalization][ILPCG]") {
-    auto cell5Location = ophidian::util::Location(4, 30);
+    auto cell5Location = ophidian::util::Location(2, 30);
     addCell(cellStdCell_, "cell5", cell5Location, 2, false);
 
     std::vector<ophidian::util::Location> expectedLocations = {

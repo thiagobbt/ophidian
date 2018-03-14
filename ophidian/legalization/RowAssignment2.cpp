@@ -262,7 +262,7 @@ void RowAssignment2::assignCellsToRows(util::MultiBox area, std::vector<circuit:
             //    util::micrometer_t maximumSubrowWidth(256*200);
             //    mSubrows.createSubrows(area, maximumSubrowWidth);
     //        mSubrows.createSubrows(area);
-            mSubrows.createSubrows(binArea);
+            mSubrows.createSubrows(cells, binArea);
 
     //        sliceCells(cells);
             createAndSolveGurobiModel(binCells);
@@ -284,7 +284,7 @@ void RowAssignment2::assignCellsToRows(util::MultiBox area, std::vector<circuit:
         std::cout << "fence area " << fenceArea << std::endl;
         std::cout << "cells area " << cellsArea << std::endl;
 
-        mSubrows.createSubrows(area);
+        mSubrows.createSubrows(cells, area);
         createAndSolveGurobiModel(cells);
     }
 

@@ -189,12 +189,12 @@ void RowAssignment::assignCellsToRows(util::MultiBox area, std::vector<circuit::
 
             auto & binCells = binDecomposition.cells(bin);
 
-            mSubrows.createSubrows(binArea);
+            mSubrows.createSubrows(cells, binArea);
 
             createAndSolveGurobiModel(binCells);
         }
     } else {
-        mSubrows.createSubrows(area);
+        mSubrows.createSubrows(cells, area);
         createAndSolveGurobiModel(cells);
     }
 

@@ -16,6 +16,13 @@ void FenceRegionIsolation::isolateAllFenceCells()
 
 void FenceRegionIsolation::isolateFenceCells(placement::Fence fence)
 {
+    addFenceBlocks(fence);
+    fixCellsInFence(fence, true);
+}
+
+void FenceRegionIsolation::addFenceBlocks(placement::Fence fence)
+{
+    mFenceBlocks[fence].clear();
     util::MultiBox boxes = mDesign.fences().area(fence);
     for(auto box : boxes)
     {
@@ -33,10 +40,9 @@ void FenceRegionIsolation::isolateFenceCells(placement::Fence fence)
         mDesign.libraryMapping().cellStdCell(circuitCell, stdCell);
 
         mFenceBlocks[fence].push_back(circuitCell);
+        mDesign.fences().connect(fence, circuitCell);
         mContBox++;
     }
-
-    fixCellsInFence(fence, true);
 }
 
 void FenceRegionIsolation::restoreAllFenceCells()
@@ -46,13 +52,25 @@ void FenceRegionIsolation::restoreAllFenceCells()
     }
 }
 
-void FenceRegionIsolation::restoreFenceCells(placement::Fence fence)
+void FenceRegionIsolation::eraseFenceBlocks(placement::Fence fence)
 {
     for (auto cell : mFenceBlocks[fence]) {
         mDesign.netlist().erase(cell);
     }
     mFenceBlocks[fence].clear();
+}
+
+void FenceRegionIsolation::restoreFenceCells(placement::Fence fence)
+{
+    eraseFenceBlocks(fence);
     fixCellsInFence(fence, false);
+}
+
+void FenceRegionIsolation::fixCellsInFences(bool fix)
+{
+    for (auto fence : mDesign.fences().range()) {
+        fixCellsInFence(fence, fix);
+    }
 }
 
 void FenceRegionIsolation::fixCellsInFence(placement::Fence fence, bool fix)
