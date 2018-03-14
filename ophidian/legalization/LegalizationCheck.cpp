@@ -105,6 +105,7 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
     geometry::Box chip_area(chipOrigin, chipUpperRightCorner);
     for (auto cell_it = netlist.begin(circuit::Cell()); cell_it != netlist.end(circuit::Cell()); ++cell_it)
     {
+        auto cellName = netlist.name(*cell_it);
         auto cellGeometry = placementMapping.geometry(*cell_it);
         bool hasFence = placement.cellHasFence(*cell_it);
         ophidian::util::MultiBox fenceGeometry;
@@ -119,11 +120,19 @@ bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Pla
         {
             if (hasFence)
             {
-                bool inFence = false;
+//                bool inFence = false;
+                double coveredArea = 0;
                 for (auto fence_box : fenceGeometry)
                 {
-                    inFence |= boost::geometry::covered_by(cell_box, fence_box);
+                    if (boost::geometry::intersects(cell_box, fence_box)) {
+                        geometry::Box intersection;
+                        boost::geometry::intersection(cell_box, fence_box, intersection);
+                        coveredArea += boost::geometry::area(intersection);
+                    }
+//                    inFence |= boost::geometry::covered_by(cell_box, fence_box);
                 }
+                auto cellArea = boost::geometry::area(cell_box);
+                bool inFence = coveredArea == cellArea;
                 if (!inFence)
                 {
                     std::cout << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
@@ -147,6 +156,94 @@ bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, cons
 {
     rtree cell_boxes_rtree;
     for (auto cell_it = netlist.begin(circuit::Cell()); cell_it != netlist.end(circuit::Cell()); ++cell_it)
+    {
+        auto cellGeometry = placementMapping.geometry(*cell_it);
+        for(auto cell_box : cellGeometry)
+        {
+            std::vector<rtree_node> intersecting_nodes;
+            cell_boxes_rtree.query( boost::geometry::index::within(cell_box), std::back_inserter(intersecting_nodes));
+            cell_boxes_rtree.query( boost::geometry::index::overlaps(cell_box), std::back_inserter(intersecting_nodes));
+            if (intersecting_nodes.empty())
+            {
+                cell_boxes_rtree.insert(std::make_pair(cell_box, *cell_it));
+            }
+            else {
+                std::cout << "cell overlap " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                std::cout << "intersecting boxes " << std::endl;
+                for (auto node : intersecting_nodes)
+                {
+                    auto box = node.first;
+                    std::cout << "cell " << netlist.name(node.second) << " " << box.min_corner().x() << ", " << box.min_corner().y() << " -> " <<
+                        box.max_corner().x() << ", " << box.max_corner().y() << std::endl;
+                }
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement,
+                     const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist,
+                     const placement::Fences &fences,
+                     const std::vector<circuit::Cell> & cells)
+{
+    geometry::Point chipOrigin(units::unit_cast<double>(floorplan.chipOrigin().x()), units::unit_cast<double>(floorplan.chipOrigin().y()));
+    geometry::Point chipUpperRightCorner(units::unit_cast<double>(floorplan.chipUpperRightCorner().x()), units::unit_cast<double>(floorplan.chipUpperRightCorner().y()));
+    geometry::Box chip_area(chipOrigin, chipUpperRightCorner);
+    for (auto cell_it = cells.begin(); cell_it != cells.end(); cell_it++)
+    {
+        auto cellName = netlist.name(*cell_it);
+        auto cellGeometry = placementMapping.geometry(*cell_it);
+        bool hasFence = placement.cellHasFence(*cell_it);
+        ophidian::util::MultiBox fenceGeometry;
+
+        if (hasFence)
+        {
+            auto cellFence = placement.cellFence(*cell_it);
+            fenceGeometry = fences.area(cellFence);
+        }
+
+        for(auto cell_box : cellGeometry)
+        {
+            if (hasFence)
+            {
+//                bool inFence = false;
+                double coveredArea = 0;
+                for (auto fence_box : fenceGeometry)
+                {
+                    if (boost::geometry::intersects(cell_box, fence_box)) {
+                        geometry::Box intersection;
+                        boost::geometry::intersection(cell_box, fence_box, intersection);
+                        coveredArea += boost::geometry::area(intersection);
+                    }
+//                    inFence |= boost::geometry::covered_by(cell_box, fence_box);
+                }
+                auto cellArea = boost::geometry::area(cell_box);
+                bool inFence = coveredArea == cellArea;
+                if (!inFence)
+                {
+                    std::cout << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                                 cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << " not in fence" << std::endl;
+                    return false;
+                }
+            }
+            if (!boost::geometry::within(cell_box, chip_area))
+            {
+                std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
+                    cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const std::vector<circuit::Cell> & cells)
+{
+    rtree cell_boxes_rtree;
+    for (auto cell_it = cells.begin(); cell_it != cells.end(); cell_it++)
     {
         auto cellGeometry = placementMapping.geometry(*cell_it);
         for(auto cell_box : cellGeometry)

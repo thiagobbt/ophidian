@@ -98,6 +98,7 @@ void RectilinearFences::eraseBlocks()
         for (auto blockCell : mFenceBlocks[fence]) {
             mDesign.netlist().erase(blockCell);
         }
+        mFenceBlocks[fence].clear();
     }
 }
 

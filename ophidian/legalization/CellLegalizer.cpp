@@ -6,9 +6,9 @@ namespace ophidian {
 namespace legalization {
 
 CellLegalizer::CellLegalizer(design::Design & design) :
-    mDesign(design),
-    mFenceRegionIsolation(design),
-    mRectilinearFences(design)
+    mDesign(design)
+    // mFenceRegionIsolation(design),
+    // mRectilinearFences(design)
 {
 }
 
@@ -27,7 +27,8 @@ bool isNodeTouchingBox(RNode const& node, Box const& b) {
     return true;
 }
 
-void CellLegalizer::buildTree(const std::vector<circuit::Cell> legalizedCells) {
+void CellLegalizer::buildRtree(const std::vector<circuit::Cell> legalizedCells) {
+    mTree.clear();
     for (auto & cell : legalizedCells) {
         auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
 
@@ -38,6 +39,12 @@ void CellLegalizer::buildTree(const std::vector<circuit::Cell> legalizedCells) {
         Box b(cell_location_point, Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
         mTree.insert(std::make_pair(b, cell));
     }
+}
+
+bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion, bool)
+{
+    buildRtree(legalizedCells);
+    legalizeCell(targetCell, targetPosition, legalizationRegion);
 }
 
 // Reuses the rtree
@@ -74,11 +81,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
 
     bool hasFence = mDesign.placement().cellHasFence(targetCell);
 
-    if (!hasFence) {
-        mFenceRegionIsolation.isolateAllFenceCells();
-    } else {
-        mRectilinearFences.addBlockToFence(mDesign.placement().cellFence(targetCell));
-    }
+    // if (!hasFence) {
+    //     mFenceRegionIsolation.isolateAllFenceCells();
+    // } else {
+    //     mRectilinearFences.addBlockToFence(mDesign.placement().cellFence(targetCell));
+    // }
 
     // Fill a vector with all nodes that overlap the target box
     std::vector<RNode> overlaps_target;
@@ -97,11 +104,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
     for (auto & n : overlaps_target) {
         if (mDesign.placement().isFixed(std::get<1>(n))) {
             // Overlap with fixed cell
-            if (!hasFence) {
-                mFenceRegionIsolation.restoreAllFenceCells();
-            } else {
-                mRectilinearFences.eraseBlocks();
-            }
+            // if (!hasFence) {
+            //     mFenceRegionIsolation.restoreAllFenceCells();
+            // } else {
+            //     mRectilinearFences.eraseBlocks();
+            // }
             return false;
         }
         overlaps.push_back(make_pair(new_cell_node, n));
@@ -131,11 +138,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
 
         if (moveLeft) {
             if ((min_corner_i.x() - width_j) < legalizationRegion.min_corner().x()) {
-                if (!hasFence) {
-                    mFenceRegionIsolation.restoreAllFenceCells();
-                } else {
-                    mRectilinearFences.eraseBlocks();
-                }
+                // if (!hasFence) {
+                //     mFenceRegionIsolation.restoreAllFenceCells();
+                // } else {
+                //     mRectilinearFences.eraseBlocks();
+                // }
                 return false;
             } else {
                 target_j = Box(
@@ -145,11 +152,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
             }
         } else {
             if ((max_corner_i.x() + width_j) > legalizationRegion.max_corner().x()) {
-                if (!hasFence) {
-                    mFenceRegionIsolation.restoreAllFenceCells();
-                } else {
-                    mRectilinearFences.eraseBlocks();
-                }
+                // if (!hasFence) {
+                //     mFenceRegionIsolation.restoreAllFenceCells();
+                // } else {
+                //     mRectilinearFences.eraseBlocks();
+                // }
                 return false;
             } else {
                 target_j = Box(
@@ -172,11 +179,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
             if (std::get<1>(new_j) == std::get<1>(n)) continue;
             if (mDesign.placement().isFixed(std::get<1>(n))) {
                 // Overlap with fixed cell
-                if (!hasFence) {
-                    mFenceRegionIsolation.restoreAllFenceCells();
-                } else {
-                    mRectilinearFences.eraseBlocks();
-                }
+                // if (!hasFence) {
+                //     mFenceRegionIsolation.restoreAllFenceCells();
+                // } else {
+                //     mRectilinearFences.eraseBlocks();
+                // }
                 return false;
             }
             overlaps.push_back(make_pair(new_j, n));
@@ -197,11 +204,11 @@ bool CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const geometr
         mDesign.placement().placeCell(std::get<1>(n), cellLocation);
     }
 
-    if (!hasFence) {
-        mFenceRegionIsolation.restoreAllFenceCells();
-    } else {
-        mRectilinearFences.eraseBlocks();
-    }
+    // if (!hasFence) {
+    //     mFenceRegionIsolation.restoreAllFenceCells();
+    // } else {
+    //     mRectilinearFences.eraseBlocks();
+    // }
 
     return true;
 }

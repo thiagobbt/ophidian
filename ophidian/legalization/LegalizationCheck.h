@@ -26,6 +26,9 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
 bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const placement::Fences &fences);
 bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist);
 
+bool checkCellOverlaps(const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const std::vector<circuit::Cell> & cells);
+bool checkBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const placement::Fences &fences, const std::vector<circuit::Cell> & cells);
+
 void getUnaligned(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, std::vector<circuit::Cell> & unaligned_cells);
 void getOutsideBoundaries(const floorplan::Floorplan &floorplan, const placement::Placement &placement, const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, const placement::Fences &fences, std::vector<circuit::Cell> & cells_outside_boundaries);
 void getOverlapping(const placement::PlacementMapping &placementMapping, const circuit::Netlist &netlist, std::vector<circuit::Cell> & overlapping_cells);

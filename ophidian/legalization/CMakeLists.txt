@@ -5,5 +5,6 @@ file(GLOB ophidian_legalization_SRC
     "*.cpp"
 )
 add_library(ophidian_legalization ${ophidian_legalization_SRC})
+target_link_libraries(ophidian_legalization PUBLIC ophidian_util)
 install(TARGETS ophidian_legalization DESTINATION lib)
 install(FILES Abacus.h DESTINATION include/ophidian/legalization)
