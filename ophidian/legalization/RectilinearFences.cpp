@@ -28,7 +28,7 @@ void RectilinearFences::addBlockToFence(placement::Fence fence)
     boost::geometry::envelope(fenceArea.toMultiPolygon(), fenceBoundingBox);
 
     Subrows subrows(mDesign);
-    mIsolateFences.addFenceBlocks(fence);
+    mIsolateFences.addFenceBlocks(fence, true);
 
     std::vector<circuit::Cell> cells(mDesign.fences().members(fence).begin(), mDesign.fences().members(fence).end());
     subrows.createSubrows(cells, util::MultiBox({fenceBoundingBox}), 1, placement::RowAlignment::NA, false);
