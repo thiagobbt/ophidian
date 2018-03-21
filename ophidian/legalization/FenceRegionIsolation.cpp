@@ -20,22 +20,43 @@ void FenceRegionIsolation::isolateFenceCells(placement::Fence fence)
     fixCellsInFence(fence, true);
 }
 
-void FenceRegionIsolation::addFenceBlocks(placement::Fence fence)
+void FenceRegionIsolation::addFenceBlocks(placement::Fence fence, bool align)
 {
+    auto site = *mDesign.floorplan().sitesRange().begin();
+    auto siteWidth = mDesign.floorplan().siteUpperRightCorner(site).toPoint().x();
+    auto rowHeight = mDesign.floorplan().siteUpperRightCorner(site).toPoint().y();
+
     mFenceBlocks[fence].clear();
     util::MultiBox boxes = mDesign.fences().area(fence);
     for(auto box : boxes)
     {
+        auto minCorner = box.min_corner();
+        auto maxCorner = box.max_corner();
+        minCorner.x(std::ceil(minCorner.x() / siteWidth) * siteWidth);
+        minCorner.y(std::ceil(minCorner.y() / rowHeight) * rowHeight);
+        maxCorner.x(std::floor(maxCorner.x() / siteWidth) * siteWidth);
+        maxCorner.y(std::floor(maxCorner.y() / rowHeight) * rowHeight);
+
+        geometry::Box alignedBox(minCorner, maxCorner);
+
         std::string cellName = mDesign.fences().name(fence) + "Block"+ boost::lexical_cast<std::string>(mContBox);
         auto stdCell = mDesign.standardCells().add(ophidian::standard_cell::Cell(), cellName);
         auto circuitCell = mDesign.netlist().add(ophidian::circuit::Cell(), cellName);
 
         geometry::Box traslatedBox;
-        geometry::translate(box, -box.min_corner().x(), -box.min_corner().y(), traslatedBox);
+        if (align) {
+            geometry::translate(alignedBox, -alignedBox.min_corner().x(), -alignedBox.min_corner().y(), traslatedBox);
+        } else {
+            geometry::translate(box, -box.min_corner().x(), -box.min_corner().y(), traslatedBox);
+        }
 
         mDesign.library().geometry(stdCell, util::MultiBox({traslatedBox}));
         mDesign.library().cellAlignment(stdCell, placement::RowAlignment::NA);
-        mDesign.placement().placeCell(circuitCell, util::Location(box.min_corner().x(), box.min_corner().y()));
+        if (align) {
+            mDesign.placement().placeCell(circuitCell, util::Location(alignedBox.min_corner().x(), alignedBox.min_corner().y()));
+        } else {
+            mDesign.placement().placeCell(circuitCell, util::Location(box.min_corner().x(), box.min_corner().y()));
+        }
         mDesign.placement().fixLocation(circuitCell, true);
         mDesign.libraryMapping().cellStdCell(circuitCell, stdCell);
 

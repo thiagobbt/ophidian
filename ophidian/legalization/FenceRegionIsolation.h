@@ -14,7 +14,7 @@ public:
 
     void isolateFenceCells(placement::Fence fence);
 
-    void addFenceBlocks(placement::Fence fence);
+    void addFenceBlocks(placement::Fence fence, bool align = false);
 
     void restoreAllFenceCells();
 
