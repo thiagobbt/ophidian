@@ -66,17 +66,21 @@ bool optimizeCircuit(const std::string & circuitName) {
         cellDisplacement[currentCell] = displacement(initialLocations[currentCell], design.placement().cellLocation(currentCell));
     }
 
-    boost::accumulators::accumulator_set<long long, boost::accumulators::stats<boost::accumulators::tag::variance, boost::accumulators::tag::mean>> acc;
+    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::variance, boost::accumulators::tag::mean>> accBefore;
     for (auto displacement : cellDisplacement) {
-        acc(displacement);
+        accBefore(displacement);
     }
 
-    auto stdDevDisplacement = sqrt(boost::accumulators::variance(acc));
-    auto meanDisplacement = boost::accumulators::mean(acc);
+    auto stdDevDisplacement = sqrt(boost::accumulators::variance(accBefore));
+    auto meanDisplacement = boost::accumulators::mean(accBefore);
+    // auto maxDisplacement = boost::accumulators::max(accBefore);
+    // auto totalDisplacement = boost::accumulators::sum(accBefore);
     auto maxDisplacementAllowed = meanDisplacement + (stdDevDisplacement * 2);
 
     DEBUG(stdDevDisplacement);
     DEBUG(meanDisplacement);
+    // DEBUG(maxDisplacement);
+    // DEBUG(totalDisplacement);
     DEBUG(maxDisplacementAllowed);
 
     ophidian::legalization::CellLegalizer cellLegalizer(design);
@@ -103,8 +107,14 @@ bool optimizeCircuit(const std::string & circuitName) {
             newY = newY - rowHeight;
         }
 
-        while (units::unit_cast<double>(newX) > area.max_corner().x()) newX = newX - siteWidth;
-        while (units::unit_cast<double>(newY) > area.max_corner().y()) newY = newY - (rowHeight * 2);
+        auto stdCell = design.libraryMapping().cellStdCell(cell);
+        auto cellGeometry = design.library().geometry(stdCell)[0];
+
+        auto cellWidth = cellGeometry.max_corner().x();
+        auto cellHeight = cellGeometry.max_corner().y();
+
+        while (units::unit_cast<double>(newX) + cellWidth  > area.max_corner().x()) newX = newX - siteWidth;
+        while (units::unit_cast<double>(newY) + cellHeight > area.max_corner().y()) newY = newY - (rowHeight * 2);
 
         while (units::unit_cast<double>(newX) < area.min_corner().x()) newX = newX + siteWidth;
         while (units::unit_cast<double>(newY) < area.min_corner().y()) newY = newY + (rowHeight * 2);
@@ -117,7 +127,7 @@ bool optimizeCircuit(const std::string & circuitName) {
     int fence_num = 0;
 
     for (auto fence : design.fences().range()) {
-        std::cout << "Processing fence " << fence_num++ << std::endl;
+        // std::cout << "Processing fence " << fence_num++ << std::endl;
 
         auto fenceArea = design.fences().area(fence);
         ophidian::geometry::Box fenceBoundingBox;
@@ -128,43 +138,88 @@ bool optimizeCircuit(const std::string & circuitName) {
 
         for (auto cell : design.fences().members(fence)) {
             if (cellDisplacement[cell] <= maxDisplacementAllowed) continue;
-            // if (design.placement().isFixed(cell)) continue;
             bool result = cellLegalizer.legalizeCell(cell, findNewCellLocation(cell, fenceBoundingBox).toPoint(), fenceBoundingBox);
             count++;
             if (!result) fail_count++;
-            if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
+            // if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
         }
 
-        std::cout << "End fence: " << count << " cells processed (" << fail_count << " failed)" << std::endl;
-        count = 0;
-        fail_count = 0;
-
-        // cellAligner.alignCellsToSitesAndRows();
-        rectilinearFences.eraseBlocks();
-        if (!CHECKDESIGN(design)) return false;
-        rectilinearFences.addBlocksToRectilinearFences();
+        // std::cout << "End fence: " << count << " cells processed (" << fail_count << " failed)" << std::endl;
+        // count = 0;
+        // fail_count = 0;
     }
+
+    rectilinearFences.eraseBlocks();
+    if (!CHECKDESIGN(design)) {
+        std::cout << "FAIL: Broke fence regions legalization" << std::endl;
+        return false;
+    }
+
+    std::vector<ophidian::circuit::Cell> nonFenceCells;
+    std::copy_if(design.netlist().begin(ophidian::circuit::Cell()), design.netlist().end(ophidian::circuit::Cell()), std::back_inserter(nonFenceCells),
+        [&](ophidian::circuit::Cell c) {
+            return !design.placement().cellHasFence(c);
+        }
+    );
+
+    cellLegalizer.buildRtree({design.netlist().begin(ophidian::circuit::Cell()), design.netlist().end(ophidian::circuit::Cell())});
+
+    ophidian::legalization::FenceRegionIsolation fenceRegionIsolation(design);
+    fenceRegionIsolation.isolateAllFenceCells();
+
+    auto circuitBoundingBox = boost::geometry::model::box<ophidian::geometry::Point>(design.floorplan().chipOrigin().toPoint(), design.floorplan().chipUpperRightCorner().toPoint());
+
+    for (auto cell : nonFenceCells) {
+        if (cellDisplacement[cell] <= maxDisplacementAllowed) continue;
+        bool result = cellLegalizer.legalizeCell(cell, findNewCellLocation(cell, circuitBoundingBox).toPoint(), circuitBoundingBox);
+        count++;
+        if (!result) fail_count++;
+        // if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed, displacement: " << cellDisplacement[cell] <<  ")" << std::endl;
+    }
+
+    std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
+
+    fenceRegionIsolation.restoreAllFenceCells();
+    if (!CHECKDESIGN(design)) {
+        std::cout << "FAIL: Broke legalization outside fences" << std::endl;
+        return false;
+    }
+
+    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::mean>> accAfter;
+
+    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
+    {
+        accAfter(displacement(initialLocations[*cellIt], design.placement().cellLocation(*cellIt)));
+    }
+
+    auto afterMeanDisplacement = boost::accumulators::mean(accAfter);
+    // auto afterMaxDisplacement = boost::accumulators::max(accAfter);
+    // auto afterTotalDisplacement = boost::accumulators::sum(accAfter);
+
+    DEBUG(afterMeanDisplacement);
+    // DEBUG(afterMaxDisplacement);
+    // DEBUG(afterTotalDisplacement);
 }
 
 int main(int argc, char const *argv[])
 {
     std::vector<std::string> circuitNames = {
-        // "des_perf_1",
-        // "des_perf_a_md1",
-        // "des_perf_a_md2",
-        // "des_perf_b_md1",
-        // "des_perf_b_md2",
-        // "edit_dist_1_md1",
-        // "edit_dist_a_md2",
-        // "edit_dist_a_md3",
-        // "fft_2_md2",
-        // "fft_a_md2",
-        // "fft_a_md3",
+        "des_perf_1",
+        "des_perf_a_md1",
+        "des_perf_a_md2",
+        "des_perf_b_md1",
+        "des_perf_b_md2",
+        "edit_dist_1_md1",
+        "edit_dist_a_md2",
+        "edit_dist_a_md3",
+        "fft_2_md2",
+        "fft_a_md2",
+        "fft_a_md3",
         "pci_bridge32_a_md1",
         "pci_bridge32_a_md2",
-        // "pci_bridge32_b_md1",
-        // "pci_bridge32_b_md2",
-        // "pci_bridge32_b_md3",
+        "pci_bridge32_b_md1",
+        "pci_bridge32_b_md2",
+        "pci_bridge32_b_md3",
     };
 
     for (auto circuitName : circuitNames) {
