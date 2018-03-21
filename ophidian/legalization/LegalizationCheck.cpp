@@ -63,7 +63,8 @@ bool checkAlignment(const floorplan::Floorplan &floorplan, const placement::Plac
             {
                 std::cout << "cell " << netlist.name(*cell_it) << " " << cell_box.min_corner().x() << ", " << cell_box.min_corner().y() << " -> " <<
                     cell_box.max_corner().x() << ", " << cell_box.max_corner().y() << std::endl;
-                std::cout << "cell movel? " <<  placement.isFixed(*cell_it) << std::endl;
+                std::cout << std::boolalpha;
+                std::cout << "cell is fixed? " <<  placement.isFixed(*cell_it) << std::endl;
                 return false;
             }
         }
