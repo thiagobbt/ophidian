@@ -28,8 +28,8 @@ class CellLegalizer {
 	~CellLegalizer();
 
 	void buildRtree(const std::vector<circuit::Cell> legalizedCells);
-	bool legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion, bool);
-	bool legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const Box & legalizationRegion);
+	long long legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const std::vector<circuit::Cell> legalizedCells, const Box & legalizationRegion, bool estimateOnly = false);
+	long long legalizeCell(const circuit::Cell & targetCell, const geometry::Point & targetPosition, const Box & legalizationRegion, bool estimateOnly = false);
 
  private:
 	design::Design & mDesign;

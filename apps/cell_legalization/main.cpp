@@ -4,6 +4,7 @@
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/bind.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/max.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 
@@ -32,7 +33,7 @@ long long displacement(const ophidian::util::Location & a, const ophidian::util:
            std::abs(units::unit_cast<long long>(a.y() - b.y()));
 }
 
-bool optimizeCircuit(const std::string & circuitName) {
+bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFactor = 1.0) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder originalCircuitBuilder(std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/cells_modified.lef",
                                                                                   std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/tech.lef",
                                                                                   std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/placed.def",
@@ -66,22 +67,24 @@ bool optimizeCircuit(const std::string & circuitName) {
         cellDisplacement[currentCell] = displacement(initialLocations[currentCell], design.placement().cellLocation(currentCell));
     }
 
-    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::variance, boost::accumulators::tag::mean>> accBefore;
+    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::variance, boost::accumulators::tag::mean, boost::accumulators::tag::max, boost::accumulators::tag::sum>> accBefore;
     for (auto displacement : cellDisplacement) {
         accBefore(displacement);
     }
 
     auto stdDevDisplacement = sqrt(boost::accumulators::variance(accBefore));
-    auto meanDisplacement = boost::accumulators::mean(accBefore);
-    // auto maxDisplacement = boost::accumulators::max(accBefore);
-    // auto totalDisplacement = boost::accumulators::sum(accBefore);
-    auto maxDisplacementAllowed = meanDisplacement + (stdDevDisplacement * 2);
 
-    DEBUG(stdDevDisplacement);
+    auto meanDisplacement  = boost::accumulators::mean(accBefore);
+    auto maxDisplacement   = boost::accumulators::max(accBefore);
+    auto totalDisplacement = boost::accumulators::sum(accBefore);
+
+    auto maxDisplacementAllowed = meanDisplacement + (stdDevDisplacement * maxDisplacementFactor);
+
+    // DEBUG(stdDevDisplacement);
     DEBUG(meanDisplacement);
-    // DEBUG(maxDisplacement);
-    // DEBUG(totalDisplacement);
-    DEBUG(maxDisplacementAllowed);
+    DEBUG(maxDisplacement);
+    DEBUG(totalDisplacement);
+    // DEBUG(maxDisplacementAllowed);
 
     ophidian::legalization::CellLegalizer cellLegalizer(design);
     ophidian::legalization::CellAlignment cellAligner(design);
@@ -177,7 +180,7 @@ bool optimizeCircuit(const std::string & circuitName) {
         // if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed, displacement: " << cellDisplacement[cell] <<  ")" << std::endl;
     }
 
-    std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
+    // std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
 
     fenceRegionIsolation.restoreAllFenceCells();
     if (!CHECKDESIGN(design)) {
@@ -185,24 +188,32 @@ bool optimizeCircuit(const std::string & circuitName) {
         return false;
     }
 
-    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::mean>> accAfter;
+    boost::accumulators::accumulator_set<long long, boost::accumulators::features<boost::accumulators::tag::max, boost::accumulators::tag::mean, boost::accumulators::tag::sum>> accAfter;
 
     for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); ++cellIt)
     {
         accAfter(displacement(initialLocations[*cellIt], design.placement().cellLocation(*cellIt)));
     }
 
-    auto afterMeanDisplacement = boost::accumulators::mean(accAfter);
-    // auto afterMaxDisplacement = boost::accumulators::max(accAfter);
-    // auto afterTotalDisplacement = boost::accumulators::sum(accAfter);
+    auto afterMeanDisplacement  = boost::accumulators::mean(accAfter);
+    auto afterMaxDisplacement   = boost::accumulators::max(accAfter);
+    auto afterTotalDisplacement = boost::accumulators::sum(accAfter);
 
-    DEBUG(afterMeanDisplacement);
-    // DEBUG(afterMaxDisplacement);
-    // DEBUG(afterTotalDisplacement);
+    std::cout << "afterMeanDisplacement: "  << afterMeanDisplacement  /*<< " (delta: " << afterMeanDisplacement  - meanDisplacement  << ")"*/ << std::endl;
+    std::cout << "afterMaxDisplacement: "   << afterMaxDisplacement   /*<< " (delta: " << afterMaxDisplacement   - maxDisplacement   << ")"*/ << std::endl;
+    std::cout << "afterTotalDisplacement: " << afterTotalDisplacement /*<< " (delta: " << afterTotalDisplacement - totalDisplacement << ")"*/ << std::endl;
 }
 
 int main(int argc, char const *argv[])
 {
+    float maxDisplacementFactor = 1.0;
+
+    if (argc >= 2) {
+        maxDisplacementFactor = std::atof(argv[1]);
+    }
+
+    std::cout << "Using " << maxDisplacementFactor << " std deviations above mean as cutoff displacement" << std::endl;
+
     std::vector<std::string> circuitNames = {
         "des_perf_1",
         "des_perf_a_md1",
@@ -223,8 +234,8 @@ int main(int argc, char const *argv[])
     };
 
     for (auto circuitName : circuitNames) {
-        std::cout << "optimizing circuit: " << circuitName << std::endl;
-        optimizeCircuit(circuitName);
+        std::cout << /*"optimizing circuit: " <<*/ circuitName << std::endl;
+        optimizeCircuit(circuitName, maxDisplacementFactor);
         std::cout << std::endl;
     }
 }
