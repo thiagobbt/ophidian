@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/bind.hpp>
@@ -92,7 +93,40 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
     ophidian::legalization::RectilinearFences rectilinearFences(design);
     rectilinearFences.addBlocksToRectilinearFences();
 
-    auto findNewCellLocation = [&](ophidian::circuit::Cell & cell, ophidian::geometry::Box & area) -> ophidian::util::Location {
+    // auto findNewCellLocation = [&](ophidian::circuit::Cell & cell, ophidian::geometry::Box & area) -> ophidian::util::Location {
+    //     auto cellLocation =  initialLocations[cell];
+    //     auto site         = *design.floorplan().sitesRange().begin();
+    //     auto siteWidth    =  design.floorplan().siteUpperRightCorner(site).x();
+    //     auto rowHeight    =  design.floorplan().siteUpperRightCorner(site).y();
+
+    //     auto newX = std::round(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
+    //     auto newY = std::round(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
+
+    //     auto cellAlignment = design.placementMapping().alignment(cell);
+    //     auto siteHeight = design.floorplan().siteUpperRightCorner(*design.floorplan().sitesRange().begin()).y();
+    //     auto cellPlacedInOddRow = std::fmod((newY/siteHeight), 2.0);
+
+    //     if ((cellPlacedInOddRow and cellAlignment == ophidian::placement::RowAlignment::EVEN) or
+    //         (!cellPlacedInOddRow and cellAlignment == ophidian::placement::RowAlignment::ODD)) {
+    //         newY = newY - rowHeight;
+    //     }
+
+    //     auto stdCell = design.libraryMapping().cellStdCell(cell);
+    //     auto cellGeometry = design.library().geometry(stdCell)[0];
+
+    //     auto cellWidth = cellGeometry.max_corner().x();
+    //     auto cellHeight = cellGeometry.max_corner().y();
+
+    //     while (units::unit_cast<double>(newX) + cellWidth  > area.max_corner().x()) newX = newX - siteWidth;
+    //     while (units::unit_cast<double>(newY) + cellHeight > area.max_corner().y()) newY = newY - (rowHeight * 2);
+
+    //     while (units::unit_cast<double>(newX) < area.min_corner().x()) newX = newX + siteWidth;
+    //     while (units::unit_cast<double>(newY) < area.min_corner().y()) newY = newY + (rowHeight * 2);
+
+    //     return ophidian::util::Location(newX, newY);
+    // };
+
+    auto findNewCellLocations = [&](ophidian::circuit::Cell & cell, ophidian::geometry::Box & area) {
         auto cellLocation =  initialLocations[cell];
         auto site         = *design.floorplan().sitesRange().begin();
         auto siteWidth    =  design.floorplan().siteUpperRightCorner(site).x();
@@ -116,13 +150,145 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
         auto cellWidth = cellGeometry.max_corner().x();
         auto cellHeight = cellGeometry.max_corner().y();
 
-        while (units::unit_cast<double>(newX) + cellWidth  > area.max_corner().x()) newX = newX - siteWidth;
-        while (units::unit_cast<double>(newY) + cellHeight > area.max_corner().y()) newY = newY - (rowHeight * 2);
+        std::vector<ophidian::util::Location> newCellLocations;
 
-        while (units::unit_cast<double>(newX) < area.min_corner().x()) newX = newX + siteWidth;
-        while (units::unit_cast<double>(newY) < area.min_corner().y()) newY = newY + (rowHeight * 2);
+        bool canGoUp = true, canGoDown = true;
 
-        return ophidian::util::Location(newX, newY);
+        while (units::unit_cast<double>(newX) + cellWidth > area.max_corner().x()) {
+            newX = newX - siteWidth;
+        }
+
+        while (units::unit_cast<double>(newY) + cellHeight > area.max_corner().y()) {
+            newY = newY - (rowHeight * 2);
+            canGoUp = false;
+        }
+
+        while (units::unit_cast<double>(newX) < area.min_corner().x()) {
+            newX = newX + siteWidth;
+        }
+
+        while (units::unit_cast<double>(newY) < area.min_corner().y()) {
+            newY = newY + (rowHeight * 2);
+            canGoDown = false;
+        }
+
+        newCellLocations.emplace_back(newX, newY);
+
+        auto maxY = newY;
+        auto minY = newY;
+
+        while (newCellLocations.size() < 10 and (canGoUp or canGoDown)) {
+            if (canGoUp) {
+                maxY = maxY + (rowHeight * 2);
+                if (units::unit_cast<double>(maxY) + cellHeight > area.max_corner().y()) {
+                    canGoUp = false;
+                } else {
+                    newCellLocations.emplace_back(newX, maxY);
+                }
+            }
+
+            if (canGoDown) {
+                minY = minY - (rowHeight * 2);
+                if (units::unit_cast<double>(minY) < area.min_corner().y()) {
+                    canGoDown = false;
+                } else {
+                    newCellLocations.emplace_back(newX, minY);
+                }
+            }
+        }
+
+        return newCellLocations;
+    };
+
+    auto findNewCellLocationsMulti = [&](ophidian::circuit::Cell & cell, ophidian::util::MultiBox & area) {
+        auto cellLocation =  initialLocations[cell];
+        auto site         = *design.floorplan().sitesRange().begin();
+        auto siteWidth    =  design.floorplan().siteUpperRightCorner(site).x();
+        auto rowHeight    =  design.floorplan().siteUpperRightCorner(site).y();
+
+        auto newX = std::round(units::unit_cast<double>(cellLocation.x() / siteWidth)) * siteWidth;
+        auto newY = std::round(units::unit_cast<double>(cellLocation.y() / rowHeight)) * rowHeight;
+
+        auto cellAlignment = design.placementMapping().alignment(cell);
+        auto siteHeight = design.floorplan().siteUpperRightCorner(*design.floorplan().sitesRange().begin()).y();
+        auto cellPlacedInOddRow = std::fmod((newY/siteHeight), 2.0);
+
+        if ((cellPlacedInOddRow and cellAlignment == ophidian::placement::RowAlignment::EVEN) or
+            (!cellPlacedInOddRow and cellAlignment == ophidian::placement::RowAlignment::ODD)) {
+            newY = newY - rowHeight;
+        }
+
+        auto stdCell = design.libraryMapping().cellStdCell(cell);
+        auto cellGeometry = design.library().geometry(stdCell)[0];
+
+        auto cellWidth = cellGeometry.max_corner().x();
+        auto cellHeight = cellGeometry.max_corner().y();
+
+        std::vector<ophidian::util::Location> newCellLocations;
+
+        auto cellBox = [&](ophidian::util::Location loc) {
+            return ophidian::geometry::Box{loc.toPoint(), ophidian::geometry::Point{loc.toPoint().x() + cellHeight, loc.toPoint().y() + cellWidth}};
+        };
+
+        auto within = [&](ophidian::geometry::Box & cell_box, ophidian::util::MultiBox & fence_area) {
+            double coveredArea = 0;
+            for (auto fence_box : fence_area) {
+                if (boost::geometry::intersects(cell_box, fence_box)) {
+                    ophidian::geometry::Box intersection;
+                    boost::geometry::intersection(cell_box, fence_box, intersection);
+                    coveredArea += boost::geometry::area(intersection);
+                }
+            }
+
+            auto cellArea = boost::geometry::area(cell_box);
+            return coveredArea == cellArea;
+        };
+
+        auto checkPosition = [&](ophidian::util::Location loc) {
+            auto box = cellBox(loc);
+            return within(box, area);
+        };
+
+        enum direction {UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3};
+        direction currentDirection = static_cast<direction>(0);
+        int count = 0;
+        int maxCount = 1;
+
+        auto currentX = newX;
+        auto currentY = newY;
+
+        if (checkPosition({currentX, currentY})) newCellLocations.emplace_back(currentX, currentY);
+
+        while (newCellLocations.size() < 10) {
+            switch (currentDirection) {
+                case UP:
+                    currentY = currentY + (rowHeight * 2);
+                    break;
+                case RIGHT:
+                    currentX = currentX + siteWidth;
+                    break;
+                case DOWN:
+                    currentY = currentY - (rowHeight * 2);
+                    break;
+                case LEFT:
+                    currentX = currentX - siteWidth;
+                    break;
+            }
+
+            if (checkPosition({currentX, currentY})) newCellLocations.emplace_back(currentX, currentY);
+
+            count++;
+            if (count == maxCount) {
+                count = 0;
+                int newDirection = (static_cast<int>(currentDirection) + 1) % 4;
+                currentDirection = static_cast<direction>(newDirection);
+                if (currentDirection == UP or currentDirection == DOWN) {
+                    maxCount += 1;
+                }
+            }
+        }
+
+        return newCellLocations;
     };
 
     int fail_count = 0;
@@ -141,9 +307,37 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
 
         for (auto cell : design.fences().members(fence)) {
             if (cellDisplacement[cell] <= maxDisplacementAllowed) continue;
-            bool result = cellLegalizer.legalizeCell(cell, findNewCellLocation(cell, fenceBoundingBox).toPoint(), fenceBoundingBox);
+
+            // auto possibleCellLocations = findNewCellLocations(cell, fenceBoundingBox);
+            auto possibleCellLocations = findNewCellLocationsMulti(cell, fenceArea);
+            std::vector<long long> possibleCellLocationsDisplacement;
+
+            for (auto possibleLocation : possibleCellLocations) {
+                auto result = cellLegalizer.legalizeCell(cell, possibleLocation.toPoint(), fenceBoundingBox, true);
+                possibleCellLocationsDisplacement.push_back(result);
+            }
+
+            auto minDisplacement = std::min_element(possibleCellLocationsDisplacement.begin(), possibleCellLocationsDisplacement.end());
+            auto bestLocation = possibleCellLocations[minDisplacement - possibleCellLocationsDisplacement.begin()];
+
+            // for (int i = 0; i < possibleCellLocationsDisplacement.size(); i++) {
+            //     std::cout
+            //         << ((i == (minDisplacement - possibleCellLocationsDisplacement.begin()))? "*":"")
+            //         << ((possibleCellLocationsDisplacement[i] == std::numeric_limits<long long>::max())? -1 : possibleCellLocationsDisplacement[i])
+            //         << ((i < possibleCellLocationsDisplacement.size() - 1)? ", ":"\n");
+            // }
+
+            // for (int i = 0; i < possibleCellLocations.size(); i++) {
+            //     std::cout
+            //         << ((i == (minDisplacement - possibleCellLocationsDisplacement.begin()))? "*":"")
+            //         << "(" << possibleCellLocations[i].toPoint().x() << ", " << possibleCellLocations[i].toPoint().y() << ")"
+            //         << ((i < possibleCellLocations.size() - 1)? ", ":"\n");
+            // }
+
+            auto result = cellLegalizer.legalizeCell(cell, bestLocation.toPoint(), fenceBoundingBox, false);
             count++;
-            if (!result) fail_count++;
+            // std::cout << result << std::endl;
+            if (result == std::numeric_limits<long long>::max()) fail_count++;
             // if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
         }
 
@@ -151,6 +345,8 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
         // count = 0;
         // fail_count = 0;
     }
+
+    std::cout << count << " fence cells processed (" << fail_count << " failed)" << std::endl;
 
     rectilinearFences.eraseBlocks();
     if (!CHECKDESIGN(design)) {
@@ -174,13 +370,27 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
 
     for (auto cell : nonFenceCells) {
         if (cellDisplacement[cell] <= maxDisplacementAllowed) continue;
-        bool result = cellLegalizer.legalizeCell(cell, findNewCellLocation(cell, circuitBoundingBox).toPoint(), circuitBoundingBox);
+
+        auto possibleCellLocations = findNewCellLocations(cell, circuitBoundingBox);
+        std::vector<long long> possibleCellLocationsDisplacement;
+
+        for (auto possibleLocation : possibleCellLocations) {
+            auto result = cellLegalizer.legalizeCell(cell, possibleLocation.toPoint(), circuitBoundingBox, true);
+            possibleCellLocationsDisplacement.push_back(result);
+        }
+
+        auto minDisplacement = std::min_element(possibleCellLocationsDisplacement.begin(), possibleCellLocationsDisplacement.end());
+        auto bestLocation = possibleCellLocations[minDisplacement - possibleCellLocationsDisplacement.begin()];
+
+        auto result = cellLegalizer.legalizeCell(cell, bestLocation.toPoint(), circuitBoundingBox, false);
+
+        // bool result = cellLegalizer.legalizeCell(cell, findNewCellLocation(cell, circuitBoundingBox).toPoint(), circuitBoundingBox);
         count++;
         if (!result) fail_count++;
         // if (count > 0 && count % 100 == 0) std::cout << count << " cells processed (" << fail_count << " failed, displacement: " << cellDisplacement[cell] <<  ")" << std::endl;
     }
 
-    // std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
+    std::cout << count << " cells processed (" << fail_count << " failed)" << std::endl;
 
     fenceRegionIsolation.restoreAllFenceCells();
     if (!CHECKDESIGN(design)) {
