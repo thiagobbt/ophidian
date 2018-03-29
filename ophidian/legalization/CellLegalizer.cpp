@@ -1,6 +1,7 @@
 #include "CellLegalizer.h"
 
 #include <limits>
+#include <unordered_set>
 #include <boost/geometry/index/rtree.hpp>
 
 namespace ophidian {
@@ -84,10 +85,10 @@ long long CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const ge
     std::vector<RNode> overlaps_target;
     tmpTree.query(boost::geometry::index::intersects(targetBox) && boost::geometry::index::satisfies([&](RNode const& n) { return isNodeTouchingBox(n, targetBox); }), std::back_inserter(overlaps_target));
 
-    // Vector to store all the movements to be realized or discarded if the placement fails
-    std::vector<RNode> movements;
     RNode new_cell_node = std::make_pair(targetBox, targetCell);
-    movements.push_back(new_cell_node);
+
+    std::map<std::string, RNode> cellMovements;
+    cellMovements[mDesign.netlist().name(targetCell)] = new_cell_node;
 
     tmpTree.insert(new_cell_node);
 
@@ -144,7 +145,7 @@ long long CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const ge
         }
 
         new_j = std::make_pair(target_j, std::get<1>(node_j));
-        movements.push_back(new_j);
+        cellMovements[mDesign.netlist().name(std::get<1>(node_j))] = new_j;
 
         overlaps.erase(std::remove_if(overlaps.begin(), overlaps.end(), [&](auto & pair) {
             return std::get<1>(std::get<1>(pair)) == std::get<1>(node_j);
@@ -166,18 +167,20 @@ long long CellLegalizer::legalizeCell(const circuit::Cell & targetCell, const ge
 
     long long movementDisplacement = 0;
 
-    for (auto & n : movements) {
-        double cellX = std::get<0>(n).min_corner().x();
-        double cellY = std::get<0>(n).min_corner().y();
+    for (auto & n : cellMovements) {
+        auto node = std::get<1>(n);
 
-        auto initialCellLocationPoint = mDesign.placement().cellLocation(std::get<1>(n)).toPoint();
+        double cellX = std::get<0>(node).min_corner().x();
+        double cellY = std::get<0>(node).min_corner().y();
+
+        auto initialCellLocationPoint = mDesign.placement().cellLocation(std::get<1>(node)).toPoint();
 
         movementDisplacement += std::abs(cellX - initialCellLocationPoint.x()) +
                                 std::abs(cellY - initialCellLocationPoint.y());
 
         if (!estimateOnly) {
             ophidian::util::Location cellLocation(cellX, cellY);
-            mDesign.placement().placeCell(std::get<1>(n), cellLocation);
+            mDesign.placement().placeCell(std::get<1>(node), cellLocation);
         }
     }
 
