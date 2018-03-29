@@ -34,7 +34,7 @@ long long displacement(const ophidian::util::Location & a, const ophidian::util:
            std::abs(units::unit_cast<long long>(a.y() - b.y()));
 }
 
-bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFactor = 1.0) {
+bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFactor = 1.0, int numPositions = 10) {
     ophidian::designBuilder::ICCAD2017ContestDesignBuilder originalCircuitBuilder(std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/cells_modified.lef",
                                                                                   std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/tech.lef",
                                                                                   std::string(getenv("HOME")) + "/benchmarks/ICCAD2017/" + circuitName + "/placed.def",
@@ -152,7 +152,7 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
 
         if (checkPosition({currentX, currentY})) newCellLocations.emplace_back(currentX, currentY);
 
-        while (newCellLocations.size() < 10) {
+        while (newCellLocations.size() < numPositions) {
             switch (currentDirection) {
                 case UP:
                     currentY = currentY + (rowHeight * 2);
@@ -311,12 +311,17 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
 int main(int argc, char const *argv[])
 {
     float maxDisplacementFactor = 1.0;
+    int numPositions = 10;
 
     if (argc >= 2) {
         maxDisplacementFactor = std::atof(argv[1]);
     }
 
-    std::cout << "Using " << maxDisplacementFactor << " std deviations above mean as cutoff displacement" << std::endl;
+    if (argc >= 3) {
+        numPositions = std::atoi(argv[2]);
+    }
+
+    std::cout << "Using " << maxDisplacementFactor << " std deviations above mean as cutoff displacement, with " << numPositions << " positions" << std::endl;
 
     std::vector<std::string> circuitNames = {
         "des_perf_1",
@@ -339,7 +344,7 @@ int main(int argc, char const *argv[])
 
     for (auto circuitName : circuitNames) {
         std::cout << /*"optimizing circuit: " <<*/ circuitName << std::endl;
-        optimizeCircuit(circuitName, maxDisplacementFactor);
+        optimizeCircuit(circuitName, maxDisplacementFactor, numPositions);
         std::cout << std::endl;
     }
 }
