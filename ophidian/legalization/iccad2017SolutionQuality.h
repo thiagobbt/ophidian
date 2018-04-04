@@ -9,10 +9,10 @@ namespace legalization
 {
 class ICCAD2017SolutionQuality{
 public:
-    ICCAD2017SolutionQuality(ophidian::design::Design &design);
+    ICCAD2017SolutionQuality(ophidian::design::Design &design, ophidian::design::Design &originalDesign);
 
     float rawScore(){
-        return avgMovementScore() * maxMovementScore() * (1 +/* hpwlScore()*/ + softConstraintScore()) * (1 + runtimeScore());
+        return avgMovementScore() * maxMovementScore() * (1 + hpwlScore() + softConstraintScore()) * (1 + runtimeScore());
     }
 
     double totalDisplacement();
@@ -24,7 +24,7 @@ public:
 private:
     float avgMovementScore();
     float maxMovementScore();
-    /*float hpwlScore();*/
+    float hpwlScore();
     float softConstraintScore(){return 0.2;}
     float runtimeScore(){return -0.2;}
 
@@ -34,10 +34,12 @@ private:
 
     float fmm();
     double hpwl(const ophidian::circuit::Net & net);
+    double hpwl(ophidian::design::Design & design, const ophidian::circuit::Net & net);
 
     ophidian::entity_system::Property<ophidian::circuit::Cell, util::Location> mInitialLocations;
     ophidian::entity_system::Property<ophidian::circuit::Cell, bool> mInitialFixed;
     ophidian::design::Design & mDesign;
+    ophidian::design::Design & mOriginalDesign;
     double mRowHeight;
 };
 

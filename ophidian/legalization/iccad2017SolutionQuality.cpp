@@ -5,7 +5,12 @@ namespace ophidian
 namespace legalization
 {
 
-ICCAD2017SolutionQuality::ICCAD2017SolutionQuality(ophidian::design::Design &design):mDesign(design), mInitialLocations(design.netlist().makeProperty<util::Location>(ophidian::circuit::Cell())), mInitialFixed(design.netlist().makeProperty<bool>(ophidian::circuit::Cell())){
+ICCAD2017SolutionQuality::ICCAD2017SolutionQuality(ophidian::design::Design &design, ophidian::design::Design &originalDesign):
+    mInitialLocations(design.netlist().makeProperty<util::Location>(ophidian::circuit::Cell())),
+    mInitialFixed(design.netlist().makeProperty<bool>(ophidian::circuit::Cell())),
+    mDesign(design),
+    mOriginalDesign(originalDesign)
+{
     for(auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); cellIt++)
     {
         mInitialFixed[*cellIt] = design.placement().isFixed(*cellIt);
@@ -36,6 +41,24 @@ float ICCAD2017SolutionQuality::avgMovementScore(){
 
 float ICCAD2017SolutionQuality::maxMovementScore(){
     return 1 + (maximumCellMovement()/100.0) * fmm();
+}
+
+float ICCAD2017SolutionQuality::hpwlScore(){
+    double originalHPWL = 0;
+
+    for (auto it = mOriginalDesign.netlist().begin(circuit::Net()); it < mOriginalDesign.netlist().end(circuit::Net()); it++) {
+        originalHPWL += hpwl(mOriginalDesign, *it);
+    }
+
+    double currentHPWL = 0;
+
+    for (auto it = mDesign.netlist().begin(circuit::Net()); it < mDesign.netlist().end(circuit::Net()); it++) {
+        currentHPWL += hpwl(mDesign, *it);
+    }
+
+    float score = std::max((currentHPWL - originalHPWL) / originalHPWL, 0.0) * (1 + std::max(0.0 /* beta * fof */, 0.2));
+
+    return score;
 }
 
 double ICCAD2017SolutionQuality::totalDisplacement(){
@@ -81,16 +104,37 @@ float ICCAD2017SolutionQuality::fmm(){
     return std::max(displacement, 1.0);
 }
 
-double ICCAD2017SolutionQuality::hpwl(const circuit::Net &net){
-    double minX = std::numeric_limits<double>::max(), minY = std::numeric_limits<double>::max(),
-           maxX = std::numeric_limits<double>::lowest(), maxY = std::numeric_limits<double>::lowest();
-    for(auto pin : mDesign.netlist().pins(net)){
-        minX = std::min(mDesign.placementMapping().location(pin).toPoint().x(), minX);
-        minY = std::min(mDesign.placementMapping().location(pin).toPoint().y(), minY);
-        maxX = std::max(mDesign.placementMapping().location(pin).toPoint().x(), maxX);
-        maxY = std::max(mDesign.placementMapping().location(pin).toPoint().y(), maxY);
+double ICCAD2017SolutionQuality::hpwl(ophidian::design::Design & design, const ophidian::circuit::Net & net){
+    double minX = std::numeric_limits<double>::max(),
+           minY = std::numeric_limits<double>::max(),
+           maxX = std::numeric_limits<double>::lowest(),
+           maxY = std::numeric_limits<double>::lowest();
+
+    for(auto pin : design.netlist().pins(net)){
+        util::Location pinLocation;
+
+        auto input = design.netlist().input(pin);
+        auto output = design.netlist().output(pin);
+
+        if (input != circuit::Input()) {
+            pinLocation = design.placement().inputPadLocation(input);
+        } else if (output != circuit::Output()) {
+            pinLocation = design.placement().outputPadLocation(output);
+        } else {
+            pinLocation = design.placementMapping().location(pin);
+        }
+
+        minX = std::min(pinLocation.toPoint().x(), minX);
+        minY = std::min(pinLocation.toPoint().y(), minY);
+        maxX = std::max(pinLocation.toPoint().x(), maxX);
+        maxY = std::max(pinLocation.toPoint().y(), maxY);
     }
     return std::abs(maxX - minX) + std::abs(maxY - minY);
+}
+
+
+double ICCAD2017SolutionQuality::hpwl(const circuit::Net &net){
+    return hpwl(mDesign, net);
 }
 
 } // namespace legalization
