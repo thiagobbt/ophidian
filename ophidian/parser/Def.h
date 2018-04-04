@@ -58,6 +58,10 @@ public:
         T x, y;
     };
 
+    enum direction_t {
+        INPUT, OUTPUT, INOUT, FEEDTHRU, NA
+    };
+
     /**
      * @brief Type to represent two oposite @c point<int>
      *
@@ -115,6 +119,8 @@ public:
     struct pin {
         std::string name;
         std::string instance;
+        direction_t direction;
+        point<int> placement;
     };
 
     struct net
@@ -165,6 +171,10 @@ public:
         return nets_;
     }
 
+    const std::vector<pin>& pins() const {
+        return pins_;
+    }
+
     /**
      * Returns the DEF database units.
      */
@@ -191,6 +201,7 @@ private:
     std::vector<component> components_;
     std::vector<row> rows_;
     std::vector<region> regions_;
+    std::vector<pin> pins_;
     std::vector<net> nets_;
     std::string group_helper_;
     std::unordered_map<std::string, std::vector<std::string>> groups_;   //< Maps group name to its members

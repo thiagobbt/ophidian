@@ -19,6 +19,8 @@ under the License.
 #include "Def.h"
 #include "ParserException.h"
 
+#include <cstring>
+
 namespace ophidian {
 namespace parser {
 
@@ -131,6 +133,33 @@ std::unique_ptr<Def> DefParser::readFile(const std::string & filename) const
             defNet.pins.push_back(pin);
         }
         that.nets_.push_back(defNet);
+        return 0;
+    });
+
+    defrSetPinCbk([](defrCallbackType_e, defiPin *pin, defiUserData ud)->int{
+        Def& that = *static_cast<Def*>(ud);
+        Def::pin defPin;
+        defPin.name = pin->pinName();
+
+        if (pin->hasDirection()) {
+            if (strcmp(pin->direction(), "INPUT") == 0) {
+                defPin.direction = Def::direction_t::INPUT;
+            } else if (strcmp(pin->direction(), "OUTPUT") == 0) {
+                defPin.direction = Def::direction_t::OUTPUT;
+            } else if (strcmp(pin->direction(), "INOUT") == 0) {
+                defPin.direction = Def::direction_t::INOUT;
+            } else if (strcmp(pin->direction(), "FEEDTHRU") == 0) {
+                defPin.direction = Def::direction_t::FEEDTHRU;
+            } else {
+                defPin.direction = Def::direction_t::NA;
+            }
+        }
+
+        if (pin->hasPlacement()) {
+            defPin.placement = {pin->placementX(), pin->placementY()};
+        }
+
+        that.pins_.push_back(defPin);
         return 0;
     });
 
