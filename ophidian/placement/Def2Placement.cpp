@@ -32,6 +32,20 @@ void def2placement(const parser::Def & def, placement::Placement & placement, ci
         placement.fixLocation(cell, component.fixed);
         placement.cellOrientation(cell, component.orientation);
     }
+
+    for(auto & pin : def.pins()) {
+        util::Location pinPosition(pin.placement.x, pin.placement.y);
+
+        if (pin.direction == parser::Def::direction_t::INPUT) {
+            auto netlistPin = netlist.find(circuit::Pin(), pin.name);
+            auto input = netlist.input(netlistPin);
+            placement.placeInputPad(input, pinPosition);
+        } else if (pin.direction == parser::Def::direction_t::OUTPUT) {
+            auto netlistPin = netlist.find(circuit::Pin(), pin.name);
+            auto output = netlist.output(netlistPin);
+            placement.placeOutputPad(output, pinPosition);
+        }
+    }
 }
 
 } // namespace placement
