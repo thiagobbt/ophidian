@@ -19,6 +19,8 @@
 #include <ophidian/legalization/RectilinearFences.h>
 #include <ophidian/design/DesignBuilder.h>
 
+#include <ophidian/legalization/iccad2017SolutionQuality.h>
+
 #define DEBUG(x) [&]() { std::cerr << #x << ":" << x << std::endl; }()
 #define CHECK(x) [&]()->bool { if (!x) { std::cerr << "CHECK FAILED: " << #x << std::endl; return false; } else { return true; } }()
 #define CHECKDESIGN(design) [&]()->bool { \
@@ -299,6 +301,10 @@ bool optimizeCircuit(const std::string & circuitName, float maxDisplacementFacto
     }
 
     std::cout << "number of moved cells:" << numMovedCells << std::endl;
+
+
+    ophidian::legalization::ICCAD2017SolutionQuality quality(design, originalDesign);
+    std::cout << "ICCAD2017 quality:" << quality.rawScore() << std::endl;
 }
 
 int main(int argc, char const *argv[])
