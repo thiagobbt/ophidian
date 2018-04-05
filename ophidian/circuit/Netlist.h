@@ -22,6 +22,7 @@ under the License.
 #include <ophidian/entity_system/EntitySystem.h>
 #include <ophidian/entity_system/Aggregation.h>
 #include <ophidian/entity_system/Composition.h>
+#include <ophidian/util/Range.h>
 #include <unordered_map>
 
 namespace ophidian
@@ -87,6 +88,7 @@ namespace ophidian
 
                 //! Move Constructor
                 Netlist(Netlist&& nl) = default;
+
                 //! Netlist Destructor
                 /*!
                   \brief This destroy all Netlist's EntitySystems.
@@ -100,30 +102,41 @@ namespace ophidian
                   \return A handler for the created/existing Cell.
                 */
                 Cell add(Cell, std::string cellName);
+
                 //! Erase Cell
                 /*!
                   \param cell A handler for the Cell to erase.
                   \brief Erases a Cell instance.
                 */
                 void erase(const Cell& cell);
+
                 //! Size of Cell's System
                 /*!
                   \brief Returns the number of Cells.
                   \return The number of Cells.
                 */
                 uint32_t size(Cell) const;
+
                 //! Iterator to beginning
                 /*!
                   \brief Returns an iterator pointing to the first element in the Cell's EntitySystem.
                   \return Iterator to the first element in the Cell's EntitySystem.
                 */
                 entity_system::EntitySystem<Cell>::const_iterator begin(Cell) const;
+
                 //! Iterator to end
                 /*!
                   \brief Returns an iterator referring to the past-the-end element in the Cell's EntitySystem.
                   \return Iterator referring to the past-the-end element in the Cell's EntitySystem.
                 */
                 entity_system::EntitySystem<Cell>::const_iterator end(Cell) const;
+
+                //! Cells iterator
+                /*!
+                   \return Range iterator for the Cells.
+                 */
+                util::Range<entity_system::EntitySystem<Cell>::const_iterator> range(Cell) const;
+
                 //! Make Cell Property
                 /*!
                   \brief Creates a Property for the Cell's Entity System.
@@ -131,16 +144,17 @@ namespace ophidian
                   \return An Cell => \p Value Map.
                 */
                 template <typename Value>
-                entity_system::Property<Cell, Value> makeProperty(Cell)
-                const {
+                entity_system::Property<Cell, Value> makeProperty(Cell) const {
                     return entity_system::Property<Cell, Value>(cells_);
                 }
+
                 //! Get the Cell Notifier
                 /*!
                   \brief Returns a pointer to the AlterationNotifier of the Cell's EntitySystem.
                   \return A pointer to the AlterationNotifier of the Cell's EntitySystem.
                 */
                 entity_system::EntitySystem<Cell>::NotifierType* notifier(Cell) const;
+
                 //! Allocate space for storing Cell entities
                 /*!
                   \brief Using this function, it is possible to avoid superfluous memory allocation: if you know that the netlist you want to build will be large (e.g. it will contain millions cells), then it is worth reserving space for this amount before starting to build the netlist.
@@ -177,6 +191,7 @@ namespace ophidian
                   \return Container Wrapper for the Pins of a Cell.
                 */
                 entity_system::Association<Cell, Pin>::Parts pins(const Cell& cell) const;
+
                 //! Add Pin into Cell
                 /*!
                   \brief Adds a Pin to a given Cell.
@@ -184,6 +199,7 @@ namespace ophidian
                   \param pin A handler for the Pin we want to add in \p cell.
                 */
                 void add(const Cell& cell, const Pin& pin);
+
                 //! Add Pin
                 /*!
                   \param A pin name.
@@ -191,30 +207,35 @@ namespace ophidian
                   \return A handler for the created/existing Pin.
                 */
                 Pin add(Pin, std::string pinName);
+
                 //! Erase Pin
                 /*!
                   \param pin A handler for the Pin to erase.
                   \brief Erases a Pin instance.
                 */
                 void erase(const Pin& pin);
+
                 //! Size of Pin's System
                 /*!
                   \brief Returns the number of Pins.
                   \return The number of Pins.
                 */
                 uint32_t size(Pin) const;
+
                 //! Iterator to beginning
                 /*!
                   \brief Returns an iterator pointing to the first element in the Pin's EntitySystem.
                   \return Iterator to the first element in the Pin's EntitySystem.
                 */
                 entity_system::EntitySystem<Pin>::const_iterator begin(Pin) const;
+
                 //! Iterator to end
                 /*!
                   \brief Returns an iterator referring to the past-the-end element in the Pin's EntitySystem.
                   \return Iterator referring to the past-the-end element in the Pin's EntitySystem.
                 */
                 entity_system::EntitySystem<Pin>::const_iterator end(Pin) const;
+
                 //! Make Pin Property
                 /*!
                   \brief Creates a Property for the Pin's Entity System.
@@ -222,22 +243,24 @@ namespace ophidian
                   \return An Pin => \p Value Map.
                 */
                 template <typename Value>
-                entity_system::Property<Pin, Value> makeProperty(Pin)
-                const {
+                entity_system::Property<Pin, Value> makeProperty(Pin) const {
                     return entity_system::Property<Pin, Value>(pins_);
                 }
+
                 //! Get the Pin Notifier
                 /*!
                   \brief Returns a pointer to the AlterationNotifier of the Pin's EntitySystem.
                   \return A pointer to the AlterationNotifier of the Pin's EntitySystem.
                 */
                 entity_system::EntitySystem<Pin>::NotifierType* notifier(Pin) const;
+
                 //! Allocate space for storing Pin entities
                 /*!
                   \brief Using this function, it is possible to avoid superfluous memory allocation: if you know that the netlist you want to build will be large (e.g. it will contain millions pins), then it is worth reserving space for this amount before starting to build the netlist.
                   \param size Minimum capacity for the Pin container.
                 */
                 void reserve(Pin, uint32_t size);
+
                 //! Capacity of the Pin's System
                 /*!
                   \return The capacity of the Pin EntitySystem.
@@ -268,12 +291,14 @@ namespace ophidian
                   \remark If \p pin is disconnected, returns Net().
                 */
                 Net net(const Pin& pin) const;
+
                 //! Disconnect Pin
                 /*!
                   \brief Disconnects a pin from its net.
                   \param pin A handler for the Pin we want to disconnect.
                 */
                 void disconnect(const Pin& pin);
+
                 //! Cell of a Pin
                 /*!
                   \brief Returns the Cell of a Pin.
@@ -289,30 +314,35 @@ namespace ophidian
                   \return A handler for the created/existing Net.
                 */
                 Net add(Net, std::string netName);
+
                 //! Erase Net
                 /*!
                   \param net A handler for the Net to erase.
                   \brief Erases a Net instance.
                 */
                 void erase(const Net& net);
+
                 //! Size of Net's System
                 /*!
                   \brief Returns the number of Nets.
                   \return The number of Nets.
                 */
                 uint32_t size(Net) const;
+
                 //! Iterator to beginning
                 /*!
                   \brief Returns an iterator pointing to the first element in the Net's EntitySystem.
                   \return Iterator to the first element in the Net's EntitySystem.
                 */
                 entity_system::EntitySystem<Net>::const_iterator begin(Net) const;
+
                 //! Iterator to end
                 /*!
                   \brief Returns an iterator referring to the past-the-end element in the Net's EntitySystem.
                   \return Iterator referring to the past-the-end element in the Net's EntitySystem.
                 */
                 entity_system::EntitySystem<Net>::const_iterator end(Net) const;
+
                 //! Make Net Property
                 /*!
                   \brief Creates a Property for the Net's Entity System.
@@ -320,22 +350,24 @@ namespace ophidian
                   \return An Net => \p Value Map.
                 */
                 template <typename Value>
-                entity_system::Property<Net, Value> makeProperty(Net)
-                const {
+                entity_system::Property<Net, Value> makeProperty(Net) const {
                     return entity_system::Property<Net, Value>(nets_);
                 }
+
                 //! Get the Net Notifier
                 /*!
                   \brief Returns a pointer to the AlterationNotifier of the Net's EntitySystem.
                   \return A pointer to the AlterationNotifier of the Net's EntitySystem.
                 */
                 entity_system::EntitySystem<Net>::NotifierType* notifier(Net) const;
+
                 //! Allocate space for storing Net entities
                 /*!
                   \brief Using this function, it is possible to avoid superfluous memory allocation: if you know that the netlist you want to build will be large (e.g. it will contain millions nets), then it is worth reserving space for this amount before starting to build the netlist.
                   \param size Minimum capacity for the Net container.
                 */
                 void reserve(Net, uint32_t size);
+
                 //! Capacity of the Net's System
                 /*!
                   \return The capacity of the Net EntitySystem.
@@ -365,6 +397,7 @@ namespace ophidian
                   \return Container Wrapper for the Pins of a Net.
                 */
                 entity_system::Association<Net, Pin>::Parts pins(const Net& net) const;
+
                 //! Connect Pin on Net
                 /*!
                   \brief Connects a Pin
@@ -379,6 +412,7 @@ namespace ophidian
                   \return The number of Inputs.
                 */
                 uint32_t size(Input) const;
+
                 //! Create an Input
                 /*!
                   \brief Creates an Input for a given Pin.
@@ -386,6 +420,7 @@ namespace ophidian
                   \return A handler for the created Input.
                 */
                 Input add(Input, const Pin& pin);
+
                 //! Pin of an Input
                 /*!
                   \brief Returns the Pin of a given Input.
@@ -393,6 +428,7 @@ namespace ophidian
                   \return A handler for the Pin of \p input.
                 */
                 Pin pin(const Input& input) const;
+
                 //! Input of a Pin
                 /*!
                   \brief Returns the Input of a given Pin.
@@ -401,18 +437,21 @@ namespace ophidian
                   \remark If \p pin isn't associated with any Input, returns Input().
                 */
                 Input input(const Pin& pin) const;
+
                 //! Iterator to beginning
                 /*!
                   \brief Returns an iterator pointing to the first element in the Input's EntitySystem.
                   \return Iterator to the first element in the Input's EntitySystem.
                 */
                 entity_system::EntitySystem<Input>::const_iterator begin(Input) const;
+
                 //! Iterator to end
                 /*!
                   \brief Returns an iterator referring to the past-the-end element in the Input's EntitySystem.
                   \return Iterator referring to the past-the-end element in the Input's EntitySystem.
                 */
                 entity_system::EntitySystem<Input>::const_iterator end(Input) const;
+
                 //! Make Input Property
                 /*!
                   \brief Creates a Property for the Input's Entity System.
@@ -420,10 +459,10 @@ namespace ophidian
                   \return An Input => \p Value Map.
                 */
                 template <typename Value>
-                entity_system::Property<Input, Value> makeProperty(Input)
-                const {
+                entity_system::Property<Input, Value> makeProperty(Input) const {
                     return entity_system::Property<Input, Value>(inputs_);
                 }
+
                 //! Get the Input Notifier
                 /*!
                   \brief Returns a pointer to the AlterationNotifier of the Input's Entity System.
@@ -437,6 +476,7 @@ namespace ophidian
                   \return The number of Outputs.
                 */
                 uint32_t size(Output) const;
+
                 //! Create an Output
                 /*!
                   \brief Creates an Output for a given Pin.
@@ -444,6 +484,7 @@ namespace ophidian
                   \return A handler for the created Output.
                 */
                 Output add(Output, const Pin& pin);
+
                 //! Pin of an Output
                 /*!
                   \brief Returns the Pin of a given Output.
@@ -451,6 +492,7 @@ namespace ophidian
                   \return A handler for the Pin of \p output.
                 */
                 Pin pin(const Output& output) const;
+
                 //! Output of a Pin
                 /*!
                   \brief Returns the Output of a given Pin
@@ -459,18 +501,21 @@ namespace ophidian
                   \remark If pin isn't associated with any Output, returns Output().
                 */
                 Output output(const Pin& pin) const;
+
                 //! Iterator to beginning
                 /*!
                   \brief Returns an iterator pointing to the first element in the Output's Entity System.
                   \return Iterator to the first element in the Output's Entity System.
                 */
                 entity_system::EntitySystem<Output>::const_iterator begin(Output) const;
+
                 //! Iterator to end
                 /*!
                   \brief Returns an iterator referring to the past-the-end element in the Output's Entity System.
                   \return Iterator referring to the past-the-end element in the Output's Entity System.
                 */
                 entity_system::EntitySystem<Output>::const_iterator end(Output) const;
+
                 //! Make Output Property
                 /*!
                   \brief Creates a Property for the Output's Entity System.
@@ -478,10 +523,10 @@ namespace ophidian
                   \return An Output => \p Value Map.
                 */
                 template <typename Value>
-                entity_system::Property<Output, Value> makeProperty(Output)
-                const {
+                entity_system::Property<Output, Value> makeProperty(Output) const {
                     return entity_system::Property<Output, Value>(outputs_);
                 }
+
                 //! Get the Output Notifier
                 /*!
                   \brief Returns a pointer to the AlterationNotifier of the Output's Entity System.

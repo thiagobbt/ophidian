@@ -157,6 +157,10 @@ entity_system::EntitySystem<Cell>::const_iterator Netlist::end(Cell) const
     return cells_.end();
 }
 
+util::Range<entity_system::EntitySystem<Cell>::const_iterator> Netlist::range(Cell) const {
+    return util::Range<entity_system::EntitySystem<Cell>::const_iterator>(cells_.begin(), cells_.end());
+}
+
 void Netlist::add(const Cell &c, const Pin &p)
 {
     cellPins_.addAssociation(c, p);
