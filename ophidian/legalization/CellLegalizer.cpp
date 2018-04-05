@@ -9,8 +9,6 @@ namespace legalization {
 
 CellLegalizer::CellLegalizer(design::Design & design) :
     mDesign(design)
-    // mFenceRegionIsolation(design),
-    // mRectilinearFences(design)
 {
 }
 
@@ -18,7 +16,7 @@ CellLegalizer::~CellLegalizer()
 {
 }
 
-bool isNodeTouchingBox(RNode const& node, Box const& b) {
+bool isNodeTouchingBox(CellLegalizer::RNode const& node, CellLegalizer::Box const& b) {
     auto node_box = std::get<0>(node);
     if (node_box.max_corner().x() <= b.min_corner().x() ||
         b.max_corner().x() <= node_box.min_corner().x() ||
