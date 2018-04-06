@@ -1,5 +1,7 @@
 #include "iccad2017SolutionQuality.h"
 
+#include <algorithm>
+
 namespace ophidian
 {
 namespace legalization
@@ -12,32 +14,40 @@ ICCAD2017SolutionQuality::ICCAD2017SolutionQuality(ophidian::design::Design &des
     mOriginalDesign(originalDesign),
     mRowHeight(mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y())
 {
-    for (auto cellIt = design.netlist().begin(ophidian::circuit::Cell()); cellIt != design.netlist().end(ophidian::circuit::Cell()); cellIt++)
+    for (auto cell : mDesign.netlist().range(circuit::Cell()))
     {
-        mInitialFixed[*cellIt] = design.placement().isFixed(*cellIt);
-        mInitialLocations[*cellIt] = design.placement().cellLocation(*cellIt);
+        mInitialFixed[cell] = originalDesign.placement().isFixed(cell);
+        mInitialLocations[cell] = originalDesign.placement().cellLocation(cell);
     }
-
-    // mRowHeight = mDesign.floorplan().siteUpperRightCorner(*mDesign.floorplan().sitesRange().begin()).toPoint().y();
 }
 
 double ICCAD2017SolutionQuality::avgMovementScore() {
-    std::unordered_map<double, std::pair<double, std::size_t>> cellHeight2Counter;
-    for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
-        if (!mDesign.placement().isFixed(*cellIt))
-        {
-            auto cellHeight = mDesign.placementMapping().geometry(*cellIt)[0].max_corner().y() - mDesign.placementMapping().geometry(*cellIt)[0].min_corner().y();
-            double displacement = cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
-            auto displacementHeightCounter = cellHeight2Counter.find(cellHeight);
-            if (displacementHeightCounter == cellHeight2Counter.end())
-                cellHeight2Counter[cellHeight] = std::pair<double, std::size_t>(displacement, 1);
-            else
-                cellHeight2Counter[cellHeight] = std::pair<double, size_t>(cellHeight2Counter[cellHeight].first + displacement, cellHeight2Counter[cellHeight].second + 1);
-        }
+    struct statistics {
+        double displacement = 0;
+        unsigned quantity = 0;
+    };
+
+    std::unordered_map<double, statistics> cellHeightAccumulator;
+
+    for (auto cell : mDesign.netlist().range(circuit::Cell())) {
+        if (mDesign.placement().isFixed(cell)) continue;
+
+        auto cellHeight = mDesign.placementMapping().geometry(cell)[0].max_corner().y() - mDesign.placementMapping().geometry(cell)[0].min_corner().y();
+        double displacement = cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
+
+        cellHeightAccumulator[cellHeight].displacement += displacement;
+        cellHeightAccumulator[cellHeight].quantity += 1;
+    }
+
     double averageDisplacement = 0;
-    for (auto displacementCounter : cellHeight2Counter)
-        averageDisplacement += (displacementCounter.second.first/displacementCounter.second.second);
-    averageDisplacement = (averageDisplacement / mRowHeight) / cellHeight2Counter.size();
+
+    for (const auto & element : cellHeightAccumulator) {
+        const auto & stats = element.second;
+        averageDisplacement += stats.displacement / stats.quantity;
+    }
+
+    averageDisplacement /= mRowHeight * cellHeightAccumulator.size();
+
     return averageDisplacement;
 }
 
@@ -65,32 +75,33 @@ double ICCAD2017SolutionQuality::hpwlScore() {
 
 double ICCAD2017SolutionQuality::totalDisplacement() {
     double displacement = 0.0;
-    for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
-        displacement+= cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
+
+    for (auto cell : mDesign.netlist().range(circuit::Cell())) {
+        displacement += cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
+    }
+
     return displacement;
 }
 
 double ICCAD2017SolutionQuality::avgDisplacement() {
     double displacement = 0.0;
     unsigned int amount = 0;
-    for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++) {
-        if (mInitialFixed[*cellIt] == false) {
-            displacement+= cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
-            amount++;
-        }
+
+    for (auto cell : mDesign.netlist().range(circuit::Cell())) {
+        if (mInitialFixed[cell]) continue;
+
+        displacement += cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
+        amount++;
     }
-    return (displacement/mRowHeight)/amount;
+
+    return (displacement / mRowHeight) / amount;
 }
 
 int ICCAD2017SolutionQuality::maximumCellMovement() {
     double maximumCellMovement = 0;
-    ophidian::circuit::Cell cellID;
 
     for (auto cell : mDesign.netlist().range(circuit::Cell())) {
-        if (cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]) >= maximumCellMovement) {
-            maximumCellMovement = cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
-            cellID = cell;
-        }
+        maximumCellMovement = std::max(maximumCellMovement, cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]));
     }
 
     return maximumCellMovement / mRowHeight;
@@ -99,10 +110,13 @@ int ICCAD2017SolutionQuality::maximumCellMovement() {
 double ICCAD2017SolutionQuality::fmm() {
     std::string circuitName = mDesign.circuitName();
     double displacement = 0;
-    for (auto cellIt = mDesign.netlist().begin(ophidian::circuit::Cell()); cellIt != mDesign.netlist().end(ophidian::circuit::Cell()); cellIt++)
-        if (cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt])/mRowHeight > mMaximumMovement[circuitName])
-            displacement += cellDisplacement(mDesign.placement().cellLocation(*cellIt), mInitialLocations[*cellIt]);
-    displacement = (displacement / mRowHeight) / mMaximumMovement[circuitName];
+
+    for (auto cell : mDesign.netlist().range(circuit::Cell())) {
+        if (cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell])/mRowHeight > mMaximumMovement.at(circuitName))
+            displacement += cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
+    }
+
+    displacement /= mRowHeight * mMaximumMovement.at(circuitName);
     return std::max(displacement, 1.0);
 }
 
