@@ -49,15 +49,28 @@ private:
     ophidian::design::Design & mOriginalDesign;
     const double mRowHeight;
 
-    const std::unordered_map<std::string, unsigned int> mMaximumMovement = {
-        {"des_perf_b_md1", 300},
-        {"des_perf_b_md2", 300},
-        {"edit_dist_1_md1", 15},
-        {"edit_dist_a_md2", 400},
-        {"fft_2_md2", 20},
-        {"fft_a_md2", 400},
-        {"fft_a_md3", 20},
-        {"pci_bridge32_a_md1", 200}
+    struct placementConstraints {
+        int maximumMovement;
+        int maximumUtilization;
+    };
+
+    const std::unordered_map<std::string, placementConstraints> mConstraints = {
+        {"des_perf_1",         {5,   100}},
+        {"des_perf_a_md1",     {30,   75}},
+        {"des_perf_a_md2",     {35,   70}},
+        {"des_perf_b_md1",     {300,  67}},
+        {"des_perf_b_md2",     {300,  95}},
+        {"edit_dist_1_md1",    {15,  100}},
+        {"edit_dist_a_md2",    {400, 100}},
+        {"edit_dist_a_md3",    {32,   80}},
+        {"fft_2_md2",          {20,  100}},
+        {"fft_a_md2",          {400, 100}},
+        {"fft_a_md3",          {20,   62}},
+        {"pci_bridge32_a_md1", {200,  80}},
+        {"pci_bridge32_a_md2", {25,  100}},
+        {"pci_bridge32_b_md1", {400,  70}},
+        {"pci_bridge32_b_md2", {35,   50}},
+        {"pci_bridge32_b_md3", {35,   65}}
     };
 
     const double BETA = 1.0;

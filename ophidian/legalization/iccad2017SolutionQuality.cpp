@@ -58,14 +58,14 @@ double ICCAD2017SolutionQuality::maxMovementScore() {
 double ICCAD2017SolutionQuality::hpwlScore() {
     double originalHPWL = 0;
 
-    for (auto it = mOriginalDesign.netlist().begin(circuit::Net()); it < mOriginalDesign.netlist().end(circuit::Net()); it++) {
-        originalHPWL += hpwl(mOriginalDesign, *it);
+    for (auto net : mOriginalDesign.netlist().range(circuit::Net())) {
+        originalHPWL += hpwl(mOriginalDesign, net);
     }
 
     double currentHPWL = 0;
 
-    for (auto it = mDesign.netlist().begin(circuit::Net()); it < mDesign.netlist().end(circuit::Net()); it++) {
-        currentHPWL += hpwl(mDesign, *it);
+    for (auto net : mDesign.netlist().range(circuit::Net())) {
+        currentHPWL += hpwl(mDesign, net);
     }
 
     double score = std::max((currentHPWL - originalHPWL) / originalHPWL, 0.0) * (1 + std::max(BETA * fof(), 0.2));
@@ -112,21 +112,74 @@ double ICCAD2017SolutionQuality::fmm() {
     double displacement = 0;
 
     for (auto cell : mDesign.netlist().range(circuit::Cell())) {
-        if (cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell])/mRowHeight > mMaximumMovement.at(circuitName))
+        if (cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell])/mRowHeight > mConstraints.at(circuitName).maximumMovement)
             displacement += cellDisplacement(mDesign.placement().cellLocation(cell), mInitialLocations[cell]);
     }
 
-    displacement /= mRowHeight * mMaximumMovement.at(circuitName);
+    displacement /= mRowHeight * mConstraints.at(circuitName).maximumMovement;
     return std::max(displacement, 1.0);
 }
 
 double ICCAD2017SolutionQuality::fof() {
     // TODO
-    auto singleBinArea = 64 * mRowHeight;
 
-    double totalOverflow = 1.0;
-    double dMax = 1.0;
-    double totalAreaMovableCells = 1.0;
+    using Point = ophidian::geometry::Point;
+    using Box = ophidian::geometry::Box;
+    using RNode = std::pair<Box, ophidian::circuit::Cell>;
+    using RTree = boost::geometry::index::rtree<RNode, boost::geometry::index::rstar<16>>;
+
+    RTree tree;
+
+    for (auto & cell : mDesign.netlist().range(circuit::Cell())) {
+        auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
+
+        auto cell_geometry = mDesign.library().geometry(std_cell)[0];
+
+        auto cell_location_point = mDesign.placement().cellLocation(cell).toPoint();
+
+        Box b(cell_location_point, Point(cell_location_point.x() + cell_geometry.max_corner().x(), cell_location_point.y() + cell_geometry.max_corner().y()));
+        tree.insert(std::make_pair(b, cell));
+    }
+
+    double totalOverflow = 0.0;
+
+    auto singleBinArea = 64 * mRowHeight;
+    double dMax = mConstraints.at(mDesign.circuitName()).maximumUtilization;
+    double totalAreaMovableCells = 0.0;
+
+    for (double y = 0; y < mDesign.floorplan().chipUpperRightCorner().toPoint().y() - (8 * mRowHeight); y += (8 * mRowHeight)) {
+        for (double x = 0; x < mDesign.floorplan().chipUpperRightCorner().toPoint().x() - (8 * mRowHeight); x += (8 * mRowHeight)) {
+            Box binBox({x, y}, {x + (8 * mRowHeight), y + (8 * mRowHeight)});
+            std::vector<RNode> binCells;
+            tree.query(boost::geometry::index::intersects(binBox), std::back_inserter(binCells));
+
+            double movableArea = 0;
+            double freeSpace = singleBinArea;
+
+            for (auto & cellNode : binCells) {
+                auto cell = cellNode.second;
+                auto std_cell = mDesign.libraryMapping().cellStdCell(cell);
+                auto cell_geometry = mDesign.library().geometry(std_cell);
+
+                double covered_area = 0;
+
+                for(auto cell_box : cell_geometry) {
+                    geometry::Box intersection;
+                    boost::geometry::intersection(cell_box, binBox, intersection);
+                    covered_area += boost::geometry::area(intersection);
+                }
+
+                if (mDesign.placement().isFixed(cell)) {
+                    freeSpace -= covered_area;
+                } else {
+                    movableArea += covered_area;
+                }
+            }
+
+            double overflow = movableArea - freeSpace * dMax;
+            totalOverflow += overflow;
+        }
+    }
 
     return totalOverflow * singleBinArea * dMax * totalAreaMovableCells;
 }
