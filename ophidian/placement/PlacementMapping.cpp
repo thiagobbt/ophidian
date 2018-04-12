@@ -24,7 +24,18 @@ util::Location PlacementMapping::location(const circuit::Pin &pin) const
     auto pinOwner = netlist_.cell(pin);
     auto cellLocation = placement_.cellLocation(pinOwner);
     auto pinOffset = library_.pinOffset(stdCellPin);
-    util::Location pinLocation(cellLocation.x() + pinOffset.x(), cellLocation.y() + pinOffset.y());
+    auto cellOrientation = placement_.cellOrientation(pinOwner);
+
+    util::Location pinLocation;
+
+    if (cellOrientation == "S") {
+        auto cellGeometry = geometry(pinOwner)[0];
+        auto cellHeight = util::micrometer_t(cellGeometry.max_corner().y() - cellGeometry.min_corner().y());
+        pinLocation = util::Location(cellLocation.x() + pinOffset.x(), cellLocation.y() + cellHeight - pinOffset.y());
+    } else {
+        pinLocation = util::Location(cellLocation.x() + pinOffset.x(), cellLocation.y() + pinOffset.y());
+    }
+
     return pinLocation;
 }
 
