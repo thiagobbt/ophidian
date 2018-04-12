@@ -1,19 +1,19 @@
 /*
  * Copyright 2017 Ophidian
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
-  http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an
-"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied.  See the License for the
-specific language governing permissions and limitations
-under the License.
+   Licensed to the Apache Software Foundation (ASF) under one
+   or more contributor license agreements.  See the NOTICE file
+   distributed with this work for additional information
+   regarding copyright ownership.  The ASF licenses this file
+   to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance
+   with the License.  You may obtain a copy of the License at
+   http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing,
+   software distributed under the License is distributed on an
+   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.  See the License for the
+   specific language governing permissions and limitations
+   under the License.
  */
 
 #ifndef OPHIDIAN_CIRCUIT_NETLIST_H
@@ -236,6 +236,12 @@ namespace ophidian
                 */
                 entity_system::EntitySystem<Pin>::const_iterator end(Pin) const;
 
+                //! Pins iterator
+                /*!
+                   \return Range iterator for the Pins.
+                 */
+                util::Range<entity_system::EntitySystem<Pin>::const_iterator> range(Pin) const;
+
                 //! Make Pin Property
                 /*!
                   \brief Creates a Property for the Pin's Entity System.
@@ -342,6 +348,12 @@ namespace ophidian
                   \return Iterator referring to the past-the-end element in the Net's EntitySystem.
                 */
                 entity_system::EntitySystem<Net>::const_iterator end(Net) const;
+
+                //! Nets iterator
+                /*!
+                   \return Range iterator for the Nets.
+                 */
+                util::Range<entity_system::EntitySystem<Net>::const_iterator> range(Net) const;
 
                 //! Make Net Property
                 /*!
@@ -452,6 +464,12 @@ namespace ophidian
                 */
                 entity_system::EntitySystem<Input>::const_iterator end(Input) const;
 
+                //! Inputs iterator
+                /*!
+                   \return Range iterator for the Inputs.
+                 */
+                util::Range<entity_system::EntitySystem<Input>::const_iterator> range(Input) const;
+
                 //! Make Input Property
                 /*!
                   \brief Creates a Property for the Input's Entity System.
@@ -515,6 +533,12 @@ namespace ophidian
                   \return Iterator referring to the past-the-end element in the Output's Entity System.
                 */
                 entity_system::EntitySystem<Output>::const_iterator end(Output) const;
+
+                //! Outputs iterator
+                /*!
+                   \return Range iterator for the Outputs.
+                 */
+                util::Range<entity_system::EntitySystem<Output>::const_iterator> range(Output) const;
 
                 //! Make Output Property
                 /*!

@@ -207,6 +207,10 @@ entity_system::EntitySystem<Pin>::const_iterator Netlist::end(Pin) const
     return pins_.end();
 }
 
+util::Range<entity_system::EntitySystem<Pin>::const_iterator> Netlist::range(Pin) const {
+    return util::Range<entity_system::EntitySystem<Pin>::const_iterator>(pins_.begin(), pins_.end());
+}
+
 entity_system::EntitySystem<Net>::const_iterator Netlist::begin(Net) const
 {
     return nets_.begin();
@@ -215,6 +219,10 @@ entity_system::EntitySystem<Net>::const_iterator Netlist::begin(Net) const
 entity_system::EntitySystem<Net>::const_iterator Netlist::end(Net) const
 {
     return nets_.end();
+}
+
+util::Range<entity_system::EntitySystem<Net>::const_iterator> Netlist::range(Net) const {
+    return util::Range<entity_system::EntitySystem<Net>::const_iterator>(nets_.begin(), nets_.end());
 }
 
 void Netlist::connect(const Net &net, const Pin &pin)
@@ -287,6 +295,10 @@ entity_system::EntitySystem<Input>::const_iterator Netlist::end(Input) const
     return inputs_.end();
 }
 
+util::Range<entity_system::EntitySystem<Input>::const_iterator> Netlist::range(Input) const {
+    return util::Range<entity_system::EntitySystem<Input>::const_iterator>(inputs_.begin(), inputs_.end());
+}
+
 entity_system::EntitySystem<Input>::NotifierType *Netlist::notifier(Input) const
 {
     return inputs_.notifier();
@@ -324,6 +336,10 @@ entity_system::EntitySystem<Output>::const_iterator Netlist::begin(Output) const
 entity_system::EntitySystem<Output>::const_iterator Netlist::end(Output) const
 {
     return outputs_.end();
+}
+
+util::Range<entity_system::EntitySystem<Output>::const_iterator> Netlist::range(Output) const {
+    return util::Range<entity_system::EntitySystem<Output>::const_iterator>(outputs_.begin(), outputs_.end());
 }
 
 entity_system::EntitySystem<Output>::NotifierType *Netlist::notifier(Output) const
