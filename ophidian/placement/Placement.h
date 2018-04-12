@@ -81,7 +81,7 @@ public:
 
     void cellOrientation(const circuit::Cell &cell, std::string orientation);
 
-    std::string cellOrientation(const circuit::Cell &cell){
+    std::string cellOrientation(const circuit::Cell &cell) const {
         return cellOrientation_[cell];
     }
 
