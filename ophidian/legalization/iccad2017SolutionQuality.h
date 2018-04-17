@@ -19,12 +19,9 @@ public:
     double softConstraintScore() { return 0.2; }
     double runtimeScore() { return -0.2; }
     double rawScore(){
-        DEBUG(avgMovementScore());
-        DEBUG(maxMovementScore());
-        DEBUG(hpwlScore());
-        DEBUG(softConstraintScore());
-        DEBUG(runtimeScore());
-        return avgMovementScore() * maxMovementScore() * (1 + hpwlScore() + softConstraintScore()) * (1 + runtimeScore());
+        // score = (1 + St) * (1 + Shpwl + Sv) * Sam * Smm
+
+        return /*(1 + runtimeScore()) **/ (1 + hpwlScore() + softConstraintScore()) * avgMovementScore() * maxMovementScore();
     }
 
     double totalDisplacement();
